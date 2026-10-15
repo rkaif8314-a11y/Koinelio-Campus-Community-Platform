@@ -223,7 +223,7 @@ export default function ClubLeaderDashboard() {
               <div className="text-xs text-[#667085] font-medium">Charter Status</div>
               <div className="text-base font-bold text-[#0F9D8A] mt-2 flex items-center gap-1.5">
                 <CheckCircle size={16} />
-                Official Chapter
+                Demo club workspace
               </div>
               <div className="text-[11px] text-[#667085] mt-0.5">
                 Adviser: {club.leadership.find(l => l.role.includes('Adviser'))?.role ?? 'Assigned'}
@@ -235,7 +235,7 @@ export default function ClubLeaderDashboard() {
           <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-2xl flex items-start gap-3">
             <Shield size={20} className="text-[#5146E5] shrink-0 mt-0.5" />
             <div className="text-xs text-indigo-900 leading-relaxed">
-              <strong>Official Leadership Governance:</strong> Official leadership roles at Northstar University require faculty or administration approval. Changes to the executive board are submitted directly to the Office of Student Affairs.
+              <strong>Demo governance workflow:</strong> This is an illustrative workflow only. The current prototype does not submit requests to IIT Bhilai or its Office of Student Affairs.
             </div>
           </div>
         </div>
@@ -444,13 +444,13 @@ export default function ClubLeaderDashboard() {
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-2xl mx-auto space-y-4">
           <h3 className="text-sm font-bold text-[#182230]">Broadcast Club Announcement</h3>
           <p className="text-xs text-[#667085] leading-relaxed">
-            Announcements published here will appear on the campus community feed with an official verified badge from <strong>{club.name}</strong>.
+            Sample announcements will appear in the local demo feed without institute verification from <strong>{club.name}</strong>.
           </p>
 
           {announcementSent && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium flex items-center gap-2">
               <CheckCircle size={14} className="text-emerald-600" />
-              Announcement broadcast successfully to all campus members!
+              Sample announcement added to this local demo feed; no campus-wide broadcast occurred.
             </div>
           )}
 
