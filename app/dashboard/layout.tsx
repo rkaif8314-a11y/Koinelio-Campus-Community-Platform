@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Home,
+  BookOpen,
   Compass,
   Users,
   Calendar,
@@ -40,6 +41,7 @@ function useNavItems(unreadCount: number): NavItem[] {
   return [
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'Discover', href: '/dashboard/discover', icon: Compass },
+    { label: 'Campus Guide', href: '/dashboard/campus', icon: BookOpen },
     { label: 'My Clubs', href: '/dashboard/clubs', icon: Users },
     { label: 'Events', href: '/dashboard/events', icon: Calendar },
     { label: 'Community', href: '/dashboard/community', icon: Globe },
@@ -72,20 +74,32 @@ function SidebarLink({
   onClick?: () => void;
 }) {
   const Icon = item.icon;
+  const accentByLabel: Record<string, { icon: string; active: string; hover: string }> = {
+    Home: { icon: 'text-sky-300', active: 'bg-sky-400/15 text-white ring-1 ring-sky-300/25', hover: 'hover:bg-sky-400/10 hover:text-white' },
+    Discover: { icon: 'text-violet-300', active: 'bg-violet-400/15 text-white ring-1 ring-violet-300/25', hover: 'hover:bg-violet-400/10 hover:text-white' },
+    'Campus Guide': { icon: 'text-cyan-300', active: 'bg-cyan-400/15 text-white ring-1 ring-cyan-300/25', hover: 'hover:bg-cyan-400/10 hover:text-white' },
+    'My Clubs': { icon: 'text-emerald-300', active: 'bg-emerald-400/15 text-white ring-1 ring-emerald-300/25', hover: 'hover:bg-emerald-400/10 hover:text-white' },
+    Events: { icon: 'text-amber-300', active: 'bg-amber-400/15 text-white ring-1 ring-amber-300/25', hover: 'hover:bg-amber-400/10 hover:text-white' },
+    Community: { icon: 'text-teal-300', active: 'bg-teal-400/15 text-white ring-1 ring-teal-300/25', hover: 'hover:bg-teal-400/10 hover:text-white' },
+    Alumni: { icon: 'text-pink-300', active: 'bg-pink-400/15 text-white ring-1 ring-pink-300/25', hover: 'hover:bg-pink-400/10 hover:text-white' },
+    Notifications: { icon: 'text-orange-300', active: 'bg-orange-400/15 text-white ring-1 ring-orange-300/25', hover: 'hover:bg-orange-400/10 hover:text-white' },
+    Messages: { icon: 'text-indigo-300', active: 'bg-indigo-400/15 text-white ring-1 ring-indigo-300/25', hover: 'hover:bg-indigo-400/10 hover:text-white' },
+  };
+  const accent = accentByLabel[item.label] ?? {
+    icon: 'text-white/65',
+    active: 'bg-white/10 text-white ring-1 ring-white/15',
+    hover: 'hover:bg-white/8 hover:text-white',
+  };
+
   return (
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors group
-        ${active
-          ? 'bg-white/10 text-white'
-          : 'text-white/60 hover:bg-white/8 hover:text-white/90'
-        }`}
+      aria-current={active ? 'page' : undefined}
+      className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80
+        ${active ? accent.active : `text-white/65 ${accent.hover}`}`}
     >
-      <Icon
-        size={18}
-        className={`flex-shrink-0 transition-colors ${active ? 'text-[#0F9D8A]' : 'text-white/50 group-hover:text-white/80'}`}
-      />
+      <Icon size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${accent.icon} group-hover:brightness-125`} />
       <span className="flex-1 truncate">{item.label}</span>
       {item.badge !== undefined && item.badgeType === 'count' && (
         <span className="flex-shrink-0 bg-[#5146E5] text-white text-xs font-bold rounded-full min-w-[20px] h-5 flex items-center justify-center px-1.5">
@@ -93,14 +107,13 @@ function SidebarLink({
         </span>
       )}
       {item.badge !== undefined && item.badgeType === 'pill' && (
-        <span className="flex-shrink-0 bg-[#0F9D8A]/20 text-[#0F9D8A] text-[10px] font-semibold rounded-full px-2 py-0.5">
+        <span className="flex-shrink-0 bg-white/10 text-white/80 text-[10px] font-semibold rounded-full px-2 py-0.5 ring-1 ring-white/10">
           {item.badge}
         </span>
       )}
     </Link>
   );
 }
-
 // ─── Logo mark ────────────────────────────────────────────────────────────────
 function LogoMark({ size = 28 }: { size?: number }) {
   return (
@@ -224,7 +237,7 @@ function SidebarContent({
       <div className="mx-3 mb-4">
         <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/8 hover:bg-white/12 transition-colors text-left">
           <Building2 size={16} className="text-white/50 flex-shrink-0" />
-          <span className="flex-1 text-sm text-white/80 truncate font-medium">Northstar University</span>
+          <span className="flex-1 text-sm text-white/80 truncate font-medium">IIT Bhilai</span>
           <ChevronDown size={14} className="text-white/40 flex-shrink-0" />
         </button>
       </div>
@@ -401,7 +414,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Mobile: Institution name */}
           <span className="lg:hidden text-sm font-semibold text-[#182230] truncate">
-            Northstar University
+            IIT Bhilai
           </span>
 
           {/* Desktop: Search */}
@@ -451,6 +464,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto bg-[#F7F8FC] pb-20 lg:pb-0">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-5 text-amber-950 sm:px-6">
+            <p><strong>Unofficial demo:</strong> sample people, member counts, posts, registrations and events are fictional. IIT Bhilai has not endorsed this prototype.</p>
+            <Link href="/dashboard/campus" className="inline-flex shrink-0 items-center gap-1 font-bold text-amber-900 underline underline-offset-2">
+              Open source-linked Campus Guide <BookOpen size={13} />
+            </Link>
+          </div>
           {children}
         </main>
       </div>

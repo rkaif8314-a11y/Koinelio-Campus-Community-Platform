@@ -163,7 +163,7 @@ export default function AlumniPage() {
             Alumni Directory ({filteredAlumni.length})
           </h2>
           <span className="text-xs text-[#667085]">
-            Verified Northstar University Degree Holders
+            Fictional alumni demo profiles
           </span>
         </div>
 

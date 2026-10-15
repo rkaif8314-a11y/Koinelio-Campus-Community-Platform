@@ -265,18 +265,18 @@ export default function ProfilePage() {
               <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-4">
                 <h3 className="text-sm font-bold text-[#182230]">Institutional Verification Audit</h3>
                 <p className="text-xs text-[#667085] leading-relaxed">
-                  Koinelio distinguishes between institution enrollment, faculty designation, and club leadership appointments. Each credential is independently checked by authorized administrators.
+                  Koinelio distinguishes between institution enrollment, faculty designation, and club leadership appointments. In this prototype, no profile has institute-verified credentials. Real verification requires authorised institutional reviewers.
                 </p>
 
                 <div className="space-y-3 pt-2">
                   <div className="p-3.5 bg-[#F7F8FC] rounded-xl border border-[#E5E7EB] flex items-center justify-between">
                     <div>
                       <div className="text-xs font-bold text-[#182230]">Institutional Affiliation</div>
-                      <div className="text-[11px] text-[#667085]">Verified enrolled at Northstar University</div>
+                      <div className="text-[11px] text-[#667085]">Demo affiliation · not institute-verified</div>
                     </div>
                     <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-lg flex items-center gap-1">
                       <CheckCircle size={12} />
-                      Verified
+                      Demo only
                     </span>
                   </div>
 
@@ -287,7 +287,7 @@ export default function ProfilePage() {
                     </div>
                     <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-lg flex items-center gap-1">
                       <CheckCircle size={12} />
-                      Verified
+                      Demo only
                     </span>
                   </div>
 
@@ -300,12 +300,12 @@ export default function ProfilePage() {
                             Club Leadership: {leadClub?.name}
                           </div>
                           <div className="text-[11px] text-[#667085]">
-                            Approved by Office of Student Affairs
+                            Sample role · not institute-approved
                           </div>
                         </div>
                         <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-lg flex items-center gap-1">
                           <CheckCircle size={12} />
-                          Authorized
+                          Demo only
                         </span>
                       </div>
                     );

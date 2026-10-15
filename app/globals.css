@@ -220,3 +220,110 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* KOINELIO INTERACTION POLISH: BEGIN */
+:root {
+  --k-interaction-fast: 140ms;
+  --k-interaction-normal: 180ms;
+  --k-interaction-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Keep the new colour-coded onboarding cards readable in dark mode too. */
+:root[data-theme="dark"] [class~="bg-sky-50"] { background-color: #112d44 !important; }
+:root[data-theme="dark"] [class~="bg-violet-50"] { background-color: #2b1f49 !important; }
+:root[data-theme="dark"] [class~="bg-pink-50"] { background-color: #421b32 !important; }
+:root[data-theme="dark"] [class~="bg-cyan-50"] { background-color: #103640 !important; }
+:root[data-theme="dark"] [class~="bg-orange-50"] { background-color: #412919 !important; }
+:root[data-theme="dark"] [class~="text-[#344054]"] { color: var(--app-text) !important; }
+:root[data-theme="dark"] [class~="text-sky-900"],
+:root[data-theme="dark"] [class~="text-sky-950"] { color: #e0f2fe !important; }
+:root[data-theme="dark"] [class~="text-sky-800"],
+:root[data-theme="dark"] [class~="text-sky-700"] { color: #bae6fd !important; }
+:root[data-theme="dark"] [class~="text-violet-900"] { color: #ede9fe !important; }
+:root[data-theme="dark"] [class~="text-violet-700"] { color: #ddd6fe !important; }
+:root[data-theme="dark"] [class~="text-amber-950"] { color: #fef3c7 !important; }
+:root[data-theme="dark"] [class~="text-amber-900"],
+:root[data-theme="dark"] [class~="text-amber-800"],
+:root[data-theme="dark"] [class~="text-amber-700"] { color: #fde68a !important; }
+:root[data-theme="dark"] [class~="text-emerald-800"],
+:root[data-theme="dark"] [class~="text-emerald-700"] { color: #a7f3d0 !important; }
+
+button,
+[role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition-property: color, background-color, border-color, box-shadow, transform, filter;
+  transition-duration: var(--k-interaction-normal);
+  transition-timing-function: var(--k-interaction-ease);
+}
+
+button:not(:disabled):not([aria-disabled="true"]),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:not(:disabled):not([aria-disabled="true"]):hover,
+[role="button"]:not([aria-disabled="true"]):hover {
+  filter: brightness(1.035) saturate(1.025);
+  transform: translateY(-1px);
+}
+
+button:not(:disabled):not([aria-disabled="true"]):active,
+[role="button"]:not([aria-disabled="true"]):active {
+  filter: brightness(0.92) saturate(1.04);
+  transform: translateY(0) scale(0.99);
+  transition-duration: 70ms;
+}
+
+button:disabled,
+button[aria-disabled="true"],
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+  transform: none;
+  filter: saturate(0.7);
+}
+
+a[href][class*="bg-"]:not([aria-disabled="true"]) {
+  transition-property: color, background-color, border-color, box-shadow, transform, filter;
+  transition-duration: var(--k-interaction-normal);
+  transition-timing-function: var(--k-interaction-ease);
+}
+
+a[href][class*="bg-"]:not([aria-disabled="true"]):hover {
+  filter: brightness(1.035) saturate(1.025);
+  transform: translateY(-1px);
+}
+
+a[href][class*="bg-"]:not([aria-disabled="true"]):active {
+  filter: brightness(0.92) saturate(1.04);
+  transform: translateY(0) scale(0.99);
+  transition-duration: 70ms;
+}
+
+button:focus-visible,
+a[href]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--brand-purple, #5146E5);
+  outline-offset: 3px;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--brand-purple, #5146E5);
+}
+
+/* No hover font-size rules: labels keep their normal, stable size. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+/* KOINELIO INTERACTION POLISH: END */
