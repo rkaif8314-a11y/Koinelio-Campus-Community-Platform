@@ -765,11 +765,25 @@ on public.institution_role_requests
 for select to authenticated
 using (
   user_id = (select auth.uid())
-  or private.is_platform_admin()
+  or public.is_platform_admin()
   or private.has_institution_role(
     institution_id,
     array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
   )
+);
+
+-- Presidents and platform administrators can inspect institution status and
+-- affiliation details, but only the platform/institution administrator can
+-- change the institution's official verification status.
+drop policy if exists "Read verified or own institution requests" on public.institutions;
+create policy "Read verified or own institution requests"
+on public.institutions
+for select to authenticated
+using (
+  approval_status = 'verified'
+  or requested_by = (select auth.uid())
+  or public.is_platform_admin()
+  or private.has_institution_role(id, array['institution_admin', 'president'])
 );
 
 -- Campus president and platform administrators can review the institution
@@ -780,7 +794,7 @@ on public.institution_roles
 for select to authenticated
 using (
   user_id = (select auth.uid())
-  or private.is_platform_admin()
+  or public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 );
 
@@ -792,7 +806,7 @@ on public.institution_affiliation_requests
 for select to authenticated
 using (
   user_id = (select auth.uid())
-  or private.is_platform_admin()
+  or public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 );
 
@@ -801,11 +815,11 @@ create policy "Institution admins decide affiliation requests"
 on public.institution_affiliation_requests
 for update to authenticated
 using (
-  private.is_platform_admin()
+  public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 )
 with check (
-  private.is_platform_admin()
+  public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 );
 
