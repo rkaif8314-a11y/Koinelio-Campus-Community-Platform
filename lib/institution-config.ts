@@ -392,7 +392,7 @@ export const OFFICIAL_UPCOMING_EVENTS = [
     title: '6th Convocation of IIT Bhilai',
     date: '24 October 2026',
     venue: 'Nalanda Hall, IIT Bhilai, Durg–491002',
-    description: 'The official institute page lists the 6th Convocation for Saturday, 24 October 2026. Confirm timing, access and latest instructions from the official programme schedule.',
+    description: 'The official institute page lists the 6th Convocation for Saturday, 24 October 2026. Check the programme schedule for the current ceremony timing, access and instructions.'
     sourceUrl: 'https://www.iitbhilai.ac.in/index.php?pid=convocation',
     scheduleUrl: 'https://www.iitbhilai.ac.in/index.php?pid=convocation_schedule',
     status: 'Publicly listed by IIT Bhilai; recheck before attending.',
