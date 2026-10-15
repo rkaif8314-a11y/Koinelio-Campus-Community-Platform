@@ -988,6 +988,74 @@ grant execute on function public.promote_club_core_member(uuid, uuid) to authent
 
 
 
+-- Moderators, institution admins, and the President can review posts hidden
+-- by moderation and remove campus content. This does not open private direct
+-- conversations to leadership.
+create or replace function private.can_view_post(p_post_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select exists (
+    select 1
+    from public.posts p
+    left join public.profiles author on author.id = p.author_id
+    where p.id = p_post_id
+      and (
+        p.author_id = (select auth.uid())
+        or private.is_platform_admin()
+        or private.has_institution_role(
+          private.current_user_institution_id(),
+          array['institution_admin', 'moderator', 'president']
+        )
+        or (
+          p.moderation_status = 'published'
+          and (
+            p.visibility = 'public'
+            or (
+              p.visibility = 'campus'
+              and author.institution_id is not null
+              and author.institution_id = private.current_user_institution_id()
+            )
+            or (
+              p.visibility = 'club'
+              and p.club_id is not null
+              and private.is_active_club_member(p.club_id)
+            )
+          )
+        )
+      )
+  );
+$function$;
+
+drop policy if exists "Authors or moderators delete posts" on public.posts;
+create policy "Authors or campus leaders delete posts"
+on public.posts
+for delete to authenticated
+using (
+  author_id = (select auth.uid())
+  or public.is_platform_admin()
+  or private.has_institution_role(
+    private.current_user_institution_id(),
+    array['institution_admin', 'moderator', 'president']
+  )
+);
+
+drop policy if exists "Authors delete comments" on public.post_comments;
+create policy "Authors or campus leaders delete comments"
+on public.post_comments
+for delete to authenticated
+using (
+  author_id = (select auth.uid())
+  or public.is_platform_admin()
+  or private.has_institution_role(
+    private.current_user_institution_id(),
+    array['institution_admin', 'moderator', 'president']
+  )
+);
+
 -- Presidents have institute-wide governance authority for announcements, events,
 -- registrations, and affiliation review. They still do not get access to personal
 -- direct-message conversations through these policies.
