@@ -24,8 +24,13 @@ export default function SignInPage() {
     setLoading(true);
 
     try {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!/^[^@\s]+@iitbhilai\.ac\.in$/i.test(normalizedEmail)) {
+        throw new Error('Use your @iitbhilai.ac.in institute email to sign in.');
+      }
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
       });
 
@@ -120,7 +125,7 @@ export default function SignInPage() {
                 autoComplete="email"
                 required
                 maxLength={254}
-                placeholder="you@yourcampus.ac.in"
+                placeholder="name@iitbhilai.ac.in"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="w-full px-4 py-3 text-sm rounded-xl border border-[#D0D5DD] bg-white text-[#182230] outline-none transition focus:border-[#5146E5] focus:ring-4 focus:ring-[#5146E5]/10"
@@ -166,7 +171,7 @@ export default function SignInPage() {
             <Link href="/auth/signup" className="font-semibold text-[#5146E5] hover:underline">Create an account</Link>
           </p>
           <p className="mt-5 text-center text-xs leading-5 text-[#98A2B3]">
-            Use the email and password from your real Supabase signup. Demo accounts are disabled on this page.
+            Use the confirmed @iitbhilai.ac.in email linked to your Koinelio account. Never enter your institute/LDAP password here.
           </p>
         </div>
       </section>
