@@ -54,7 +54,8 @@ as $function$
 $function$;
 
 revoke all on function private.enforce_iit_bhilai_signup_email() from public, anon, authenticated;
-revoke all on function private.is_iit_bhilai_email_verified(uuid) from public, anon, authenticated;
+revoke all on function private.is_iit_bhilai_email_verified(uuid) from public, anon;
+grant execute on function private.is_iit_bhilai_email_verified(uuid) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 2. Owner-managed, private bootstrap allowlist for platform administrators.
@@ -247,6 +248,52 @@ as $function$
   end;
 $function$;
 
+-- Extend the existing manager check: preserve coordinators and institution
+-- admins, and allow the platform administrator/campus president to oversee all
+-- club operations. Keep this SECURITY DEFINER so nested private checks execute
+-- with the function owner's privileges.
+create or replace function private.can_manage_club(p_club_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select case when p_club_id is null then false else
+    (
+      exists (
+        select 1 from public.clubs c
+        where c.id = p_club_id and c.created_by = (select auth.uid())
+      )
+      or exists (
+        select 1 from public.club_memberships cm
+        where cm.club_id = p_club_id
+          and cm.user_id = (select auth.uid())
+          and cm.role = 'coordinator'
+          and cm.status = 'active'
+      )
+      or exists (
+        select 1 from public.institution_roles ir
+        where ir.club_id = p_club_id
+          and ir.user_id = (select auth.uid())
+          and ir.role = 'club_coordinator'
+          and ir.status = 'active'
+      )
+      or exists (
+        select 1
+        from public.clubs c
+        join public.institution_roles ir
+          on ir.institution_id = c.institution_id
+        where c.id = p_club_id
+          and ir.user_id = (select auth.uid())
+          and ir.role = 'institution_admin'
+          and ir.status = 'active'
+      )
+      or private.can_oversee_club(p_club_id)
+    )
+  end
+$function$;
+
 -- A central definition shared by room RLS and all UI entry points.
 create or replace function private.can_access_club_room(p_room_id uuid)
 returns boolean
@@ -264,8 +311,9 @@ as $function$
         private.can_oversee_club(club.id)
         or (
           private.is_iit_bhilai_email_verified((select auth.uid()))
+          and club.approval_status = 'approved'
           and (
-            (room.room_type = 'general' and club.approval_status = 'approved')
+            room.room_type = 'general'
             or (
               room.room_type = 'members'
               and exists (
@@ -292,9 +340,10 @@ as $function$
   );
 $function$;
 
-revoke all on function private.is_campus_president() from public, anon, authenticated;
-revoke all on function private.can_oversee_club(uuid) from public, anon, authenticated;
-revoke all on function private.can_access_club_room(uuid) from public, anon, authenticated;
+revoke all on function private.is_campus_president() from public, anon;
+revoke all on function private.can_oversee_club(uuid) from public, anon;
+revoke all on function private.can_access_club_room(uuid) from public, anon;
+grant execute on function private.can_access_club_room(uuid) to authenticated;
 
 drop policy if exists "Read accessible club rooms" on public.club_rooms;
 create policy "Read accessible club rooms"
@@ -515,6 +564,20 @@ grant execute on function public.decide_institution_role_request(uuid, text) to 
 -- Leadership requests may only be decided through the validated RPC above.
 drop policy if exists "Authorized staff decide role requests" on public.institution_role_requests;
 
+-- The campus president may oversee pending governance requests across the
+-- institute, while ordinary users can only see their own requests.
+drop policy if exists "Read own or pending role requests" on public.institution_role_requests;
+create policy "Read own or pending role requests"
+on public.institution_role_requests
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  or private.has_institution_role(
+    institution_id,
+    array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
+  )
+);
+
 -- ---------------------------------------------------------------------------
 -- 7. Coordinator-controlled interview invitations and Core Member promotion.
 -- ---------------------------------------------------------------------------
@@ -543,6 +606,12 @@ begin
   end if;
   if not private.can_manage_club(p_club_id) then
     raise exception 'Only an approved club coordinator or overseer can invite members.' using errcode = '42501';
+  end if;
+  if not exists (
+    select 1 from public.clubs club
+    where club.id = p_club_id and club.approval_status = 'approved'
+  ) then
+    raise exception 'Invitations are available only for approved clubs.' using errcode = '42501';
   end if;
   if not private.is_iit_bhilai_email_verified(p_invitee_id) then
     raise exception 'The invitee must have a confirmed IIT Bhilai email.' using errcode = '42501';
@@ -643,6 +712,12 @@ begin
   end if;
   if not private.can_manage_club(p_club_id) then
     raise exception 'Only the club coordinator or an administrator/president can promote Core Members.' using errcode = '42501';
+  end if;
+  if not exists (
+    select 1 from public.clubs club
+    where club.id = p_club_id and club.approval_status = 'approved'
+  ) then
+    raise exception 'Membership roles can be changed only in approved clubs.' using errcode = '42501';
   end if;
 
   update public.club_memberships
