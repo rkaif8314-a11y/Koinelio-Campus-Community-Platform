@@ -1,12 +1,12 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { AlertCircle, CheckCircle2, KeyRound, LoaderCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export default function ResetPasswordPage() {
+function ResetPasswordPageContent() {
   const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -71,5 +71,14 @@ export default function ResetPasswordPage() {
         <p className="mt-6 text-center text-sm text-slate-500"><Link href="/auth/signin" className="font-semibold text-indigo-700 hover:underline">Back to sign in</Link></p>
       </div>
     </main>
+  );
+}
+
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 text-sm text-slate-500">Validating password reset link…</main>}>
+      <ResetPasswordPageContent />
+    </Suspense>
   );
 }
