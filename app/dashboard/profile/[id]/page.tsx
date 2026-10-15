@@ -305,7 +305,7 @@ export default function ProfilePage() {
                         </div>
                         <span className="px-2.5 py-1 text-xs font-semibold bg-emerald-50 text-emerald-700 rounded-lg flex items-center gap-1">
                           <CheckCircle size={12} />
-                          Authorized
+                          Demo only
                         </span>
                       </div>
                     );
