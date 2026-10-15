@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+:root {
+  /* Koinelio prototype palette */
+  --brand-navy: #191B4D;          /* Brand navy */
+  --brand-navy-dark: #101235;     /* Dark header and sidebar */
+  --brand-blue: #2B338C;          /* Secondary blue */
+  --brand-blue-light: #EEF2FF;    /* Subtle blue tint */
+  --brand-gold: #C27803;          /* Accent amber */
+  --brand-gold-light: #FEF3C7;    /* Warm accent surface */
+  --brand-emerald: #0F766E;       /* Verification accent */
+  --brand-emerald-light: #F0FDF4; /* Success Tint */
+  
+  /* Neutral Surfaces - Clean, professional, high contrast */
+  --bg-canvas: #F8FAFC;          /* Clean Slate Canvas (not hazy purple) */
+  --surface-white: #FFFFFF;      /* Pure Surface */
+  --surface-subtle: #F1F5F9;     /* Slate Neutral Surface */
+  --surface-card: #FFFFFF;
+  
+  /* Text Tokens */
+  --text-main: #0F172A;          /* Slate 900 - High legibility */
+  --text-muted: #475569;         /* Slate 600 - Secondary text */
+  --text-dim: #94A3B8;           /* Slate 400 - Tertiary metadata */
+  
+  /* Borders & Dividers */
+  --border-main: #E2E8F0;        /* Slate 200 - Crisp dividers */
+  --border-subtle: #F1F5F9;      /* Slate 100 */
+  --border-strong: #CBD5E1;      /* Slate 300 - Active outlines */
+  
+  /* Semantic Status */
+  --success: #15803D;
+  --warning: #B45309;
+  --danger: #B91C1C;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--text-main);
+  background: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Accessible focus rings */
+:focus-visible {
+  outline: 2px solid var(--iitb-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Reduced Motion Safety */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
