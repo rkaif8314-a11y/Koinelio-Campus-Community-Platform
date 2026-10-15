@@ -1016,7 +1016,6 @@ using (
   or private.has_institution_role(institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs'])
 );
 
-drop policy if exists "Authorized institutional roles delete announcements" on public.announcements;
 
 
 -- Prevent ordinary event creators from publishing their own drafts. Coordinators
