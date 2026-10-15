@@ -641,6 +641,17 @@ begin
     raise exception 'Decision must be approved or rejected.' using errcode = '22023';
   end if;
 
+  -- Administrator accounts are never granted through an application/approval
+  -- request. The owner-only bootstrap email allowlist is the sole grant path.
+  if exists (
+    select 1 from public.institution_role_requests request
+    where request.id = p_request_id
+      and request.requested_role = 'institution_admin'
+  ) then
+    raise exception 'Institution administrator access is assigned only through the owner-controlled bootstrap allowlist.'
+      using errcode = '42501';
+  end if;
+
   select request.*
     into v_request
   from public.institution_role_requests request
@@ -961,6 +972,168 @@ grant execute on function public.invite_club_member(uuid, uuid, text, text) to a
 grant execute on function public.respond_to_club_invitation(uuid, boolean) to authenticated;
 grant execute on function public.promote_club_core_member(uuid, uuid) to authenticated;
 
+
+
+-- Presidents have institute-wide governance authority for announcements, events,
+-- registrations, and affiliation review. They still do not get access to personal
+-- direct-message conversations through these policies.
+drop policy if exists "Authorized institutional roles create announcements" on public.announcements;
+create policy "Authorized institutional roles create announcements"
+on public.announcements
+for insert to authenticated
+with check (
+  created_by = (select auth.uid())
+  and private.has_institution_role(
+    institution_id,
+    array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
+  )
+  and status in ('draft', 'published')
+);
+
+drop policy if exists "Authorized institutional roles update announcements" on public.announcements;
+create policy "Authorized institutional roles update announcements"
+on public.announcements
+for update to authenticated
+using (private.has_institution_role(institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs']))
+with check (private.has_institution_role(institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs']));
+
+drop policy if exists "Authorized institutional roles delete announcements" on public.announcements;
+create policy "Authorized institutional roles delete announcements"
+on public.announcements
+for delete to authenticated
+using (private.has_institution_role(institution_id, array['institution_admin', 'president']));
+
+drop policy if exists "Read published announcements for your campus" on public.announcements;
+create policy "Read published announcements for your campus"
+on public.announcements
+for select to authenticated
+using (
+  (
+    status = 'published'
+    and institution_id = (select private.current_user_institution_id())
+    and (expires_at is null or expires_at > now())
+  )
+  or private.has_institution_role(institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs'])
+);
+
+drop policy if exists "Authorized institutional roles delete announcements" on public.announcements;
+
+
+-- Prevent ordinary event creators from publishing their own drafts. Coordinators
+-- can publish club events they manage; campus leadership and General Secretaries
+-- can publish institution events. Owners can still save/edit their own drafts.
+create or replace function public.guard_event_publication()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+begin
+  if current_user = 'authenticated'
+     and new.status = 'published'
+     and (tg_op = 'INSERT' or old.status is distinct from new.status)
+     and not private.can_manage_club(new.club_id)
+     and not private.has_institution_role(
+       new.institution_id,
+       array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
+     ) then
+    raise exception 'Publishing an event requires an approved club coordinator or campus leadership role.'
+      using errcode = '42501';
+  end if;
+  return new;
+end;
+$function$;
+
+revoke all on function public.guard_event_publication() from public, anon, authenticated;
+drop trigger if exists events_guard_publication on public.events;
+create trigger events_guard_publication
+before insert or update of status on public.events
+for each row execute function public.guard_event_publication();
+
+drop policy if exists "Authorized organizers update events" on public.events;
+create policy "Authorized organizers update events"
+on public.events
+for update to authenticated
+using (
+  created_by = (select auth.uid())
+  or private.can_manage_club(club_id)
+  or private.has_institution_role(
+    institution_id,
+    array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
+  )
+)
+with check (
+  created_by = (select auth.uid())
+  or private.can_manage_club(club_id)
+  or private.has_institution_role(
+    institution_id,
+    array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
+  )
+);
+
+drop policy if exists "Read published events in scope or own drafts" on public.events;
+create policy "Read published events in scope or own drafts"
+on public.events
+for select to authenticated
+using (
+  created_by = (select auth.uid())
+  or (
+    status = 'published'
+    and (institution_id is null or institution_id = (select private.current_user_institution_id()))
+    and (
+      club_id is null
+      or exists (select 1 from public.clubs c where c.id = events.club_id and c.approval_status = 'approved')
+    )
+  )
+  or private.can_manage_club(club_id)
+  or private.has_institution_role(
+    institution_id,
+    array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
+  )
+);
+
+drop policy if exists "Read own registrations or registrations for managed events" on public.event_registrations;
+create policy "Read own registrations or registrations for managed events"
+on public.event_registrations
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  or exists (
+    select 1 from public.events e
+    where e.id = event_registrations.event_id
+      and (
+        e.created_by = (select auth.uid())
+        or private.can_manage_club(e.club_id)
+        or private.has_institution_role(e.institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs'])
+      )
+  )
+);
+
+drop policy if exists "Organizers update event attendance" on public.event_registrations;
+create policy "Organizers update event attendance"
+on public.event_registrations
+for update to authenticated
+using (
+  exists (
+    select 1 from public.events e
+    where e.id = event_registrations.event_id
+      and (
+        e.created_by = (select auth.uid())
+        or private.can_manage_club(e.club_id)
+        or private.has_institution_role(e.institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs'])
+      )
+  )
+)
+with check (
+  exists (
+    select 1 from public.events e
+    where e.id = event_registrations.event_id
+      and (
+        e.created_by = (select auth.uid())
+        or private.can_manage_club(e.club_id)
+        or private.has_institution_role(e.institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs'])
+      )
+  )
+);
 
 -- ---------------------------------------------------------------------------
 -- 8. Enforce confirmed institute-email ownership in every authenticated RLS
