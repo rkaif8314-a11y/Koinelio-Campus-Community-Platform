@@ -270,7 +270,7 @@ export default function SettingsPage() {
               <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-2 text-[#667085]">
                 <div className="font-bold text-[#182230]">Authentication Provider</div>
                 <p>
-                  This session is authenticated via <strong>IIT Bhilai Institutional SSO (Demo Sandbox)</strong>. This prototype is not connected to IIT Bhilai institutional SSO. Password changes and MFA are not managed by this demo settings screen.
+                  This is the demo authentication screen. It is not connected to IIT Bhilai institutional SSO; password changes and MFA are not managed by this prototype.
                 </p>
               </div>
 
