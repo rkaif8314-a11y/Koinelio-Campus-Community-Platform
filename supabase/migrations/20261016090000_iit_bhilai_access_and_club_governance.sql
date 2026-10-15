@@ -170,6 +170,25 @@ begin
     insert into public.platform_admins (user_id)
     values (new.id)
     on conflict (user_id) do nothing;
+
+    -- If the tenant already exists, mirror the allowlisted platform admin
+    -- into its institution-scoped admin role so existing RLS-protected
+    -- workflows see the same administrator.
+    insert into public.institution_roles (
+      institution_id, user_id, role, status, granted_by
+    )
+    select i.id, new.id, 'institution_admin', 'active', null
+    from public.institutions i
+    where i.slug = 'iit-bhilai'
+      and i.approval_status in ('pending', 'verified')
+      and not exists (
+        select 1 from public.institution_roles ir
+        where ir.institution_id = i.id
+          and ir.user_id = new.id
+          and ir.role = 'institution_admin'
+          and ir.club_id is null
+          and ir.status = 'active'
+      );
   end if;
 
   return new;
@@ -182,6 +201,56 @@ drop trigger if exists zzz_koinelio_provision_bootstrap_admin on auth.users;
 create trigger zzz_koinelio_provision_bootstrap_admin
 after insert or update of email, email_confirmed_at on auth.users
 for each row execute function private.provision_bootstrap_admin();
+
+-- The platform admin can bootstrap the single-campus institution row in the
+-- Supabase SQL Editor. When it appears, associate existing domain-gated
+-- profiles and grant the allowlisted platform admin their scoped admin role.
+create or replace function private.sync_iit_bhilai_tenant_bootstrap()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+begin
+  if new.slug = 'iit-bhilai'
+     and new.approval_status in ('pending', 'verified') then
+    insert into public.institution_roles (
+      institution_id, user_id, role, status, granted_by
+    )
+    select new.id, pa.user_id, 'institution_admin', 'active', null
+    from public.platform_admins pa
+    where not exists (
+      select 1 from public.institution_roles ir
+      where ir.institution_id = new.id
+        and ir.user_id = pa.user_id
+        and ir.role = 'institution_admin'
+        and ir.club_id is null
+        and ir.status = 'active'
+    );
+
+    -- Do not bypass the affiliation trigger for the current signed-in user.
+    -- Supabase SQL Editor (the owner bootstrap path) has no auth.uid(), so it
+    -- can safely attach the first admin and any already-created pilot profiles.
+    update public.profiles p
+      set institution_id = new.id
+    where p.institution_slug = 'iit-bhilai'
+      and p.institution_id is distinct from new.id
+      and ((select auth.uid()) is null or (select auth.uid()) <> p.id);
+  end if;
+  return new;
+end;
+$function$;
+
+revoke all on function private.sync_iit_bhilai_tenant_bootstrap() from public, anon, authenticated;
+
+drop trigger if exists institutions_sync_iit_bhilai_tenant on public.institutions;
+create trigger institutions_sync_iit_bhilai_tenant
+after insert or update of slug, approval_status on public.institutions
+for each row execute function private.sync_iit_bhilai_tenant_bootstrap();
+
+-- This is a single-institution product. New institution creation is disabled
+-- for students; initialize the IIT Bhilai row through the owner bootstrap SQL.
+drop policy if exists "Request an institution" on public.institutions;
 
 -- ---------------------------------------------------------------------------
 -- 3. Add the Core Member tier and campus-president governance role.
@@ -671,10 +740,48 @@ on public.institution_role_requests
 for select to authenticated
 using (
   user_id = (select auth.uid())
+  or private.is_platform_admin()
   or private.has_institution_role(
     institution_id,
     array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
   )
+);
+
+-- Campus president and platform administrators can review the institution
+-- leadership roster. General users see only their own role grants.
+drop policy if exists "Read own institutional roles or admin roles" on public.institution_roles;
+create policy "Read own institutional roles or admin roles"
+on public.institution_roles
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  or private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
+);
+
+-- Campus executives can review affiliation requests; ordinary students still
+-- see only their own request.
+drop policy if exists "Users read own or institution affiliation requests" on public.institution_affiliation_requests;
+create policy "Users read own or institution affiliation requests"
+on public.institution_affiliation_requests
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  or private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
+);
+
+drop policy if exists "Institution admins decide affiliation requests" on public.institution_affiliation_requests;
+create policy "Institution admins decide affiliation requests"
+on public.institution_affiliation_requests
+for update to authenticated
+using (
+  private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
+)
+with check (
+  private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 );
 
 -- ---------------------------------------------------------------------------
