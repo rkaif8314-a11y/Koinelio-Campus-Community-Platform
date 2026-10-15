@@ -35,6 +35,7 @@ export default function LandingPage() {
             <a href="#clubs" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Clubs</a>
             <a href="#events" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Events</a>
             <a href="#alumni" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Alumni</a>
+            <Link href="/dashboard/campus" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">IIT Bhilai guide</Link>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -46,7 +47,7 @@ export default function LandingPage() {
               href="/dashboard"
               className="text-sm font-semibold text-white bg-[#5146E5] hover:bg-[#4338CA] px-4 py-2 rounded-lg transition-colors"
             >
-              Explore Koinelio
+              Open interactive demo
             </Link>
           </div>
 
@@ -66,6 +67,7 @@ export default function LandingPage() {
             <a href="#clubs" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Clubs</a>
             <a href="#events" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Events</a>
             <a href="#alumni" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Alumni</a>
+            <Link href="/dashboard/campus" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">IIT Bhilai campus guide</Link>
             <div className="flex items-center justify-between pt-1 text-sm text-[#667085]">
               <span>Appearance</span>
               <ThemeToggle />
@@ -75,7 +77,7 @@ export default function LandingPage() {
                 Sign in
               </Link>
               <Link href="/dashboard" className="text-center text-sm font-semibold text-white bg-[#5146E5] rounded-lg px-4 py-2.5">
-                Explore Koinelio
+                Open interactive demo
               </Link>
             </div>
           </div>
@@ -88,22 +90,25 @@ export default function LandingPage() {
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center gap-2 bg-[#EEF0FD] text-[#5146E5] text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-[#5146E5] rounded-full animate-pulse" />
-              Now open for pilot institutions — launching January 2027
+              Independent prototype · IIT Bhilai public-source demo
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#182230] leading-tight tracking-tight mb-6">
               Your campus.{' '}
               <span className="text-[#5146E5]">Your community.</span>{' '}
               Your connections.
             </h1>
-            <p className="text-lg text-[#667085] leading-relaxed mb-8 max-w-2xl mx-auto">
-              Discover student communities, organize events, connect with faculty and alumni, and be part of everything happening across your campus.
+            <p className="text-lg text-[#667085] leading-relaxed mb-5 max-w-2xl mx-auto">
+              Explore a source-linked IIT Bhilai campus guide and preview how student communities, clubs, events, and alumni connections could work in one place.
+            </p>
+            <p className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs leading-5 text-amber-900">
+              <strong>Demo only:</strong> Koinelio is independently built and is not endorsed or operated by IIT Bhilai. Sample people, club counts, posts, registrations, and demo events are fictional. Official facts link to public sources.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/dashboard"
                 className="inline-flex items-center justify-center gap-2 bg-[#5146E5] text-white font-semibold px-6 py-3.5 rounded-xl hover:bg-[#4338CA] transition-colors text-sm"
               >
-                Explore Koinelio
+                Open interactive demo
                 <ArrowRight size={16} />
               </Link>
               <a
@@ -250,8 +255,8 @@ export default function LandingPage() {
                 <Users size={14} className="text-[#5146E5]" />
               </div>
               <div>
-                <div className="text-xs font-semibold text-[#182230]">284 members</div>
-                <div className="text-[10px] text-[#667085]">TechSpark NSU</div>
+                <div className="text-xs font-semibold text-[#182230]">Sample members</div>
+                <div className="text-[10px] text-[#667085]">Ingenuity — Competitive Programming Club</div>
               </div>
             </div>
             <div className="absolute -top-4 -right-4 bg-white rounded-xl border border-[#E5E7EB] shadow-lg p-3 hidden md:flex items-center gap-2">
@@ -259,8 +264,8 @@ export default function LandingPage() {
                 <CheckCircle size={14} className="text-[#0F9D8A]" />
               </div>
               <div>
-                <div className="text-xs font-semibold text-[#182230]">Verified club</div>
-                <div className="text-[10px] text-[#667085]">Institution approved</div>
+                <div className="text-xs font-semibold text-[#182230]">Sample club profile</div>
+                <div className="text-[10px] text-[#667085]">Not institute-verified</div>
               </div>
             </div>
           </div>
@@ -315,7 +320,7 @@ export default function LandingPage() {
                 icon: Shield,
                 color: '#14213D',
                 bg: '#E2E8F0',
-                title: 'Verified Roles & Profiles',
+                title: 'Demo role statuss & Profiles',
                 desc: 'Institution-verified affiliation badges distinguish real student leaders and faculty advisers from unverified claims.',
               },
               {
@@ -387,10 +392,10 @@ export default function LandingPage() {
             </div>
             <div className="space-y-3">
               {[
-                { name: 'TechSpark NSU', cat: 'Technology', members: 284, color: '#5146E5', verified: true },
-                { name: 'Northstar Cultural Society', cat: 'Culture & Arts', members: 312, color: '#B7791F', verified: true },
-                { name: 'RoboNSU', cat: 'Engineering', members: 92, color: '#0F9D8A', verified: true },
-                { name: 'NSU Finance Club', cat: 'Finance', members: 134, color: '#5146E5', verified: true },
+                { name: 'Ingenuity — Competitive Programming Club', cat: 'Sci-Tech', members: 'Sample roster', color: '#5146E5', verified: false },
+                { name: 'DSAI Club', cat: 'Data Science & AI', members: 'Sample roster', color: '#0F9D8A', verified: false },
+                { name: 'DesignX', cat: 'Cultural', members: 'Sample roster', color: '#B7791F', verified: false },
+                { name: 'Space Exploration Society', cat: 'Sci-Tech', members: 'Sample roster', color: '#5146E5', verified: false },
               ].map((club) => (
                 <div key={club.name} className="bg-white rounded-xl border border-[#E5E7EB] p-4 flex items-center gap-4 hover:shadow-md transition-all">
                   <div className="w-10 h-10 rounded-xl flex-shrink-0" style={{ backgroundColor: club.color + '20' }}>
@@ -403,7 +408,7 @@ export default function LandingPage() {
                       <span className="font-semibold text-sm text-[#182230] truncate">{club.name}</span>
                       {club.verified && <CheckCircle size={12} className="text-[#0F9D8A] flex-shrink-0" />}
                     </div>
-                    <span className="text-xs text-[#667085]">{club.cat} · {club.members} members</span>
+                    <span className="text-xs text-[#667085]">{club.cat} · {club.members}</span>
                   </div>
                   <ChevronRight size={16} className="text-[#667085]" />
                 </div>
@@ -419,37 +424,37 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-[#E6F6F4] text-[#0F9D8A] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
               <Calendar size={12} />
-              Events & Festivals
+              Sample events · not official
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-[#182230] mb-4">Never miss a campus moment</h2>
-            <p className="text-[#667085] max-w-xl mx-auto">From technical hackathons to cultural festivals, sports days to alumni reunions — discover and register for everything on your campus.</p>
+            <p className="text-[#667085] max-w-xl mx-auto">These cards demonstrate the event interface only. Dates, venues, registrations and event details are fictional; see the Campus Guide for official source links.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
               {
-                title: 'HackNorthstar 2026',
-                date: 'Nov 8–9, 2026',
-                category: 'Technical',
+                title: 'Demo · Beginner Coding Jam',
+                date: 'Sample date · Oct 25, 2026',
+                category: 'Technical demo',
                 color: '#5146E5',
-                spots: '82 spots left',
+                spots: 'Sample registration',
                 img: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=200&fit=crop',
                 featured: true,
               },
               {
-                title: 'Cultural Fusion Festival',
-                date: 'Nov 14–16, 2026',
-                category: 'Cultural',
+                title: 'Demo · Student Design Showcase',
+                date: 'Sample date · Nov 4, 2026',
+                category: 'Cultural demo',
                 color: '#B7791F',
-                spots: 'Open registration',
+                spots: 'Sample registration',
                 img: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=200&fit=crop',
                 featured: true,
               },
               {
-                title: 'Startup Pitch Night',
-                date: 'Oct 30, 2026',
-                category: 'Competition',
+                title: 'Demo · Student Project Pitch Circle',
+                date: 'Sample date · Dec 5, 2026',
+                category: 'Project demo',
                 color: '#16803D',
-                spots: '52 spots left',
+                spots: 'Sample registration',
                 img: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=200&fit=crop',
                 featured: false,
               },
@@ -494,18 +499,18 @@ export default function LandingPage() {
             <div>
               <div className="inline-flex items-center gap-2 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
                 <Shield size={12} />
-                Trust & Verification
+                Verification workflow preview
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Profiles you can trust</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Verification should be explicit</h2>
               <p className="text-white/70 leading-relaxed mb-6">
-                Koinelio distinguishes between different verification claims — institution affiliation, faculty designation, club membership, and leadership roles. Each claim has its own verification process, managed by authorized institution staff.
+                This section previews how affiliation, faculty, club, and leadership claims could be reviewed. No identity or role shown in this demo is verified. A real institutional rollout needs approved administrators, scoped permissions, and an auditable review process.
               </p>
               <div className="space-y-3">
                 {[
-                  { badge: 'Verified Student', color: '#0F9D8A', desc: 'Active enrolled student at the institution' },
-                  { badge: 'Verified Faculty', color: '#5146E5', desc: 'Authorized faculty member or staff' },
-                  { badge: 'Verified Club', color: '#B7791F', desc: 'Institution-approved student organization' },
-                  { badge: 'Verified Role', color: '#16803D', desc: 'Leadership role approved by institution admin' },
+                  { badge: 'Demo student status', color: '#0F9D8A', desc: 'Real affiliation would require institutional review' },
+                  { badge: 'Demo faculty status', color: '#5146E5', desc: 'No real faculty identity is represented' },
+                  { badge: 'Demo club status', color: '#B7791F', desc: 'Club name is source-linked; Koinelio listing is not verified' },
+                  { badge: 'Demo role status', color: '#16803D', desc: 'No role in this prototype is institution-verified' },
                 ].map(({ badge, color, desc }) => (
                   <div key={badge} className="flex items-center gap-3 bg-white/5 rounded-xl p-3">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color }}>
@@ -523,26 +528,26 @@ export default function LandingPage() {
               <div className="flex items-center gap-3 mb-4">
                 <img src="https://i.pravatar.cc/150?img=47" alt="Aisha" className="w-12 h-12 rounded-full object-cover" />
                 <div>
-                  <div className="font-semibold text-white">Aisha Nwosu</div>
-                  <div className="text-xs text-white/50">Northstar University</div>
+                  <div className="font-semibold text-white">Aisha Verma</div>
+                  <div className="text-xs text-white/50">IIT Bhilai</div>
                 </div>
               </div>
               <div className="space-y-2 mb-4">
                 {[
-                  { label: 'Institution affiliation', status: 'verified', color: '#0F9D8A' },
-                  { label: 'Student status', status: 'verified', color: '#0F9D8A' },
-                  { label: 'TechSpark President', status: 'verified', color: '#0F9D8A' },
-                  { label: 'E-Cell Co-Lead', status: 'pending', color: '#B7791F' },
+                  { label: 'Institution affiliation', status: 'demo', color: '#64748B' },
+                  { label: 'Student status', status: 'demo', color: '#64748B' },
+                  { label: 'Demo club coordinator', status: 'demo', color: '#64748B' },
+                  { label: 'Sample role request', status: 'demo', color: '#64748B' },
                 ].map(({ label, status, color }) => (
                   <div key={label} className="flex items-center justify-between py-2 border-b border-white/10">
                     <span className="text-xs text-white/70">{label}</span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ color, backgroundColor: color + '20' }}>
-                      {status === 'verified' ? '✓ Verified' : '⏳ Pending'}
+                      {status === 'verified' ? '✓ Verified' : status === 'pending' ? '⏳ Pending' : 'Demo only'}
                     </span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-white/40">Verification managed by institution administrators. This is a demo profile.</p>
+              <p className="text-xs text-white/40">Future verification would require authorised institution roles. This is a fictional demo profile.</p>
             </div>
           </div>
         </div>
@@ -561,14 +566,14 @@ export default function LandingPage() {
           </div>
           <div className="grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
             {[
-              { name: 'Chioma Eze', year: '2022', dept: 'Computer Science', role: 'Sr. Engineer @ Stripe', avatar: 'https://i.pravatar.cc/150?img=43' },
-              { name: 'Kwame Asante', year: '2020', dept: 'Electrical Engineering', role: 'CTO & Founder, VoltaGrid', avatar: 'https://i.pravatar.cc/150?img=16' },
-              { name: 'Natasha Ivanova', year: '2021', dept: 'Business Administration', role: 'Investment Analyst, GS', avatar: 'https://i.pravatar.cc/150?img=41' },
+              { name: 'Riya Sen', year: '2022', dept: 'Computer Science and Engineering', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al1' },
+              { name: 'Vikram Anand', year: '2021', dept: 'Electrical Engineering', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al2' },
+              { name: 'Ira Thomas', year: '2022', dept: 'Data Science and Artificial Intelligence', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al3' },
             ].map((alumni) => (
               <div key={alumni.name} className="text-center bg-[#F7F8FC] rounded-2xl border border-[#E5E7EB] p-5 hover:shadow-md transition-all">
                 <img src={alumni.avatar} alt={alumni.name} className="w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 border-white shadow" />
                 <div className="font-semibold text-[#182230] text-sm">{alumni.name}</div>
-                <div className="text-xs text-[#5146E5] font-medium mb-1">NSU Class of {alumni.year}</div>
+                <div className="text-xs text-[#5146E5] font-medium mb-1">IIT Bhilai demo persona · class of {alumni.year}</div>
                 <div className="text-xs text-[#667085] mb-2">{alumni.dept}</div>
                 <div className="text-xs text-[#182230] font-medium bg-white rounded-lg px-2 py-1 border border-[#E5E7EB] inline-block">{alumni.role}</div>
               </div>
@@ -581,15 +586,15 @@ export default function LandingPage() {
       <section className="py-20 bg-[#F7F8FC]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Shield size={32} className="text-[#5146E5] mx-auto mb-4" />
-          <h2 className="text-2xl md:text-3xl font-bold text-[#182230] mb-4">Privacy and trust, built in</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#182230] mb-4">Privacy controls are a design goal</h2>
           <p className="text-[#667085] leading-relaxed mb-8">
-            Koinelio is designed with campus privacy in mind. You control who sees your profile, your activities and your connections. Cross-campus discovery respects your privacy settings. No personal contact details are shared without your explicit consent.
+            These are intended product principles shown in a prototype, not a claim that all production privacy controls are live. The current dashboard uses fictional profiles and local demo interactions. Production access control, institution verification and privacy enforcement must be implemented and tested before a real pilot.
           </p>
           <div className="grid sm:grid-cols-3 gap-4 text-left">
             {[
-              { title: 'You control your profile', desc: 'Choose what is visible to your institution, other campuses, or the public.' },
-              { title: 'Verified, not assumed', desc: 'No one can claim a verified role without institution authorization.' },
-              { title: 'Demo data is clearly labeled', desc: 'This prototype uses fictional data. Nothing here is real user information.' },
+              { title: 'Profile settings preview', desc: 'Preview how audience and profile visibility settings might appear.' },
+              { title: 'Verification is not assumed', desc: 'Real verification would require an approved institution role and an auditable review.' },
+              { title: 'Demo data is clearly labeled', desc: 'Sample profiles, posts, member counts and demo events are fictional.' },
             ].map(({ title, desc }) => (
               <div key={title} className="bg-white rounded-xl border border-[#E5E7EB] p-4">
                 <CheckCircle size={16} className="text-[#0F9D8A] mb-2" />
@@ -608,7 +613,7 @@ export default function LandingPage() {
             Experience Koinelio
           </h2>
           <p className="text-white/75 text-lg mb-8">
-            The prototype is ready. Explore the full platform with demo data — student, faculty, admin and alumni perspectives.
+            Explore the interactive prototype from student, faculty, admin, and alumni perspectives. All profile and community activity is sample data.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -626,7 +631,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="mt-4 text-xs text-white/50">
-            ⓘ This is a prototype. All data is fictional. No real accounts, payments, or institutional verification exist.
+            ⓘ Supabase authentication is connected, while most dashboard activity is local demo state. This is not an official IIT Bhilai service; sample profiles, memberships, counts, and events are fictional.
           </p>
         </div>
       </section>

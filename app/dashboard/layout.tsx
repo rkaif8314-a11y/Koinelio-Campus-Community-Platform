@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Home,
+  BookOpen,
   Compass,
   Users,
   Calendar,
@@ -40,6 +41,7 @@ function useNavItems(unreadCount: number): NavItem[] {
   return [
     { label: 'Home', href: '/dashboard', icon: Home },
     { label: 'Discover', href: '/dashboard/discover', icon: Compass },
+    { label: 'Campus Guide', href: '/dashboard/campus', icon: BookOpen },
     { label: 'My Clubs', href: '/dashboard/clubs', icon: Users },
     { label: 'Events', href: '/dashboard/events', icon: Calendar },
     { label: 'Community', href: '/dashboard/community', icon: Globe },
@@ -224,7 +226,7 @@ function SidebarContent({
       <div className="mx-3 mb-4">
         <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-white/8 hover:bg-white/12 transition-colors text-left">
           <Building2 size={16} className="text-white/50 flex-shrink-0" />
-          <span className="flex-1 text-sm text-white/80 truncate font-medium">Northstar University</span>
+          <span className="flex-1 text-sm text-white/80 truncate font-medium">IIT Bhilai</span>
           <ChevronDown size={14} className="text-white/40 flex-shrink-0" />
         </button>
       </div>
@@ -401,7 +403,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Mobile: Institution name */}
           <span className="lg:hidden text-sm font-semibold text-[#182230] truncate">
-            Northstar University
+            IIT Bhilai
           </span>
 
           {/* Desktop: Search */}
@@ -451,6 +453,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto bg-[#F7F8FC] pb-20 lg:pb-0">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2.5 text-xs leading-5 text-amber-950 sm:px-6">
+            <p><strong>Unofficial demo:</strong> sample people, member counts, posts, registrations and events are fictional. IIT Bhilai has not endorsed this prototype.</p>
+            <Link href="/dashboard/campus" className="inline-flex shrink-0 items-center gap-1 font-bold text-amber-900 underline underline-offset-2">
+              Open source-linked Campus Guide <BookOpen size={13} />
+            </Link>
+          </div>
           {children}
         </main>
       </div>
