@@ -1,7 +1,9 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 import {
   ArrowUpRight,
   BookOpen,
+  Building2,
   CalendarDays,
   CheckCircle2,
   ExternalLink,
@@ -29,7 +31,7 @@ import {
   RECURRING_CAMPUS_EVENTS,
 } from '@/lib/institution-config';
 
-function ExternalLinkLabel({ href, children }: { href: string; children: React.ReactNode }) {
+function ExternalLinkLabel({ href, children }: { href: string; children: ReactNode }) {
   return (
     <a
       href={href}
@@ -62,16 +64,6 @@ function SectionHeading({
 }
 
 export default function CampusGuidePage() {
-  const academicSources = INSTITUTIONAL_SOURCES.filter((source) =>
-    ['Academics'].includes(source.category)
-  );
-  const studentSources = INSTITUTIONAL_SOURCES.filter((source) =>
-    ['Clubs and societies', 'Student life'].includes(source.category)
-  );
-  const supportSources = INSTITUTIONAL_SOURCES.filter((source) =>
-    ['Student support', 'Careers', 'Reports'].includes(source.category)
-  );
-
   return (
     <div className="mx-auto max-w-7xl space-y-9 px-4 py-6 sm:px-6 lg:px-8">
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#191B4D] via-[#3430A3] to-[#0F766E] p-6 text-white shadow-lg sm:p-9">
@@ -197,7 +189,7 @@ export default function CampusGuidePage() {
         />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {CAMPUS_FACILITIES.map((facility, index) => {
-            const Icon = index === 0 ? BookOpen : index === 1 || index === 2 || index === 3 ? FlaskConical : index === 4 ? Wifi : index === 5 ? HeartPulse : index === 6 ? Trophy : BuildingIcon;
+            const Icon = index === 0 ? BookOpen : index === 1 || index === 2 || index === 3 ? FlaskConical : index === 4 ? Wifi : index === 5 ? HeartPulse : index === 6 ? Trophy : Building2;
             return (
               <article key={facility.name} className="rounded-2xl border border-[#E5E7EB] bg-white p-4 shadow-sm">
                 <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-xl ${index % 2 === 0 ? 'bg-[#EEF0FD] text-[#5146E5]' : 'bg-[#E6F6F4] text-[#0F766E]'}`}><Icon size={20} /></div>
@@ -326,4 +318,3 @@ export default function CampusGuidePage() {
   );
 }
 
-import { Building2 as BuildingIcon } from 'lucide-react';
