@@ -54,7 +54,7 @@ export default function SettingsPage() {
       {saveToast && (
         <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2">
           <CheckCircle size={16} className="text-emerald-600" />
-          Settings preferences saved successfully!
+          Demo preference updated in this screen only.
         </div>
       )}
 
@@ -112,8 +112,8 @@ export default function SettingsPage() {
                 {[
                   {
                     id: 'campus_only',
-                    title: 'Northstar University Only (Recommended)',
-                    desc: 'Only enrolled students, verified faculty, and administrators of Northstar University can view your full profile.',
+                    title: 'IIT Bhilai Only (Recommended)',
+                    desc: 'Only enrolled students, verified faculty, and administrators of IIT Bhilai can view your full profile.',
                   },
                   {
                     id: 'cross_campus',
@@ -152,7 +152,7 @@ export default function SettingsPage() {
               </div>
 
               <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between">
-                <span className="text-xs text-[#667085]">GDPR & Student Privacy Compliant</span>
+                <span className="text-xs text-[#667085]">Prototype preference preview · not institute policy</span>
                 <button
                   type="button"
                   onClick={handleSave}
@@ -270,7 +270,7 @@ export default function SettingsPage() {
               <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-2 text-[#667085]">
                 <div className="font-bold text-[#182230]">Authentication Provider</div>
                 <p>
-                  This session is authenticated via <strong>Northstar University Institutional SSO (Demo Sandbox)</strong>. In production, password changes and MFA are governed by Northstar's identity provider.
+                  This session is authenticated via <strong>IIT Bhilai Institutional SSO (Demo Sandbox)</strong>. In production, password changes and MFA are governed by Northstar's identity provider.
                 </p>
               </div>
 
