@@ -432,10 +432,6 @@ as $function$
   select case when p_club_id is null then false else
     (
       exists (
-        select 1 from public.clubs c
-        where c.id = p_club_id and c.created_by = (select auth.uid())
-      )
-      or exists (
         select 1 from public.club_memberships cm
         where cm.club_id = p_club_id
           and cm.user_id = (select auth.uid())
@@ -462,6 +458,24 @@ as $function$
     )
   end;
 $function$;
+
+-- The club creator may edit ordinary club details, including a pending draft,
+-- but this never grants coordinator powers. The trigger above separately
+-- protects approval_status and trusted ownership fields.
+drop policy if exists "Club owners or institution admins update clubs" on public.clubs;
+create policy "Club owners or institution admins update clubs"
+on public.clubs
+for update to authenticated
+using (
+  created_by = (select auth.uid())
+  or private.can_manage_club(id)
+  or private.has_institution_role(institution_id, array['institution_admin'])
+)
+with check (
+  created_by = (select auth.uid())
+  or private.can_manage_club(id)
+  or private.has_institution_role(institution_id, array['institution_admin'])
+);
 
 -- A central definition shared by room RLS and all UI entry points.
 create or replace function private.can_access_club_room(p_room_id uuid)
