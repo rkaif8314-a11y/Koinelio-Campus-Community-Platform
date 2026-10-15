@@ -226,7 +226,7 @@ export default function ClubLeaderDashboard() {
                 Demo club workspace
               </div>
               <div className="text-[11px] text-[#667085] mt-0.5">
-                Adviser: {club.leadership.find(l => l.role.includes('Adviser'))?.role ?? 'Assigned'}
+                Demo adviser role: {club.leadership.find(l => l.role.includes('Adviser'))?.role ?? 'Sample role not assigned'}
               </div>
             </div>
           </div>
