@@ -176,9 +176,9 @@ export default function ClubsPage() {
       if (peopleResult.error) throw peopleResult.error;
 
       setClubs((clubResult.data ?? []) as ClubRecord[]);
-      setMemberships((membershipResult.data ?? []) as MembershipRecord[]);
+      setMemberships((membershipResult.data ?? []) as unknown as MembershipRecord[]);
       setInvitations((invitationResult.data ?? []) as InvitationRecord[]);
-      setRoleRequests((roleResult.data ?? []) as RoleRequestRecord[]);
+      setRoleRequests((roleResult.data ?? []) as unknown as RoleRequestRecord[]);
       setCampusProfiles((peopleResult.data ?? []) as CampusProfile[]);
       const activeRoles = (roleResult.data ?? [])
         .filter((request: { user_id: string; status: string }) => request.user_id === authData.user.id && request.status === 'approved');
