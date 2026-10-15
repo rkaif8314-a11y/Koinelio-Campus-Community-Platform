@@ -166,6 +166,8 @@ function makeDemoUser(input: DemoUserSeed): User {
     avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=' + input.id,
     institution: INSTITUTION_PROFILE.shortName,
     verificationStatus: 'unverified',
+    skills: input.skills ?? [],
+    interests: input.interests ?? [],
     clubMemberships: input.clubMemberships ?? [],
     clubLeaderOf: input.clubLeaderOf ?? [],
     joinedAt: '2026-08-01',
