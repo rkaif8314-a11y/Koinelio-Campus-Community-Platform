@@ -8,6 +8,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import ThemeToggle from '@/components/theme-toggle';
 
 type CampusRole = 'student' | 'faculty' | 'alumni';
 
@@ -111,6 +112,7 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen bg-[#F7F8FC] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="fixed right-4 top-4 z-[60]"><ThemeToggle /></div>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link href="/" className="flex items-center justify-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#5146E5] flex items-center justify-center">
