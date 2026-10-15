@@ -79,7 +79,7 @@ export default function CampusGuidePage() {
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-white/85">
             <span className="inline-flex items-center gap-2"><MapPin size={15} />{INSTITUTION_PROFILE.location}</span>
-            <span className="inline-flex items-center gap-2"><CheckCircle2 size={15} />Research checked {INSTITUTION_PROFILE.verifiedAsOf}</span>
+            <span className="inline-flex items-center gap-2"><CheckCircle2 size={15} />Sources reviewed {INSTITUTION_PROFILE.verifiedAsOf}</span>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
             <a href={INSTITUTION_PROFILE.officialWebsite} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-[#191B4D] hover:bg-indigo-50">
