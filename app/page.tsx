@@ -35,6 +35,7 @@ export default function LandingPage() {
             <a href="#clubs" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Clubs</a>
             <a href="#events" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Events</a>
             <a href="#alumni" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Alumni</a>
+            <Link href="/dashboard/campus" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">IIT Bhilai guide</Link>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -46,7 +47,7 @@ export default function LandingPage() {
               href="/dashboard"
               className="text-sm font-semibold text-white bg-[#5146E5] hover:bg-[#4338CA] px-4 py-2 rounded-lg transition-colors"
             >
-              Explore Koinelio
+              Open interactive demo
             </Link>
           </div>
 
@@ -66,6 +67,7 @@ export default function LandingPage() {
             <a href="#clubs" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Clubs</a>
             <a href="#events" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Events</a>
             <a href="#alumni" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Alumni</a>
+            <Link href="/dashboard/campus" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">IIT Bhilai campus guide</Link>
             <div className="flex items-center justify-between pt-1 text-sm text-[#667085]">
               <span>Appearance</span>
               <ThemeToggle />
@@ -75,7 +77,7 @@ export default function LandingPage() {
                 Sign in
               </Link>
               <Link href="/dashboard" className="text-center text-sm font-semibold text-white bg-[#5146E5] rounded-lg px-4 py-2.5">
-                Explore Koinelio
+                Open interactive demo
               </Link>
             </div>
           </div>
@@ -88,22 +90,25 @@ export default function LandingPage() {
           <div className="text-center max-w-3xl mx-auto mb-12">
             <div className="inline-flex items-center gap-2 bg-[#EEF0FD] text-[#5146E5] text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
               <span className="w-1.5 h-1.5 bg-[#5146E5] rounded-full animate-pulse" />
-              Now open for pilot institutions — launching January 2027
+              Independent prototype · IIT Bhilai public-source demo
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#182230] leading-tight tracking-tight mb-6">
               Your campus.{' '}
               <span className="text-[#5146E5]">Your community.</span>{' '}
               Your connections.
             </h1>
-            <p className="text-lg text-[#667085] leading-relaxed mb-8 max-w-2xl mx-auto">
-              Discover student communities, organize events, connect with faculty and alumni, and be part of everything happening across your campus.
+            <p className="text-lg text-[#667085] leading-relaxed mb-5 max-w-2xl mx-auto">
+              Explore a source-linked IIT Bhilai campus guide and preview how student communities, clubs, events, and alumni connections could work in one place.
+            </p>
+            <p className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs leading-5 text-amber-900">
+              <strong>Demo only:</strong> Koinelio is independently built and is not endorsed or operated by IIT Bhilai. Sample people, club counts, posts, registrations, and demo events are fictional. Official facts link to public sources.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/dashboard"
                 className="inline-flex items-center justify-center gap-2 bg-[#5146E5] text-white font-semibold px-6 py-3.5 rounded-xl hover:bg-[#4338CA] transition-colors text-sm"
               >
-                Explore Koinelio
+                Open interactive demo
                 <ArrowRight size={16} />
               </Link>
               <a
@@ -250,8 +255,8 @@ export default function LandingPage() {
                 <Users size={14} className="text-[#5146E5]" />
               </div>
               <div>
-                <div className="text-xs font-semibold text-[#182230]">284 members</div>
-                <div className="text-[10px] text-[#667085]">TechSpark NSU</div>
+                <div className="text-xs font-semibold text-[#182230]">Sample members</div>
+                <div className="text-[10px] text-[#667085]">Ingenuity — Competitive Programming Club</div>
               </div>
             </div>
             <div className="absolute -top-4 -right-4 bg-white rounded-xl border border-[#E5E7EB] shadow-lg p-3 hidden md:flex items-center gap-2">
@@ -259,8 +264,8 @@ export default function LandingPage() {
                 <CheckCircle size={14} className="text-[#0F9D8A]" />
               </div>
               <div>
-                <div className="text-xs font-semibold text-[#182230]">Verified club</div>
-                <div className="text-[10px] text-[#667085]">Institution approved</div>
+                <div className="text-xs font-semibold text-[#182230]">Sample club profile</div>
+                <div className="text-[10px] text-[#667085]">Not institute-verified</div>
               </div>
             </div>
           </div>
@@ -387,9 +392,9 @@ export default function LandingPage() {
             </div>
             <div className="space-y-3">
               {[
-                { name: 'TechSpark NSU', cat: 'Technology', members: 284, color: '#5146E5', verified: true },
-                { name: 'Northstar Cultural Society', cat: 'Culture & Arts', members: 312, color: '#B7791F', verified: true },
-                { name: 'RoboNSU', cat: 'Engineering', members: 92, color: '#0F9D8A', verified: true },
+                { name: 'Ingenuity — Competitive Programming Club', cat: 'Technology', members: 284, color: '#5146E5', verified: true },
+                { name: 'IIT Bhilai Cultural Council', cat: 'Culture & Arts', members: 312, color: '#B7791F', verified: true },
+                { name: 'Epsilon — Robotics Club', cat: 'Engineering', members: 92, color: '#0F9D8A', verified: true },
                 { name: 'NSU Finance Club', cat: 'Finance', members: 134, color: '#5146E5', verified: true },
               ].map((club) => (
                 <div key={club.name} className="bg-white rounded-xl border border-[#E5E7EB] p-4 flex items-center gap-4 hover:shadow-md transition-all">
@@ -523,8 +528,8 @@ export default function LandingPage() {
               <div className="flex items-center gap-3 mb-4">
                 <img src="https://i.pravatar.cc/150?img=47" alt="Aisha" className="w-12 h-12 rounded-full object-cover" />
                 <div>
-                  <div className="font-semibold text-white">Aisha Nwosu</div>
-                  <div className="text-xs text-white/50">Northstar University</div>
+                  <div className="font-semibold text-white">Aisha Verma</div>
+                  <div className="text-xs text-white/50">IIT Bhilai</div>
                 </div>
               </div>
               <div className="space-y-2 mb-4">
