@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useApp, useCurrentUser, useUnreadNotificationCount } from '@/lib/app-context';
 import { DEMO_SESSION_USERS, DEMO_USERS } from '@/lib/demo-data';
+import ThemeToggle from '@/components/theme-toggle';
 
 // ─── Nav item definition ──────────────────────────────────────────────────────
 interface NavItem {
@@ -430,6 +431,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           {/* Right: Bell + Demo switcher */}
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Link
               href="/dashboard/notifications"
               className="relative p-2 rounded-lg text-[#667085] hover:text-[#182230] hover:bg-[#F7F8FC] transition-colors"
