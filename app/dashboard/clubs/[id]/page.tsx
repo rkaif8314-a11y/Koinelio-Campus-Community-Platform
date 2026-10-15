@@ -130,7 +130,7 @@ export default function ClubDetailPage() {
                   {club.memberCount} Members
                 </span>
                 <span>•</span>
-                <span>Founded {formatDate(club.founded)}</span>
+                <span>{club.founded ? `Founded ${formatDate(club.founded)}` : 'Founding date not publicly listed'}</span>
               </div>
             </div>
           </div>
