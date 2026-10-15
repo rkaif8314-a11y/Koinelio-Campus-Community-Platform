@@ -277,7 +277,7 @@ export default function SignUpPage() {
               </div>
 
               <div>
-                <label htmlFor="batchYear" className={labelClass}>{role === 'faculty' ? 'Joining year at the institute' : 'Admission batch year'}</label>
+                <label htmlFor="batchYear" className={labelClass}>Admission batch year</label>
                 <select id="batchYear" required value={batchYear} onChange={(event) => setBatchYear(event.target.value)} className={inputClass}>
                   <option value="">Select a year</option>
                   {Array.from({ length: currentYear - 2016 + 1 }, (_, index) => currentYear - index).map((year) => <option key={year} value={year}>{year}</option>)}
