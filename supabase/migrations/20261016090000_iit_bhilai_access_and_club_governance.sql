@@ -252,6 +252,29 @@ $function$;
 -- admins, and allow the platform administrator/campus president to oversee all
 -- club operations. Keep this SECURITY DEFINER so nested private checks execute
 -- with the function owner's privileges.
+-- Presidents and platform administrators may approve/suspend any club. The
+-- existing trigger continues to block all other users from changing approval.
+create or replace function public.guard_club_privileged_fields()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+begin
+  if current_user = 'authenticated' then
+    if new.created_by is distinct from old.created_by
+      or new.institution_id is distinct from old.institution_id then
+      raise exception 'Club ownership and institution cannot be changed directly';
+    end if;
+    if new.approval_status is distinct from old.approval_status
+      and not public.has_institution_role(old.institution_id, array['institution_admin'])
+      and not private.can_oversee_club(old.id) then
+      raise exception 'Club approval status requires an administrator or campus president';
+    end if;
+  end if;
+  return new;
+end;
+$function$;
+
 create or replace function private.can_manage_club(p_club_id uuid)
 returns boolean
 language sql
@@ -343,6 +366,7 @@ $function$;
 revoke all on function private.is_campus_president() from public, anon;
 revoke all on function private.can_oversee_club(uuid) from public, anon;
 revoke all on function private.can_access_club_room(uuid) from public, anon;
+grant execute on function private.can_oversee_club(uuid) to authenticated;
 grant execute on function private.can_access_club_room(uuid) to authenticated;
 
 drop policy if exists "Read accessible club rooms" on public.club_rooms;
