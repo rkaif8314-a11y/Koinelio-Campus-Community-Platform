@@ -11,11 +11,11 @@ import {
   EyeOff,
   GraduationCap,
   ShieldCheck,
-  Users,
   BriefcaseBusiness,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from '@/components/theme-toggle';
+import KoinelioLogoMark from '@/components/koinelio-logo-mark';
 import {
   INSTITUTE_DEPARTMENTS,
   INSTITUTE_DISCIPLINES_AND_CENTRES,
@@ -201,9 +201,7 @@ export default function SignUpPage() {
       <div className="relative mx-auto w-full max-w-2xl">
         <div className="text-center">
           <Link href="/" className="inline-flex items-center justify-center gap-2.5 rounded-xl p-1.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#5146E5] to-[#0F766E] text-white shadow-sm" aria-hidden="true">
-              <Users size={19} />
-            </span>
+            <KoinelioLogoMark size={36} />
             <span className="text-xl font-bold tracking-tight text-[#182230]">Koinelio</span>
           </Link>
           <p className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-[#5146E5]">One campus. Every connection.</p>
