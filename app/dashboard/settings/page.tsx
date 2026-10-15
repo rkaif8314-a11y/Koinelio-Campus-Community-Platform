@@ -113,7 +113,7 @@ export default function SettingsPage() {
                   {
                     id: 'campus_only',
                     title: 'IIT Bhilai Only (Recommended)',
-                    desc: 'Only enrolled students, verified faculty, and administrators of IIT Bhilai can view your full profile.',
+                    desc: 'Illustrative demo copy only. Real visibility enforcement is not established by this local preference.',
                   },
                   {
                     id: 'cross_campus',
@@ -270,7 +270,7 @@ export default function SettingsPage() {
               <div className="p-4 bg-slate-50 border border-[#E5E7EB] rounded-xl text-xs space-y-2 text-[#667085]">
                 <div className="font-bold text-[#182230]">Authentication Provider</div>
                 <p>
-                  This session is authenticated via <strong>IIT Bhilai Institutional SSO (Demo Sandbox)</strong>. In production, password changes and MFA are governed by Northstar's identity provider.
+                  This session is authenticated via <strong>IIT Bhilai Institutional SSO (Demo Sandbox)</strong>. This prototype is not connected to IIT Bhilai institutional SSO. Password changes and MFA are not managed by this demo settings screen.
                 </p>
               </div>
 
