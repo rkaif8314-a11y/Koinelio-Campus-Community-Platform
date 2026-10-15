@@ -127,6 +127,8 @@ export default function ClubsPage() {
   const [inviteUserId, setInviteUserId] = useState('');
   const [inviteRole, setInviteRole] = useState<'member' | 'core_member'>('member');
   const [inviteMessage, setInviteMessage] = useState('');
+  const [requestedRole, setRequestedRole] = useState<'president' | 'technical_gs' | 'cultural_gs' | 'moderator'>('technical_gs');
+  const [roleRationale, setRoleRationale] = useState('');
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -314,6 +316,32 @@ export default function ClubsPage() {
     } finally { setSaving(false); }
   }
 
+  async function requestCampusLeadership(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!institutionId) { setError('The authorized administrator must finish the campus tenant setup first.'); return; }
+    if (roleRequests.some((request) => request.user_id === userId && request.requested_role === requestedRole && request.status === 'pending')) {
+      setError('You already have a pending request for this role.');
+      return;
+    }
+    setSaving(true); setError(''); setSuccess('');
+    try {
+      const { error: requestError } = await supabase.from('institution_role_requests').insert({
+        institution_id: institutionId,
+        user_id: userId,
+        requested_role: requestedRole,
+        club_id: null,
+        rationale: roleRationale.trim(),
+        status: 'pending',
+      });
+      if (requestError) throw requestError;
+      setRoleRationale('');
+      setSuccess('Leadership request submitted. It remains pending until the authorized administrator approves it.');
+      await loadData();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : 'Unable to submit leadership request.');
+    } finally { setSaving(false); }
+  }
+
   async function requestCoordinator(club: ClubRecord) {
     if (!institutionId) { setError('The authorized administrator must finish the campus tenant setup first.'); return; }
     setSaving(true); setError(''); setSuccess('');
@@ -467,6 +495,28 @@ export default function ClubsPage() {
               {invitationsByMe.map((invitation) => <div key={invitation.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><p className="font-semibold text-slate-900">{campusProfiles.find((person) => person.id === invitation.invitee_id)?.display_name ?? 'Campus member'}</p><p className="text-xs text-slate-500">{clubById.get(invitation.club_id)?.name ?? 'Club'} · {invitation.invited_role.replace('_', ' ')}</p></div><StatePill status={invitation.status} /></div>)}
             </div>
           </section>
+          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="font-bold text-slate-900">Request campus leadership consideration</h2>
+            <p className="mt-1 text-xs leading-5 text-slate-500">You may request consideration for campus President, Technical/Cultural General Secretary or Moderator. Only the authorized platform administrator can approve these institute-wide roles. Requesting does not grant access.</p>
+            <form onSubmit={requestCampusLeadership} className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="requestedCampusRole" className="mb-1.5 block text-xs font-semibold text-slate-700">Role requested</label>
+                <select id="requestedCampusRole" value={requestedRole} onChange={(e) => setRequestedRole(e.target.value as 'president' | 'technical_gs' | 'cultural_gs' | 'moderator')} className={inputClass}>
+                  <option value="president">Campus President</option>
+                  <option value="technical_gs">General Secretary — Technical Council</option>
+                  <option value="cultural_gs">General Secretary — Cultural Council</option>
+                  <option value="moderator">Community Moderator</option>
+                </select>
+              </div>
+              <div>
+                <label htmlFor="roleRationale" className="mb-1.5 block text-xs font-semibold text-slate-700">Relevant experience / rationale</label>
+                <input id="roleRationale" maxLength={2000} value={roleRationale} onChange={(e) => setRoleRationale(e.target.value)} className={inputClass} placeholder="Why are you requesting consideration?" />
+              </div>
+              <div className="sm:col-span-2"><button disabled={saving} className={buttonClass}><ShieldCheck size={15} />Submit role request</button></div>
+            </form>
+            {roleRequests.filter((request) => request.user_id === userId && request.requested_role !== 'club_coordinator').length > 0 && <div className="mt-4 space-y-2">{roleRequests.filter((request) => request.user_id === userId && request.requested_role !== 'club_coordinator').map((request) => <div key={request.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-3 text-xs"><span className="font-semibold text-slate-800">{request.requested_role.replaceAll('_', ' ')}</span><StatePill status={request.status} /></div>)}</div>}
+          </section>
+
           <section className="rounded-2xl border border-slate-200 bg-white p-5">
             <h2 className="font-bold text-slate-900">Coordinator consideration</h2>
             <p className="mt-1 text-xs leading-5 text-slate-500">Coordinators are appointed after approval by the General Secretary responsible for that club category, the campus president, or the administrator. Membership alone never grants coordinator powers.</p>
