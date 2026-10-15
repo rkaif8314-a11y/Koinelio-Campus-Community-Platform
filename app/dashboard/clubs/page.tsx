@@ -379,8 +379,13 @@ export default function ClubsPage() {
 
   const pendingMemberships = memberships.filter((item) => item.status === 'pending' && item.user_id !== userId);
   const pendingRoleRequests = roleRequests.filter((item) => item.status === 'pending' && leadership);
-  const pendingClubApprovals = clubs.filter((club) => ['pending', 'draft'].includes(club.approval_status) && leadership);
-  const canManageClub = (clubId: string) => activeMemberships.some((item) => item.club_id === clubId && item.role === 'coordinator') || leadership;
+  const pendingClubApprovals = clubs.filter((club) =>
+    ['pending', 'draft'].includes(club.approval_status) &&
+    roles.some((role) => ['institution_admin', 'president'].includes(role))
+  );
+  const canManageClub = (clubId: string) =>
+    activeMemberships.some((item) => item.club_id === clubId && item.role === 'coordinator') ||
+    roles.some((role) => ['institution_admin', 'president'].includes(role));
 
   if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading clubs from Supabase…</div>;
 
