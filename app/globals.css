@@ -199,6 +199,17 @@ body {
   background: #46536b;
 }
 
+@media (max-width: 640px) {
+  .theme-toggle-button {
+    min-height: 2.4rem;
+    padding: 0.55rem;
+  }
+
+  .theme-toggle-button span {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
