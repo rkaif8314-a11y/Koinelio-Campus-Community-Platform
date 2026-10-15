@@ -199,7 +199,7 @@ export default function ClubLeaderDashboard() {
               <div className="text-xs text-[#667085] font-medium">Total Active Members</div>
               <div className="text-2xl font-bold text-[#182230] mt-1">{club.memberCount}</div>
               <div className="text-[11px] text-emerald-600 mt-1 font-medium">
-                Verified roster
+                Demo roster · not verified
               </div>
             </div>
 
