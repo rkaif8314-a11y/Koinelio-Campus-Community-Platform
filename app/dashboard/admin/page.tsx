@@ -40,18 +40,18 @@ export default function AdminPage() {
     {
       id: 'vr1',
       userId: 'u4',
-      userName: 'Jordan Osei',
+      userName: 'Kabir Rao (demo persona)',
       type: 'Leadership Role',
-      claim: 'Vice President of NSU Science Club',
+      claim: 'Sample coordinator role for Ingenuity (demo only)',
       submittedAt: '2026-10-12',
       status: 'pending',
     },
     {
       id: 'vr2',
       userId: 'u5',
-      userName: 'Sofia Reyes',
+      userName: 'Maya Iyer (demo persona)',
       type: 'Club Verification',
-      claim: 'Charter: Northstar Photography Collective',
+      claim: 'Sample club listing based on a public-source club name',
       submittedAt: '2026-10-14',
       status: 'pending',
     },
@@ -63,14 +63,14 @@ export default function AdminPage() {
       id: 'rep1',
       targetType: 'Post',
       targetId: 'p9',
-      reporterName: 'Leo Martinez',
-      reason: 'Academic integrity discussion requires faculty moderation notice',
-      snippet: 'Discussion: With AI-generated content becoming mainstream, how should universities update...',
+      reporterName: 'Arjun Mehta (demo persona)',
+      reason: 'Sample moderation request for demo review',
+      snippet: 'Demo discussion about study routines and project collaboration...',
       status: 'under_review',
     },
   ]);
 
-  // Official announcement state
+  // Demo announcement state
   const [broadcastText, setBroadcastText] = useState('');
   const [broadcastSent, setBroadcastSent] = useState(false);
 
@@ -88,16 +88,16 @@ export default function AdminPage() {
     );
   };
 
-  const handlePublishOfficialAnnouncement = (e: React.FormEvent) => {
+  const handlePublishDemoAnnouncement = (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastText.trim()) return;
 
     actions.addPost({
       authorId: currentUser.id,
       authorType: 'user',
-      content: broadcastText,
+      content: 'DEMO NOTICE — ' + broadcastText.trim(),
       type: 'announcement',
-      isOfficial: true,
+      isOfficial: false,
     });
 
     setBroadcastText('');
@@ -113,7 +113,7 @@ export default function AdminPage() {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-[#182230]">Institution Administration</h1>
             <span className="px-2 py-0.5 text-[10px] font-bold bg-[#14213D] text-white rounded">
-              Northstar University
+              IIT Bhilai · Demo workspace
             </span>
           </div>
           <p className="text-xs text-[#667085] mt-1">
@@ -124,7 +124,7 @@ export default function AdminPage() {
         <div className="flex items-center gap-2">
           <span className="text-xs text-[#0F9D8A] bg-teal-50 border border-teal-100 font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5">
             <Shield size={14} />
-            Administrator Clearance
+            Demo admin role
           </span>
         </div>
       </div>
@@ -326,25 +326,25 @@ export default function AdminPage() {
         <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 max-w-2xl mx-auto space-y-4">
           <div className="flex items-center gap-2">
             <Megaphone size={18} className="text-[#5146E5]" />
-            <h2 className="text-sm font-bold text-[#182230]">Publish Official Campus Notice</h2>
+            <h2 className="text-sm font-bold text-[#182230]">Compose a demo announcement</h2>
           </div>
           <p className="text-xs text-[#667085] leading-relaxed">
-            Notices published from this console appear with the highest priority across all student, faculty, and alumni dashboards with an official Northstar Administration emblem.
+            This form demonstrates a possible admin workflow only. Submitting creates a sample post in local demo state; it does not contact IIT Bhilai, publish an official notice, or message real users.
           </p>
 
           {broadcastSent && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-semibold flex items-center gap-2">
               <CheckCircle size={15} className="text-emerald-600" />
-              Notice successfully published to all 2,400+ campus feeds!
+              Sample announcement added to the local demo feed. No institutional notice was sent.
             </div>
           )}
 
-          <form onSubmit={handlePublishOfficialAnnouncement} className="space-y-4">
+          <form onSubmit={handlePublishDemoAnnouncement} className="space-y-4">
             <textarea
               rows={5}
               value={broadcastText}
               onChange={e => setBroadcastText(e.target.value)}
-              placeholder="Draft the institutional announcement (e.g. academic calendar update, safety notice, campus initiative)..."
+              placeholder="Draft a sample notice for the prototype; do not include real private or official information..."
               className="w-full p-3.5 text-xs border border-[#E5E7EB] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5146E5]/20 focus:border-[#5146E5]"
               required
             />
