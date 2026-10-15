@@ -2,52 +2,71 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Eye, EyeOff, ArrowRight, CheckCircle } from 'lucide-react';
-import { useApp } from '@/lib/app-context';
-import { DEMO_USERS, DEMO_SESSION_USERS } from '@/lib/demo-data';
 import { useRouter } from 'next/navigation';
+import { ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function SignInPage() {
-  const { actions } = useApp();
   const router = useRouter();
-  const [email, setEmail] = useState('aisha.nwosu@northstar.edu');
-  const [password, setPassword] = useState('demo1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [demoMode, setDemoMode] = useState(false);
+  const [message, setMessage] = useState('');
 
-  function handleDemoLogin(userId: string) {
-    const user = DEMO_USERS.find(u => u.id === userId);
-    if (user) {
-      actions.setCurrentUser(user);
-      router.push('/dashboard');
-    }
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError('');
+    setMessage('');
     setLoading(true);
-    await new Promise(r => setTimeout(r, 800));
-    // Demo: any northstar email works
-    const user = DEMO_USERS.find(u => u.email === email);
-    if (user && password.length >= 6) {
-      actions.setCurrentUser(user);
+
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (signInError) throw signInError;
+      if (!data.user || !data.session) {
+        throw new Error('Sign-in did not create a session. Check whether your email is confirmed.');
+      }
+
+      // Verify that the signup trigger created a profile record for this account.
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, display_name')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        setMessage('Signed in successfully. Profile lookup needs attention: ' + profileError.message);
+      } else if (!profile) {
+        setMessage('Signed in, but no profile row was found yet. We will repair profile creation next.');
+      }
+
       router.push('/dashboard');
-    } else {
-      setError('Invalid credentials. Try a demo account below, or use any @northstar.edu email with 6+ character password.');
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to sign in. Please try again.';
+      if (/email not confirmed/i.test(message)) {
+        setError('Your email is not confirmed yet. Open the confirmation email from Supabase, then try signing in again.');
+      } else if (/invalid login credentials/i.test(message)) {
+        setError('Email or password is incorrect. Make sure you have already created a Koinelio account through Sign up.');
+      } else {
+        setError(message);
+      }
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F8FC] flex">
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[#14213D] flex-col justify-between p-10">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#5146E5] flex items-center justify-center">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+    <main className="min-h-screen bg-[#F7F8FC] flex">
+      <aside className="hidden lg:flex lg:w-[42%] bg-[#14213D] flex-col justify-between p-10 xl:p-14">
+        <Link href="/" className="flex items-center gap-2.5 w-fit">
+          <div className="w-9 h-9 rounded-xl bg-[#5146E5] flex items-center justify-center">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <circle cx="5" cy="9" r="2.5" fill="white" />
               <circle cx="13" cy="5" r="2.5" fill="white" opacity="0.7" />
               <circle cx="13" cy="13" r="2.5" fill="white" opacity="0.7" />
@@ -55,30 +74,27 @@ export default function SignInPage() {
               <line x1="7.2" y1="10" x2="11" y2="12" stroke="white" strokeWidth="1.2" />
             </svg>
           </div>
-          <span className="text-white font-bold text-xl">Koinelio</span>
+          <span className="text-white font-bold text-xl tracking-tight">Koinelio</span>
         </Link>
-        <div>
-          <blockquote className="text-white/80 text-xl font-light leading-relaxed italic mb-4">
-            "The single most valuable thing I did at NSU was get deeply involved in TechSpark. The projects, the competitions, the network — it all translated directly to my career."
-          </blockquote>
-          <div className="flex items-center gap-3">
-            <img src="https://i.pravatar.cc/150?img=43" alt="Chioma" className="w-10 h-10 rounded-full object-cover" />
-            <div>
-              <div className="text-white font-semibold text-sm">Chioma Eze</div>
-              <div className="text-white/50 text-xs">NSU CS '22 · Sr. Engineer @ Stripe</div>
-            </div>
-          </div>
-        </div>
-        <p className="text-white/20 text-xs">Fictional demo content — Northstar University prototype</p>
-      </div>
 
-      {/* Right panel */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <div className="max-w-lg">
+          <p className="text-[#A5B4FC] text-sm font-semibold uppercase tracking-[0.18em] mb-4">One campus. Every connection.</p>
+          <h1 className="text-white text-4xl xl:text-5xl font-bold leading-tight tracking-tight">
+            Your campus community, all in one place.
+          </h1>
+          <p className="mt-5 text-white/65 text-base leading-7">
+            Discover clubs and events, build your profile, and connect with students and alumni.
+          </p>
+        </div>
+
+        <p className="text-white/40 text-xs">Koinelio is an independent campus community project.</p>
+      </aside>
+
+      <section className="flex-1 flex items-center justify-center p-5 sm:p-8">
         <div className="w-full max-w-md">
-          {/* Mobile logo */}
-          <Link href="/" className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-[#5146E5] flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <Link href="/" className="flex items-center gap-2.5 mb-9 lg:hidden">
+            <div className="w-9 h-9 rounded-xl bg-[#5146E5] flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
                 <circle cx="5" cy="9" r="2.5" fill="white" />
                 <circle cx="13" cy="5" r="2.5" fill="white" opacity="0.7" />
                 <circle cx="13" cy="13" r="2.5" fill="white" opacity="0.7" />
@@ -89,104 +105,84 @@ export default function SignInPage() {
             <span className="text-[#182230] font-bold text-xl">Koinelio</span>
           </Link>
 
-          <h1 className="text-2xl font-bold text-[#182230] mb-1">Welcome back</h1>
-          <p className="text-[#667085] text-sm mb-6">Sign in to your Northstar University account</p>
-
-          {/* Demo banner */}
-          <div className="bg-[#EEF0FD] border border-[#5146E5]/20 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-2 mb-3">
-              <CheckCircle size={16} className="text-[#5146E5] mt-0.5 flex-shrink-0" />
-              <div>
-                <div className="text-sm font-semibold text-[#5146E5] mb-0.5">Demo Mode</div>
-                <div className="text-xs text-[#667085]">This is a prototype. No real authentication exists. Use a demo account to explore:</div>
-              </div>
+          <div className="mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-[#EEF0FD] text-[#5146E5] flex items-center justify-center mb-5">
+              <ShieldCheck size={24} />
             </div>
-            <div className="space-y-1.5">
-              {DEMO_SESSION_USERS.map(u => (
-                <button
-                  key={u.id}
-                  onClick={() => handleDemoLogin(u.id)}
-                  className="w-full text-left text-xs bg-white hover:bg-[#5146E5] hover:text-white px-3 py-2 rounded-lg border border-[#E5E7EB] transition-colors font-medium text-[#182230] flex items-center gap-2 group"
-                >
-                  <ArrowRight size={12} className="text-[#5146E5] group-hover:text-white" />
-                  {u.label}
-                </button>
-              ))}
-            </div>
+            <h2 className="text-3xl font-bold tracking-tight text-[#182230]">Welcome back</h2>
+            <p className="mt-2 text-sm leading-6 text-[#667085]">Sign in to your Koinelio account.</p>
           </div>
 
-          <div className="relative flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-[#E5E7EB]" />
-            <span className="text-xs text-[#667085]">or sign in manually</span>
-            <div className="flex-1 h-px bg-[#E5E7EB]" />
-          </div>
+          {error && (
+            <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700">
+              {error}
+            </div>
+          )}
+          {message && (
+            <div role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-800">
+              {message}
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-[#182230] mb-1.5">Email</label>
+              <label htmlFor="email" className="block text-sm font-semibold text-[#182230] mb-2">Email address</label>
               <input
+                id="email"
                 type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@northstar.edu"
-                className="w-full px-3.5 py-2.5 text-sm border border-[#E5E7EB] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#5146E5]/20 focus:border-[#5146E5] transition-colors"
+                autoComplete="email"
                 required
+                maxLength={254}
+                placeholder="you@yourcampus.ac.in"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                className="w-full px-4 py-3 text-sm rounded-xl border border-[#D0D5DD] bg-white text-[#182230] outline-none transition focus:border-[#5146E5] focus:ring-4 focus:ring-[#5146E5]/10"
               />
             </div>
+
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-[#182230]">Password</label>
-                <Link href="/auth/forgot-password" className="text-xs text-[#5146E5] hover:underline">Forgot password?</Link>
-              </div>
+              <label htmlFor="password" className="block text-sm font-semibold text-[#182230] mb-2">Password</label>
               <div className="relative">
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full px-3.5 py-2.5 pr-10 text-sm border border-[#E5E7EB] rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#5146E5]/20 focus:border-[#5146E5] transition-colors"
+                  autoComplete="current-password"
                   required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full px-4 py-3 pr-12 text-sm rounded-xl border border-[#D0D5DD] bg-white text-[#182230] outline-none transition focus:border-[#5146E5] focus:ring-4 focus:ring-[#5146E5]/10"
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#667085] hover:text-[#182230] transition-colors"
+                  onClick={() => setShowPassword((visible) => !visible)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#667085] hover:text-[#182230]"
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
-
-            {error && (
-              <div className="bg-[#FEE2E2] border border-[#D92D20]/20 rounded-lg px-3 py-2.5 text-xs text-[#D92D20]">
-                {error}
-              </div>
-            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#5146E5] text-white font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
+              className="w-full rounded-xl bg-[#5146E5] hover:bg-[#4338CA] text-white py-3.5 px-4 font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Signing in...</>
-              ) : (
-                'Sign in'
-              )}
+              {loading ? 'Signing in…' : 'Sign in'}
+              {!loading && <ArrowRight size={17} />}
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#667085] mt-6">
+          <p className="mt-7 text-center text-sm text-[#667085]">
             New to Koinelio?{' '}
-            <Link href="/auth/signup" className="text-[#5146E5] font-medium hover:underline">Create an account</Link>
+            <Link href="/auth/signup" className="font-semibold text-[#5146E5] hover:underline">Create an account</Link>
           </p>
-
-          <p className="text-center text-xs text-[#667085]/60 mt-4">
-            ⓘ Production authentication with institutional verification is planned for the 2027 launch.
+          <p className="mt-5 text-center text-xs leading-5 text-[#98A2B3]">
+            Use the email and password from your real Supabase signup. Demo accounts are disabled on this page.
           </p>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
