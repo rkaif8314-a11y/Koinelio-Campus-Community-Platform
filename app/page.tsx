@@ -320,7 +320,7 @@ export default function LandingPage() {
                 icon: Shield,
                 color: '#14213D',
                 bg: '#E2E8F0',
-                title: 'Verified Roles & Profiles',
+                title: 'Demo role statuss & Profiles',
                 desc: 'Institution-verified affiliation badges distinguish real student leaders and faculty advisers from unverified claims.',
               },
               {
@@ -392,10 +392,10 @@ export default function LandingPage() {
             </div>
             <div className="space-y-3">
               {[
-                { name: 'Ingenuity — Competitive Programming Club', cat: 'Technology', members: 284, color: '#5146E5', verified: true },
-                { name: 'IIT Bhilai Cultural Council', cat: 'Culture & Arts', members: 312, color: '#B7791F', verified: true },
-                { name: 'Epsilon — Robotics Club', cat: 'Engineering', members: 92, color: '#0F9D8A', verified: true },
-                { name: 'NSU Finance Club', cat: 'Finance', members: 134, color: '#5146E5', verified: true },
+                { name: 'Ingenuity — Competitive Programming Club', cat: 'Sci-Tech', members: 'Sample roster', color: '#5146E5', verified: false },
+                { name: 'DSAI Club', cat: 'Data Science & AI', members: 'Sample roster', color: '#0F9D8A', verified: false },
+                { name: 'DesignX', cat: 'Cultural', members: 'Sample roster', color: '#B7791F', verified: false },
+                { name: 'Space Exploration Society', cat: 'Sci-Tech', members: 'Sample roster', color: '#5146E5', verified: false },
               ].map((club) => (
                 <div key={club.name} className="bg-white rounded-xl border border-[#E5E7EB] p-4 flex items-center gap-4 hover:shadow-md transition-all">
                   <div className="w-10 h-10 rounded-xl flex-shrink-0" style={{ backgroundColor: club.color + '20' }}>
@@ -408,7 +408,7 @@ export default function LandingPage() {
                       <span className="font-semibold text-sm text-[#182230] truncate">{club.name}</span>
                       {club.verified && <CheckCircle size={12} className="text-[#0F9D8A] flex-shrink-0" />}
                     </div>
-                    <span className="text-xs text-[#667085]">{club.cat} · {club.members} members</span>
+                    <span className="text-xs text-[#667085]">{club.cat} · {club.members}</span>
                   </div>
                   <ChevronRight size={16} className="text-[#667085]" />
                 </div>
@@ -424,37 +424,37 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-[#E6F6F4] text-[#0F9D8A] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
               <Calendar size={12} />
-              Events & Festivals
+              Sample events · not official
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-[#182230] mb-4">Never miss a campus moment</h2>
-            <p className="text-[#667085] max-w-xl mx-auto">From technical hackathons to cultural festivals, sports days to alumni reunions — discover and register for everything on your campus.</p>
+            <p className="text-[#667085] max-w-xl mx-auto">These cards demonstrate the event interface only. Dates, venues, registrations and event details are fictional; see the Campus Guide for official source links.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[
               {
-                title: 'HackNorthstar 2026',
-                date: 'Nov 8–9, 2026',
-                category: 'Technical',
+                title: 'Demo · Beginner Coding Jam',
+                date: 'Sample date · Oct 25, 2026',
+                category: 'Technical demo',
                 color: '#5146E5',
-                spots: '82 spots left',
+                spots: 'Sample registration',
                 img: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=200&fit=crop',
                 featured: true,
               },
               {
-                title: 'Cultural Fusion Festival',
-                date: 'Nov 14–16, 2026',
-                category: 'Cultural',
+                title: 'Demo · Student Design Showcase',
+                date: 'Sample date · Nov 4, 2026',
+                category: 'Cultural demo',
                 color: '#B7791F',
-                spots: 'Open registration',
+                spots: 'Sample registration',
                 img: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=200&fit=crop',
                 featured: true,
               },
               {
-                title: 'Startup Pitch Night',
-                date: 'Oct 30, 2026',
-                category: 'Competition',
+                title: 'Demo · Student Project Pitch Circle',
+                date: 'Sample date · Dec 5, 2026',
+                category: 'Project demo',
                 color: '#16803D',
-                spots: '52 spots left',
+                spots: 'Sample registration',
                 img: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=200&fit=crop',
                 featured: false,
               },
@@ -507,10 +507,10 @@ export default function LandingPage() {
               </p>
               <div className="space-y-3">
                 {[
-                  { badge: 'Verified Student', color: '#0F9D8A', desc: 'Active enrolled student at the institution' },
-                  { badge: 'Verified Faculty', color: '#5146E5', desc: 'Authorized faculty member or staff' },
-                  { badge: 'Verified Club', color: '#B7791F', desc: 'Institution-approved student organization' },
-                  { badge: 'Verified Role', color: '#16803D', desc: 'Leadership role approved by institution admin' },
+                  { badge: 'Demo student status', color: '#0F9D8A', desc: 'Real affiliation would require institutional review' },
+                  { badge: 'Demo faculty status', color: '#5146E5', desc: 'No real faculty identity is represented' },
+                  { badge: 'Demo club status', color: '#B7791F', desc: 'Club name is source-linked; Koinelio listing is not verified' },
+                  { badge: 'Demo role status', color: '#16803D', desc: 'No role in this prototype is institution-verified' },
                 ].map(({ badge, color, desc }) => (
                   <div key={badge} className="flex items-center gap-3 bg-white/5 rounded-xl p-3">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color }}>
@@ -534,20 +534,20 @@ export default function LandingPage() {
               </div>
               <div className="space-y-2 mb-4">
                 {[
-                  { label: 'Institution affiliation', status: 'verified', color: '#0F9D8A' },
-                  { label: 'Student status', status: 'verified', color: '#0F9D8A' },
-                  { label: 'TechSpark President', status: 'verified', color: '#0F9D8A' },
-                  { label: 'E-Cell Co-Lead', status: 'pending', color: '#B7791F' },
+                  { label: 'Institution affiliation', status: 'demo', color: '#64748B' },
+                  { label: 'Student status', status: 'demo', color: '#64748B' },
+                  { label: 'Demo club coordinator', status: 'demo', color: '#64748B' },
+                  { label: 'Sample role request', status: 'demo', color: '#64748B' },
                 ].map(({ label, status, color }) => (
                   <div key={label} className="flex items-center justify-between py-2 border-b border-white/10">
                     <span className="text-xs text-white/70">{label}</span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ color, backgroundColor: color + '20' }}>
-                      {status === 'verified' ? '✓ Verified' : '⏳ Pending'}
+                      {status === 'verified' ? '✓ Verified' : status === 'pending' ? '⏳ Pending' : 'Demo only'}
                     </span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-white/40">Verification managed by institution administrators. This is a demo profile.</p>
+              <p className="text-xs text-white/40">Future verification would require authorised institution roles. This is a fictional demo profile.</p>
             </div>
           </div>
         </div>
@@ -573,7 +573,7 @@ export default function LandingPage() {
               <div key={alumni.name} className="text-center bg-[#F7F8FC] rounded-2xl border border-[#E5E7EB] p-5 hover:shadow-md transition-all">
                 <img src={alumni.avatar} alt={alumni.name} className="w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 border-white shadow" />
                 <div className="font-semibold text-[#182230] text-sm">{alumni.name}</div>
-                <div className="text-xs text-[#5146E5] font-medium mb-1">NSU Class of {alumni.year}</div>
+                <div className="text-xs text-[#5146E5] font-medium mb-1">IIT Bhilai demo persona · class of {alumni.year}</div>
                 <div className="text-xs text-[#667085] mb-2">{alumni.dept}</div>
                 <div className="text-xs text-[#182230] font-medium bg-white rounded-lg px-2 py-1 border border-[#E5E7EB] inline-block">{alumni.role}</div>
               </div>
@@ -588,13 +588,13 @@ export default function LandingPage() {
           <Shield size={32} className="text-[#5146E5] mx-auto mb-4" />
           <h2 className="text-2xl md:text-3xl font-bold text-[#182230] mb-4">Privacy and trust, built in</h2>
           <p className="text-[#667085] leading-relaxed mb-8">
-            Koinelio is designed with campus privacy in mind. You control who sees your profile, your activities and your connections. Cross-campus discovery respects your privacy settings. No personal contact details are shared without your explicit consent.
+            These are intended product principles shown in a prototype, not a claim that all production privacy controls are live. The current dashboard uses fictional profiles and local demo interactions. Production access control, institution verification and privacy enforcement must be implemented and tested before a real pilot.
           </p>
           <div className="grid sm:grid-cols-3 gap-4 text-left">
             {[
-              { title: 'You control your profile', desc: 'Choose what is visible to your institution, other campuses, or the public.' },
-              { title: 'Verified, not assumed', desc: 'No one can claim a verified role without institution authorization.' },
-              { title: 'Demo data is clearly labeled', desc: 'This prototype uses fictional data. Nothing here is real user information.' },
+              { title: 'Profile settings preview', desc: 'Preview how audience and profile visibility settings might appear.' },
+              { title: 'Verification is not assumed', desc: 'Real verification would require an approved institution role and an auditable review.' },
+              { title: 'Demo data is clearly labeled', desc: 'Sample profiles, posts, member counts and demo events are fictional.' },
             ].map(({ title, desc }) => (
               <div key={title} className="bg-white rounded-xl border border-[#E5E7EB] p-4">
                 <CheckCircle size={16} className="text-[#0F9D8A] mb-2" />
