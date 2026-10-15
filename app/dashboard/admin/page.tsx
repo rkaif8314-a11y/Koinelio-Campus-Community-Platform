@@ -126,7 +126,7 @@ export default function AdminPage() {
       if (clubsResult.error) throw clubsResult.error;
       // Privacy rules may hide some profiles or announcements; a failed optional
       // list should not grant additional privileges or prevent the basic queue.
-      setRoleRequests((requestsResult.data ?? []) as RoleRequest[]);
+      setRoleRequests((requestsResult.data ?? []) as unknown as RoleRequest[]);
       setClubs((clubsResult.data ?? []) as ClubProposal[]);
       setAnnouncements((announcementsResult.data ?? []) as Announcement[]);
     } catch (loadError) {
