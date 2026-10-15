@@ -5,13 +5,10 @@ import Link from 'next/link';
 import {
   ArrowLeft,
   ArrowRight,
-  BookOpen,
   CheckCircle,
   Eye,
   EyeOff,
-  GraduationCap,
   ShieldCheck,
-  BriefcaseBusiness,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from '@/components/theme-toggle';
@@ -22,9 +19,12 @@ import {
   INSTITUTE_PROGRAMMES,
 } from '@/lib/institution-config';
 
-type CampusRole = 'student' | 'faculty' | 'alumni';
-
 const currentYear = new Date().getFullYear();
+const IIT_BHILAI_EMAIL_RE = /^[^@\s]+@iitbhilai\.ac\.in$/i;
+
+function isIitBhilaiEmail(email: string): boolean {
+  return IIT_BHILAI_EMAIL_RE.test(email.trim());
+}
 
 const departmentOptions = Array.from(new Set([
   ...INSTITUTE_DEPARTMENTS,
@@ -51,39 +51,11 @@ const interestOptions = [
 const inputClass = 'w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-3 text-sm text-[#182230] shadow-sm outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#5146E5] focus:ring-4 focus:ring-[#5146E5]/10';
 const labelClass = 'mb-1.5 block text-sm font-semibold text-[#344054]';
 
-const roleOptions = [
-  {
-    value: 'student' as const,
-    label: 'Student',
-    description: 'Currently studying',
-    Icon: GraduationCap,
-    selected: 'border-sky-300 bg-sky-50 text-sky-900 ring-1 ring-sky-200',
-    icon: 'text-sky-700',
-  },
-  {
-    value: 'faculty' as const,
-    label: 'Faculty',
-    description: 'Teaching / research',
-    Icon: BookOpen,
-    selected: 'border-violet-300 bg-violet-50 text-violet-900 ring-1 ring-violet-200',
-    icon: 'text-violet-700',
-  },
-  {
-    value: 'alumni' as const,
-    label: 'Alumni',
-    description: 'Graduate of the institute',
-    Icon: BriefcaseBusiness,
-    selected: 'border-amber-300 bg-amber-50 text-amber-950 ring-1 ring-amber-200',
-    icon: 'text-amber-700',
-  },
-];
-
 export default function SignUpPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<CampusRole>('student');
   const [department, setDepartment] = useState('');
   const [degreeProgram, setDegreeProgram] = useState('');
   const [batchYear, setBatchYear] = useState('');
@@ -121,6 +93,10 @@ export default function SignUpPage() {
       setAuthError('Enter a valid email address.');
       return;
     }
+    if (!isIitBhilaiEmail(normalizedEmail)) {
+      setAuthError('Use your @iitbhilai.ac.in institute email. You must confirm it before signing in.');
+      return;
+    }
     if (password.length < 12) {
       setAuthError('Use a password or passphrase with at least 12 characters.');
       return;
@@ -146,6 +122,9 @@ export default function SignUpPage() {
       if (!normalizedEmail || normalizedEmail.length > 254) {
         throw new Error('Enter a valid email address.');
       }
+      if (!isIitBhilaiEmail(normalizedEmail)) {
+        throw new Error('Use your @iitbhilai.ac.in institute email. You must confirm it before signing in.');
+      }
       if (password.length < 12 || password.length > 128) {
         throw new Error('Use a password between 12 and 128 characters.');
       }
@@ -167,7 +146,7 @@ export default function SignUpPage() {
           data: {
             display_name: normalizedName,
             full_name: normalizedName,
-            role,
+            role: 'student',
             institution_slug: 'iit-bhilai',
             department,
             degree_program: degreeProgram,
@@ -248,9 +227,9 @@ export default function SignUpPage() {
                 <input id="fullName" type="text" autoComplete="name" minLength={2} maxLength={100} required placeholder="How should we display your name?" value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClass} />
               </div>
               <div>
-                <label htmlFor="email" className={labelClass}>Email address</label>
-                <input id="email" type="email" autoComplete="email" maxLength={254} required placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} />
-                <p className="mt-1.5 text-xs leading-5 text-[#667085]">Use an email you can access. Institute email-domain and student-record verification are not configured.</p>
+                <label htmlFor="email" className={labelClass}>IIT Bhilai institute email</label>
+                <input id="email" type="email" autoComplete="email" maxLength={254} required placeholder="name@iitbhilai.ac.in" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} />
+                <p className="mt-1.5 text-xs leading-5 text-[#667085]">Only @iitbhilai.ac.in addresses are accepted. You must confirm the email link before signing in; this domain check alone does not verify current enrolment.</p>
               </div>
               <div>
                 <label htmlFor="password" className={labelClass}>Create password</label>
@@ -275,23 +254,10 @@ export default function SignUpPage() {
                 <p id="institution-help" className="mt-1.5 text-xs leading-5 text-[#667085]">IIT Bhilai is the only institution configured for this pilot. Your selection is self-reported, not verified.</p>
               </div>
 
-              <fieldset>
-                <legend className={labelClass}>Your campus role</legend>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {roleOptions.map((option) => {
-                    const selected = role === option.value;
-                    const Icon = option.Icon;
-                    return (
-                      <button key={option.value} type="button" aria-pressed={selected} onClick={() => setRole(option.value)} className={`flex min-h-24 flex-col items-start rounded-xl border px-3.5 py-3 text-left transition-colors ${selected ? option.selected : 'border-[#E5E7EB] bg-white text-[#475467] hover:border-slate-300 hover:bg-slate-50'}`}>
-                        <span className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg ${selected ? 'bg-white/80' : 'bg-slate-100'} ${option.icon}`}><Icon size={18} /></span>
-                        <span className="text-sm font-semibold">{option.label}</span>
-                        <span className={`mt-0.5 text-xs ${selected ? 'opacity-80' : 'text-[#667085]'}`}>{option.description}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                <p className="mt-2 text-xs leading-5 text-[#667085]">This is a profile label only. It does not grant faculty, club-leader, moderator or administrator permissions.</p>
-              </fieldset>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-sm font-semibold text-[#344054]">Campus role: Student</p>
+                <p className="mt-1 text-xs leading-5 text-[#667085]">Privileged roles are assigned separately through the institute’s approved governance workflow. Signup never grants administrator, president, General Secretary, or club-coordinator access.</p>
+              </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
