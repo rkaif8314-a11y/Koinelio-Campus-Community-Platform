@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import ThemeToggle from '@/components/theme-toggle';
 import { useState } from 'react';
 import {
   Users, Calendar, Award, Shield, Zap, Globe, ArrowRight,
@@ -37,6 +38,7 @@ export default function LandingPage() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <Link href="/auth/signin" className="text-sm font-medium text-[#667085] hover:text-[#182230] transition-colors px-3 py-2">
               Sign in
             </Link>
@@ -64,6 +66,10 @@ export default function LandingPage() {
             <a href="#clubs" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Clubs</a>
             <a href="#events" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Events</a>
             <a href="#alumni" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Alumni</a>
+            <div className="flex items-center justify-between pt-1 text-sm text-[#667085]">
+              <span>Appearance</span>
+              <ThemeToggle />
+            </div>
             <div className="pt-2 flex flex-col gap-2">
               <Link href="/auth/signin" className="text-center text-sm font-medium text-[#667085] border border-[#E5E7EB] rounded-lg px-4 py-2.5">
                 Sign in
@@ -141,49 +147,97 @@ export default function LandingPage() {
                 </div>
                 {/* Content */}
                 <div className="flex-1 bg-[#F7F8FC] p-4 overflow-hidden">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <div className="h-2.5 bg-[#182230] rounded w-32 mb-1.5" />
-                      <div className="h-2 bg-[#667085]/40 rounded w-48" />
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="min-w-0">
+                      <p className="text-sm sm:text-base font-bold text-[#182230]">Good morning, Maya <span aria-hidden="true">👋</span></p>
+                      <p className="text-[10px] sm:text-xs text-[#667085] mt-0.5">Your campus is buzzing today.</p>
                     </div>
-                    <div className="w-24 h-7 bg-[#5146E5] rounded-lg" />
+                    <span className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-[#5146E5] px-3 py-2 text-[10px] font-semibold text-white">
+                      <span aria-hidden="true">＋</span> Share an update
+                    </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-3 mb-4">
-                    {['#5146E5', '#0F9D8A', '#14213D'].map((c, i) => (
-                      <div key={i} className="bg-white rounded-xl p-3 border border-[#E5E7EB]">
-                        <div className="w-6 h-6 rounded-lg mb-2" style={{ backgroundColor: c + '20' }} />
-                        <div className="h-2 bg-gray-200 rounded w-12 mb-1" />
-                        <div className="h-3 font-bold bg-gray-300 rounded w-8" />
+
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+                    {[
+                      { label: 'Connections', value: '24 new', icon: Users, tint: 'bg-[#EEF0FD]', color: 'text-[#5146E5]' },
+                      { label: 'Campus events', value: '08 soon', icon: Calendar, tint: 'bg-[#E6F6F4]', color: 'text-[#0F9D8A]' },
+                      { label: 'Achievements', value: '12 shared', icon: Award, tint: 'bg-[#FEF3C7]', color: 'text-[#B7791F]' },
+                    ].map(({ label, value, icon: Icon, tint, color }) => (
+                      <div key={label} className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-2 sm:p-3">
+                        <div className={`hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tint} ${color}`}>
+                          <Icon size={15} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-[9px] sm:text-[10px] text-[#667085]">{label}</p>
+                          <p className="truncate text-[10px] sm:text-xs font-bold text-[#182230]">{value}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <div className="grid grid-cols-5 gap-3">
-                    <div className="col-span-3 bg-white rounded-xl border border-[#E5E7EB] p-3 space-y-3">
-                      {[0,1,2].map(i => (
-                        <div key={i} className="flex items-start gap-2">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5146E5] to-[#0F9D8A] flex-shrink-0" />
-                          <div className="flex-1 space-y-1">
-                            <div className="h-2 bg-gray-200 rounded w-24" />
-                            <div className="h-1.5 bg-gray-100 rounded w-full" />
-                            <div className="h-1.5 bg-gray-100 rounded w-3/4" />
+
+                  <div className="grid grid-cols-5 gap-2 sm:gap-3">
+                    <div className="col-span-3 rounded-xl border border-[#E5E7EB] bg-white p-2.5 sm:p-3">
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <p className="text-[10px] sm:text-xs font-bold text-[#182230]">From your community</p>
+                        <span className="inline-flex items-center gap-1 text-[9px] text-[#0F9D8A]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#0F9D8A]" /> Live
+                        </span>
+                      </div>
+                      {[
+                        { name: 'Aarav Mehta', initials: 'AM', time: '12 min', text: 'Our robotics team is looking for curious minds. Join our build night!', likes: '18', avatar: 'bg-gradient-to-br from-[#818CF8] to-[#5146E5]' },
+                        { name: 'Sofia Khan', initials: 'SK', time: '34 min', text: 'Sharing a few moments from yesterday’s culture night 💛', likes: '32', avatar: 'bg-gradient-to-br from-[#F9A8D4] to-[#D946EF]' },
+                        { name: 'Rohan Das', initials: 'RD', time: '1 hr', text: 'Study group for signals and systems this evening. Everyone is welcome.', likes: '11', avatar: 'bg-gradient-to-br from-[#5EEAD4] to-[#0F9D8A]' },
+                      ].map((person) => (
+                        <div key={person.name} className="flex gap-2 border-t border-[#E5E7EB] py-2 first:border-0">
+                          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white ${person.avatar}`}>
+                            {person.initials}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline gap-1.5">
+                              <p className="truncate text-[9px] sm:text-[10px] font-bold text-[#182230]">{person.name}</p>
+                              <span className="shrink-0 text-[8px] text-[#667085]">{person.time}</span>
+                            </div>
+                            <p className="mt-0.5 line-clamp-2 text-[9px] leading-relaxed text-[#667085]">{person.text}</p>
+                            <div className="mt-1 flex items-center gap-1 text-[8px] text-[#5146E5]">
+                              <Heart size={9} /> {person.likes} appreciations
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="col-span-2 space-y-3">
-                      <div className="bg-white rounded-xl border border-[#E5E7EB] p-3">
-                        <div className="h-2 bg-[#5146E5]/30 rounded w-20 mb-2" />
-                        {[0,1].map(i => (
-                          <div key={i} className="flex items-center gap-2 mb-2">
-                            <div className="w-6 h-6 rounded bg-[#0F9D8A]/20 flex-shrink-0" />
-                            <div className="flex-1 h-1.5 bg-gray-100 rounded" />
-                          </div>
-                        ))}
+
+                    <div className="col-span-2 space-y-2">
+                      <div className="rounded-xl border border-[#E5E7EB] bg-white p-2.5 sm:p-3">
+                        <div className="mb-2 flex items-center gap-1.5">
+                          <Calendar size={12} className="text-[#5146E5]" />
+                          <p className="text-[10px] sm:text-xs font-bold text-[#182230]">Campus moments</p>
+                        </div>
+                        <div className="mb-2 rounded-lg bg-[#EEF0FD] p-2">
+                          <p className="text-[9px] font-bold text-[#5146E5]">TODAY · 4:30 PM</p>
+                          <p className="mt-0.5 text-[9px] font-semibold text-[#182230]">Tech meetup</p>
+                          <p className="text-[8px] text-[#667085]">Innovation lab</p>
+                        </div>
+                        <div className="rounded-lg bg-[#E6F6F4] p-2">
+                          <p className="text-[9px] font-bold text-[#0F766E]">TOMORROW</p>
+                          <p className="mt-0.5 text-[9px] font-semibold text-[#182230]">Design jam</p>
+                          <p className="text-[8px] text-[#667085]">Bring your ideas</p>
+                        </div>
                       </div>
-                      <div className="bg-[#5146E5] rounded-xl p-3 text-white">
-                        <div className="h-2 bg-white/30 rounded w-16 mb-1.5" />
-                        <div className="h-1.5 bg-white/20 rounded w-24 mb-3" />
-                        <div className="h-5 bg-white/20 rounded-lg w-full" />
+                      <div className="rounded-xl bg-gradient-to-br from-[#5146E5] to-[#6557E8] p-2.5 sm:p-3 text-white">
+                        <p className="text-[10px] sm:text-xs font-bold">Better together ✨</p>
+                        <p className="mt-1 text-[9px] leading-relaxed text-white/85">Meet people who share your interests.</p>
+                        <div className="mt-2 flex items-center">
+                          {[
+                            ['MA', 'bg-[#F9A8D4]'],
+                            ['RK', 'bg-[#5EEAD4]'],
+                            ['SK', 'bg-[#FCD34D]'],
+                            ['+', 'bg-white/25'],
+                          ].map(([initials, avatar], index) => (
+                            <span key={initials} className={`flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#5C50E7] text-[8px] font-bold ${avatar} ${index === 3 ? 'text-white' : 'text-[#191B4D]'} ${index > 0 ? '-ml-1.5' : ''}`}>
+                              {initials}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
