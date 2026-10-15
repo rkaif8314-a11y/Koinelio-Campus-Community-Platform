@@ -56,7 +56,7 @@ export const INSTITUTIONAL_SOURCES = [
   {
     label: 'Students and campus life',
     category: 'Student life',
-    url: 'https://www.iitbhilai.ac.in/index.php?pid=students',
+    url: 'https://www.iitbhilai.ac.in/index.php?pid=pro_student',
     note: 'Council of Student Affairs (CoSA), student activities, and campus-life resources.',
   },
   {
