@@ -765,4 +765,38 @@ grant execute on function public.invite_club_member(uuid, uuid, text, text) to a
 grant execute on function public.respond_to_club_invitation(uuid, boolean) to authenticated;
 grant execute on function public.promote_club_core_member(uuid, uuid) to authenticated;
 
+
+-- ---------------------------------------------------------------------------
+-- 8. Enforce confirmed @iitbhilai.ac.in email possession across EVERY current
+--    authenticated public-table RLS policy, not only signup screens or rooms.
+--    This modifies policy expressions in place (no permissive policy is added).
+--    Tables with RLS but no policy (for example platform_admins) remain closed.
+-- ---------------------------------------------------------------------------
+do $policy_hardening$
+declare
+  p record;
+begin
+  for p in
+    select schemaname, tablename, policyname, roles, qual, with_check
+    from pg_policies
+    where schemaname = 'public'
+      and roles @> array['authenticated']::name[]
+  loop
+    if p.qual is not null then
+      execute format(
+        'alter policy %I on %I.%I using (private.is_iit_bhilai_email_verified((select auth.uid())) and (%s))',
+        p.policyname, p.schemaname, p.tablename, p.qual
+      );
+    end if;
+
+    if p.with_check is not null then
+      execute format(
+        'alter policy %I on %I.%I with check (private.is_iit_bhilai_email_verified((select auth.uid())) and (%s))',
+        p.policyname, p.schemaname, p.tablename, p.with_check
+      );
+    end if;
+  end loop;
+end;
+$policy_hardening$;
+
 commit;
