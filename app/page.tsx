@@ -499,11 +499,11 @@ export default function LandingPage() {
             <div>
               <div className="inline-flex items-center gap-2 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
                 <Shield size={12} />
-                Trust & Verification
+                Verification workflow preview
               </div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Profiles you can trust</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Verification should be explicit</h2>
               <p className="text-white/70 leading-relaxed mb-6">
-                Koinelio distinguishes between different verification claims — institution affiliation, faculty designation, club membership, and leadership roles. Each claim has its own verification process, managed by authorized institution staff.
+                This section previews how affiliation, faculty, club, and leadership claims could be reviewed. No identity or role shown in this demo is verified. A real institutional rollout needs approved administrators, scoped permissions, and an auditable review process.
               </p>
               <div className="space-y-3">
                 {[
@@ -566,9 +566,9 @@ export default function LandingPage() {
           </div>
           <div className="grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
             {[
-              { name: 'Chioma Eze', year: '2022', dept: 'Computer Science', role: 'Sr. Engineer @ Stripe', avatar: 'https://i.pravatar.cc/150?img=43' },
-              { name: 'Kwame Asante', year: '2020', dept: 'Electrical Engineering', role: 'CTO & Founder, VoltaGrid', avatar: 'https://i.pravatar.cc/150?img=16' },
-              { name: 'Natasha Ivanova', year: '2021', dept: 'Business Administration', role: 'Investment Analyst, GS', avatar: 'https://i.pravatar.cc/150?img=41' },
+              { name: 'Riya Sen', year: '2022', dept: 'Computer Science and Engineering', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al1' },
+              { name: 'Vikram Anand', year: '2021', dept: 'Electrical Engineering', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al2' },
+              { name: 'Ira Thomas', year: '2022', dept: 'Data Science and Artificial Intelligence', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al3' },
             ].map((alumni) => (
               <div key={alumni.name} className="text-center bg-[#F7F8FC] rounded-2xl border border-[#E5E7EB] p-5 hover:shadow-md transition-all">
                 <img src={alumni.avatar} alt={alumni.name} className="w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 border-white shadow" />
@@ -586,7 +586,7 @@ export default function LandingPage() {
       <section className="py-20 bg-[#F7F8FC]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <Shield size={32} className="text-[#5146E5] mx-auto mb-4" />
-          <h2 className="text-2xl md:text-3xl font-bold text-[#182230] mb-4">Privacy and trust, built in</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-[#182230] mb-4">Privacy controls are a design goal</h2>
           <p className="text-[#667085] leading-relaxed mb-8">
             These are intended product principles shown in a prototype, not a claim that all production privacy controls are live. The current dashboard uses fictional profiles and local demo interactions. Production access control, institution verification and privacy enforcement must be implemented and tested before a real pilot.
           </p>
@@ -613,7 +613,7 @@ export default function LandingPage() {
             Experience Koinelio
           </h2>
           <p className="text-white/75 text-lg mb-8">
-            The prototype is ready. Explore the full platform with demo data — student, faculty, admin and alumni perspectives.
+            Explore the interactive prototype from student, faculty, admin, and alumni perspectives. All profile and community activity is sample data.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -631,7 +631,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <p className="mt-4 text-xs text-white/50">
-            ⓘ This is a prototype. All data is fictional. No real accounts, payments, or institutional verification exist.
+            ⓘ Supabase authentication is connected, while most dashboard activity is local demo state. This is not an official IIT Bhilai service; sample profiles, memberships, counts, and events are fictional.
           </p>
         </div>
       </section>
