@@ -27,6 +27,7 @@ export default function AlumniPage() {
   const [year, setYear] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
 
   const loadAlumni = useCallback(async () => {
     setLoading(true); setError('');
@@ -52,19 +53,23 @@ export default function AlumniPage() {
     } finally { setLoading(false); }
   }, [router]);
 
-  useEffect(() => { void loadAlumni(); }, [loadAlumni]);
+  useEffect(() => {
+    // Read the calendar only after hydration; keep static prerender deterministic.
+    setCurrentYear(new Date().getFullYear());
+    void loadAlumni();
+  }, [loadAlumni]);
 
-  const currentYear = new Date().getFullYear();
+  const effectiveCurrentYear = currentYear ?? 0;
   const q = query.trim().toLowerCase();
   const graduates = items.filter((person) => {
-    const graduated = person.graduation_year !== null && person.graduation_year <= currentYear;
+    const graduated = person.graduation_year !== null && person.graduation_year <= effectiveCurrentYear;
     const matchesYear = year === 'All' || String(person.graduation_year) === year;
     const matchesQuery = !q || [person.display_name, person.department, person.degree_program, person.bio, ...(person.skills ?? []), ...(person.interests ?? [])].some((value) => (value ?? '').toLowerCase().includes(q));
     return graduated && matchesYear && matchesQuery;
   });
-  const graduationYears = Array.from(new Set(items.map((item) => item.graduation_year).filter((value): value is number => value !== null && value <= currentYear))).sort((a,b) => b-a);
+  const graduationYears = Array.from(new Set(items.map((item) => item.graduation_year).filter((value): value is number => value !== null && value <= effectiveCurrentYear))).sort((a,b) => b-a);
 
-  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle size={18} className="mr-2 animate-spin" /> Loading graduate profiles…</div>;
+  if (loading || currentYear === null) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle size={18} className="mr-2 animate-spin" /> Loading graduate profiles…</div>;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
