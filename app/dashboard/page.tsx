@@ -254,7 +254,7 @@ export default function DashboardPage() {
       <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#173D36] via-[#24584D] to-[#C65D43] p-6 text-white shadow-sm sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-5">
           <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-200">IIT Bhilai community</p>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-100">IIT Bhilai community</p>
             <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Welcome back, {profile?.display_name.split(' ')[0] ?? 'student'}.</h1>
             <p className="mt-2 text-sm leading-6 text-white/75">Share updates, discover approved clubs, and connect through real campus data linked to your account.</p>
           </div>
