@@ -58,6 +58,7 @@ Apply migrations to a disposable/staging project first, in ascending filename or
 - `20261016110000_koinelio_campus_tenant_bootstrap.sql` — creates the pending IIT Bhilai tenant row and backfills only confirmed campus-email profiles that have no tenant.
 - `20261016120000_koinelio_feed_media_and_classification.sql` — persisted post categories, role-gated official announcements, and private storage for feed images, GIFs, and videos.
 - `20261016130000_koinelio_profile_directory_category.sql` — keeps self-reported student/alumni directory category separate from trusted campus roles and permissions.
+- `20261016140000_koinelio_post_reports_and_moderation.sql` — adds a report queue and trusted moderator-only resolution RPCs; direct report-table writes are denied.
 
 Do **not** apply these to production until staging tests pass. Do not mark the IIT Bhilai tenant as institutionally verified unless formal authorization has actually been granted. The migration intentionally uses `pending` status.
 
@@ -69,6 +70,7 @@ Do **not** apply these to production until staging tests pass. Do not mark the I
 4. Test invitations, membership activation, General/Members/Core Team room access, and realtime messages with separate student and leadership accounts.
 5. Publish a discussion, question, project, achievement, or opportunity with text, emoji, image, GIF, and video. Confirm signed media URLs work and official announcements are rejected for ordinary users at the database boundary.
 6. Confirm Row Level Security denies cross-user profile edits, unauthorized approvals, and unauthorized access to private rooms/media.
+7. Submit a report from a second account, verify reporters can only read their own reports, and verify only a moderator/administrator can dismiss or hide a reported post.
 
 Production Supabase migration history and Vercel deployment status must be checked independently of a successful frontend build.
 
