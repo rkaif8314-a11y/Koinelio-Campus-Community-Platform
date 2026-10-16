@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Users,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type Profile = {
   id: string;
@@ -90,6 +91,8 @@ export default function DashboardPage() {
     if (!quiet) setLoading(true); else setRefreshing(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard');
@@ -146,7 +149,7 @@ export default function DashboardPage() {
         setLikes([]);
       }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load campus data from Supabase.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load campus data from Supabase.'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -175,7 +178,7 @@ export default function DashboardPage() {
       setNotice('Your post has been saved to the campus feed.');
       await loadDashboard(true);
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Unable to publish your post.');
+      setError(supabaseErrorMessage(createError, 'Unable to publish your post.'));
     } finally {
       setRefreshing(false);
     }
@@ -195,7 +198,7 @@ export default function DashboardPage() {
         setLikes((items) => [...items, { post_id: post.id, user_id: userId }]);
       }
     } catch (likeError) {
-      setError(likeError instanceof Error ? likeError.message : 'Unable to update this like.');
+      setError(supabaseErrorMessage(likeError, 'Unable to update this like.'));
     }
   }
 
@@ -214,7 +217,7 @@ export default function DashboardPage() {
       setCommentDrafts((items) => ({ ...items, [post.id]: '' }));
       setNotice('Comment posted.');
     } catch (commentError) {
-      setError(commentError instanceof Error ? commentError.message : 'Unable to add comment.');
+      setError(supabaseErrorMessage(commentError, 'Unable to add comment.'));
     } finally {
       setCommentingPostId('');
     }
