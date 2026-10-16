@@ -210,7 +210,6 @@ export default function CommunityPage() {
   }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads database-backed feed state after authentication is available.
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads database-backed feed state after authentication is available.
   useEffect(() => { void loadFeed(); }, [loadFeed]);
 
   const filteredPosts = useMemo(() => posts.filter((post) => {
