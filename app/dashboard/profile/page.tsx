@@ -119,6 +119,16 @@ export default function ProfilePage() {
       if (profile.study_year !== null && (!Number.isInteger(profile.study_year) || profile.study_year < 1 || profile.study_year > 10)) {
         throw new Error('Study year must be between 1 and 10.');
       }
+      const currentYear = new Date().getFullYear();
+      if (profile.batch_year !== null && (!Number.isInteger(profile.batch_year) || profile.batch_year < 2016 || profile.batch_year > currentYear)) {
+        throw new Error('Admission batch year must be a valid year from 2016 through the current year.');
+      }
+      if (profile.graduation_year !== null && (!Number.isInteger(profile.graduation_year) || profile.graduation_year < 2016 || profile.graduation_year > 2200)) {
+        throw new Error('Enter a valid graduation year.');
+      }
+      if (profile.campus_role === 'alumni' && (profile.graduation_year === null || profile.graduation_year > currentYear)) {
+        throw new Error('Alumni profiles need a graduation year that is not in the future.');
+      }
 
       const payload = {
         display_name: cleanName,
@@ -311,7 +321,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className={labelClass} htmlFor="batchYear">Admission batch year</label>
-              <input id="batchYear" type="number" min={2016} max={new Date().getFullYear()} className={inputClass} value={profile.batch_year ?? ''} onChange={(e) => update('batch_year', e.target.value ? Number(e.target.value) : null)} />
+              <input id="batchYear" type="number" min={2016} max={2200} className={inputClass} value={profile.batch_year ?? ''} onChange={(e) => update('batch_year', e.target.value ? Number(e.target.value) : null)} />
             </div>
             <div>
               <label className={labelClass} htmlFor="graduationYear">{profile.campus_role === 'alumni' ? 'Graduation year' : 'Expected graduation year'}</label>
