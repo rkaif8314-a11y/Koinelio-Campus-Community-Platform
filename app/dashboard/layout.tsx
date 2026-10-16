@@ -157,9 +157,10 @@ function Sidebar({
   );
 }
 
-function MobileNavigation({ pathname }: { pathname: string }) {
+function MobileNavigation({ pathname, moderatorAccess }: { pathname: string; moderatorAccess: boolean }) {
   const mobileHrefs = ['/dashboard', '/dashboard/community', '/dashboard/clubs', '/dashboard/events', '/dashboard/alumni'];
   const items = navItems.filter((item) => mobileHrefs.includes(item.href));
+  if (moderatorAccess) items.push({ label: 'Moderation', href: '/dashboard/moderation', icon: ShieldCheck });
   return (
     <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white lg:hidden">
       <div className="flex">
@@ -320,7 +321,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <MobileNavigation pathname={pathname} />
+      <MobileNavigation pathname={pathname} moderatorAccess={moderatorAccess} />
     </div>
   );
 }
