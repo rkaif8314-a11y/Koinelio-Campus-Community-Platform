@@ -240,6 +240,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   useEffect(() => { void loadAuthenticatedUser(); }, [loadAuthenticatedUser]);
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
+  function submitGlobalSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = searchValue.trim();
+    router.push(query ? `/dashboard/discover?q=${encodeURIComponent(query)}` : '/dashboard/discover');
+  }
+
   async function handleSignOut() {
     await supabase.auth.signOut();
     router.replace('/auth/signin');
@@ -278,11 +284,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4">
           <button className="text-slate-500 hover:text-slate-900 lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={22} /></button>
           <span className="truncate text-sm font-semibold text-slate-900 lg:hidden">IIT Bhilai</span>
-          <div className="relative hidden max-w-md flex-1 lg:flex">
+          <form onSubmit={submitGlobalSearch} role="search" className="relative hidden max-w-md flex-1 lg:flex">
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="search" placeholder="Search approved clubs and campus guide…" value={searchValue} onChange={(event) => setSearchValue(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
-            {searchValue && <button onClick={() => setSearchValue('')} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"><X size={14} /></button>}
-          </div>
+            <label htmlFor="campus-global-search" className="sr-only">Search campus people, clubs and events</label>
+            <input id="campus-global-search" type="search" placeholder="Search people, clubs, events…" value={searchValue} onChange={(event) => setSearchValue(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-20 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
+            {searchValue && <button type="button" onClick={() => setSearchValue('')} aria-label="Clear search" className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-400"><X size={14} /></button>}
+            <button type="submit" aria-label="Run campus search" className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-[#C65D43] px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#A94832]">Go</button>
+          </form>
           <div className="flex-1" />
           <ThemeToggle />
           <Link href="/dashboard/notifications" aria-label={`${unreadCount} unread notifications`} className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900">
