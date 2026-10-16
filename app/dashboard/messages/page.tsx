@@ -4,7 +4,6 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   AlertCircle,
-  ArrowDown,
   CheckCircle2,
   LoaderCircle,
   LockKeyhole,
