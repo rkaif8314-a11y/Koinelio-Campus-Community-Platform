@@ -16,7 +16,7 @@
 - [x] Run post-classification regression tests in CI.
 - [x] Run lint and a Next.js production build in CI.
 - [x] Run CI on feature-branch pushes and pull requests targeting main.
-- [x] Confirm CI is green for commit 0f5aaaf2cd317a95a5f20811bcb5b7fa06f90e4e (tests, lint, production build). Reconfirm after every subsequent code change.
+- [ ] Confirm CI is green for the current candidate commit after the recruitment, elections, and profile badge changes. Earlier commit 0f5aaaf2cd317a95a5f20811bcb5b7fa06f90e4e passed; newer changes require their own green run.
 - [ ] Review the full PR diff and verify no generated output, secrets, accidental unrelated edits, or destructive migration changes are included.
 - [ ] Obtain explicit owner approval before merging; do not merge while staging or governance gates remain open.
 
@@ -52,14 +52,14 @@
 These are explicit backlog items, not claims of completed functionality. Each item needs a schema/RLS review and tests before release.
 
 - [x] **Club recruitment UI:** applications, deadlines, review status, coordinator decisions, applicant status visibility, and online/offline interview scheduling are implemented on /dashboard/recruitment. [ ] Staging-test all applicant/organizer access paths, deadline enforcement, and interview privacy.
-- [ ] **Interview scheduling:** online meeting link or offline location, scheduled time, timezone, status, and access limited to the applicant and authorised club reviewers.
-- [ ] **Role approvals and badges:** visible role/badge state must come from trusted, active database assignments; never from self-entered profile text or signup metadata.
+- [x] **Interview scheduling UI:** online meeting link or offline location, scheduled time, status, and applicant/organizer views are implemented. [ ] Verify timezone handling, link privacy, rescheduling/cancellation, and RLS with separate staging accounts.
+- [x] **Role approvals and badges:** the governance queue uses the database decision RPC; profile badges display only active institution-role and club-membership assignments. [ ] Test approval/rejection and ensure no user can self-grant roles through direct API calls.
 - [x] **Priority baseline:** category/mine filters exist in the campus feed and priority labels appear for campus announcements. [ ] Review server-side ordering, expiry handling, and filter access controls on staging.
-- [ ] **Elections module:** separate secured workflow for eligibility, nominations, voting windows, one-person-one-vote enforcement, ballot privacy, auditability, and authorised result publication. Do not implement elections as ordinary posts or client-only counters.
+- [x] **Elections module (initial):** separate tables/RPCs and UI cover nominations, voting windows, one-person-one-vote, voter/ballot separation, and authorised results publication. [ ] Security audit and test concurrency, eligibility, anonymity, migration replay, and result integrity before any real election.
 
 ## Current known blockers
 
-- New Supabase migrations have **not** been validated against a staging database or applied to production.
+- New Supabase migrations, including the post-report moderation and campus-election migrations, have **not** been validated against a staging database or applied to production.
 - Full real-account RLS/Storage tests, accessibility review, backup/restore rehearsal, privacy/retention review, and operational checks remain outstanding.
 - The campus tenant must remain pending until written institutional authorisation is obtained.
 - Vercel production release and PR merge remain approval-gated.
