@@ -33,6 +33,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           ? savedTheme
           : preferredTheme;
 
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Initial theme is hydrated from the user's saved external preference.
       setTheme(initialTheme);
       document.documentElement.dataset.theme = initialTheme;
     } catch {
