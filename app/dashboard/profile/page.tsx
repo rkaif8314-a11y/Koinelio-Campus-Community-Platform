@@ -99,8 +99,8 @@ export default function ProfilePage() {
     }
   }, [router]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the signed-in profile from Supabase after authentication.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the signed-in profile from Supabase after authentication.
     void loadProfile();
   }, [loadProfile]);
 
