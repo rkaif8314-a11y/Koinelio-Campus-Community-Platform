@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const electionSql = await readFile(new URL('../supabase/migrations/20261016160000_koinelio_campus_elections.sql', import.meta.url), 'utf8');
-const governanceSql = await readFile(new URL('../supabase/migrations/20261016090000_iit_bhilai_access_and_club_governance.sql', import.meta.url), 'utf8');
+const governanceSql = await readFile(new URL('../supabase/migrations/20261015184841_koinelio_secure_rls_and_auth_profiles.sql', import.meta.url), 'utf8');
 
 test('elections keep voter participation separate from anonymous ballots', () => {
   assert.match(electionSql, /private\.campus_election_voters/);
