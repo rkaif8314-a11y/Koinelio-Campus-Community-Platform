@@ -79,7 +79,9 @@ function DiscoverPageContent() {
     } finally { setLoading(false); }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- The directory loader hydrates query results after authentication.
   useEffect(() => { void loadDirectory(); }, [loadDirectory]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Keep the controlled search field synchronized with navigation from the global search.
   useEffect(() => { setQuery(urlQuery); }, [urlQuery]);
 
   const normalized = query.trim().toLowerCase();
