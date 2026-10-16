@@ -41,7 +41,7 @@ export default function AlumniPage() {
       const { data, error: queryError } = await supabase
         .from('profiles')
         .select('id, display_name, bio, department, degree_program, graduation_year, avatar_url, skills, interests, verification_status')
-        .eq('campus_role', 'alumni')
+        .eq('profile_category', 'alumni')
         .not('graduation_year', 'is', null)
         .lte('graduation_year', new Date().getFullYear())
         .order('graduation_year', { ascending: false })
