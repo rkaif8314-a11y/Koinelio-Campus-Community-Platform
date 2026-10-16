@@ -30,6 +30,6 @@ test('election result publication is restricted and only published results can b
 test('recruitment database policies restrict applications and interviews to participants and club managers', () => {
   assert.match(governanceSql, /Applicants and club managers read applications/);
   assert.match(governanceSql, /Apply to open recruitment drives/);
-  assert.match(governanceSql, /Applicants and club managers read interviews/);
+  assert.match(governanceSql, /Applicants and organizers read interviews/);
   assert.match(governanceSql, /Club managers schedule interviews/);
 });
