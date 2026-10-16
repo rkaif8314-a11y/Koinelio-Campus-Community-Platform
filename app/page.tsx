@@ -56,7 +56,7 @@ export default function LandingPage() {
 
   return (
     <main className="landing-page min-h-screen bg-white font-sans text-slate-900">
-      <nav className="landing-nav sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+      <nav className="landing-nav sticky top-0 z-50 border-b border-white/10 bg-[#173D36] text-white backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
             <KoinelioLogoMark size={33} />
@@ -72,7 +72,7 @@ export default function LandingPage() {
           <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
             <Link href="/auth/signin" className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Sign in</Link>
-            <Link href="/auth/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">Create account <ArrowRight size={15} /></Link>
+            <Link href="/auth/signup" className="landing-primary-link inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">Create account <ArrowRight size={15} /></Link>
           </div>
           <button onClick={() => setMobileMenuOpen((open) => !open)} aria-label="Toggle navigation" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden">{mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}</button>
         </div>
@@ -161,13 +161,13 @@ export default function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
-        <div className="mx-auto max-w-3xl"><h2 className="text-3xl font-bold tracking-tight text-[#14213D] sm:text-4xl">Make your campus connections count</h2><p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">Create your account with your IIT Bhilai institute email, confirm your mailbox, and finish your profile after signing in.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700">Create Koinelio account <ArrowRight size={16} /></Link><Link href="/dashboard/campus" className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Explore Campus Guide <BookOpen size={16} /></Link></div></div>
+        <div className="mx-auto max-w-3xl"><h2 className="text-3xl font-bold tracking-tight text-[#14213D] sm:text-4xl">Make your campus connections count</h2><p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">Create your account with your IIT Bhilai institute email, confirm your mailbox, and finish your profile after signing in.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/auth/signup" className="landing-primary-link inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700">Create Koinelio account <ArrowRight size={16} /></Link><Link href="/dashboard/campus" className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Explore Campus Guide <BookOpen size={16} /></Link></div></div>
       </section>
 
       <footer className="bg-[#14213D] text-white">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_1fr] lg:px-8">
           <div><Link href="/" className="inline-flex items-center gap-2.5"><KoinelioLogoMark size={31} /><span className="text-xl font-bold">Koinelio</span></Link><p className="mt-3 max-w-lg text-sm leading-6 text-white/65">One campus. Every connection. A campus community pilot for profiles, clubs, events and role-based collaboration.</p></div>
-          <div className="grid grid-cols-2 gap-6"><div><h3 className="text-sm font-bold">Account</h3><div className="mt-3 space-y-2 text-sm text-white/65"><Link href="/auth/signup" className="block hover:text-white">Create account</Link><Link href="/auth/signin" className="block hover:text-white">Sign in</Link><Link href="/auth/forgot-password" className="block hover:text-white">Reset password</Link></div></div><div><h3 className="text-sm font-bold">Explore</h3><div className="mt-3 space-y-2 text-sm text-white/65"><Link href="/dashboard/campus" className="block hover:text-white">Campus Guide</Link><Link href="/dashboard/clubs" className="block hover:text-white">Clubs</Link><Link href="/dashboard/events" className="block hover:text-white">Events</Link></div></div></div>
+          <div className="grid grid-cols-2 gap-6"><div><h3 className="text-sm font-bold">Account</h3><div className="mt-3 space-y-2 text-sm text-white/65"><Link href="/auth/signup" className="block hover:text-white">Create account</Link><Link href="/auth/signin" className="block hover:text-white">Sign in</Link><Link href="/auth/forgot-password" className="block hover:text-white">Reset password</Link></div></div><div><h3 className="text-sm font-bold">Explore</h3><div className="mt-3 space-y-2 text-sm text-white/65"><Link href="/dashboard/community" className="block hover:text-white">Campus Feed</Link><Link href="/dashboard/alumni" className="block hover:text-white">Alumni</Link><Link href="/dashboard/campus" className="block hover:text-white">Campus Guide</Link><Link href="/dashboard/clubs" className="block hover:text-white">Clubs</Link><Link href="/dashboard/events" className="block hover:text-white">Events</Link></div></div></div>
         </div>
         <div className="border-t border-white/10 px-4 py-4 text-center text-xs leading-5 text-white/45 sm:px-6">Koinelio is independently operated unless and until formally authorized by IIT Bhilai. An institute email confirms mailbox access, not current enrolment. Never enter your institute/LDAP password.</div>
       </footer>
