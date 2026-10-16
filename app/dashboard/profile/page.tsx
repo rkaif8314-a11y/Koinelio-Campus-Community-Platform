@@ -344,7 +344,7 @@ export default function ProfilePage() {
                 <option value="private">Private — only you</option>
                 <option value="public">Public profile</option>
               </select>
-              <p className="mt-1 text-xs leading-5 text-slate-500">This preference uses the database's actual privacy setting, not a browser-only demo toggle.</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">This preference uses the database&apos;s actual privacy setting, not a browser-only demo toggle.</p>
             </div>
           </div>
 
