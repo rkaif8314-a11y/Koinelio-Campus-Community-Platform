@@ -132,9 +132,12 @@ export default function ClubRoomsPage() {
   }, []);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the authenticated user's allowed rooms from Supabase.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the authenticated user's allowed rooms from Supabase.
   useEffect(() => { void loadRooms(); }, [loadRooms]);
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Load messages whenever the selected room changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Load messages whenever the selected room changes.
   useEffect(() => { void loadMessages(activeRoomId); }, [activeRoomId, loadMessages]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Subscribe to database changes for the selected room; cleanup removes the channel.
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Subscribe to database changes for the selected room; cleanup removes the channel.
   useEffect(() => {
     if (!activeRoomId) return;
