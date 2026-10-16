@@ -54,6 +54,7 @@ export default function AlumniPage() {
   }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetches the current user's visible graduate directory after mount.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetches the current user's visible graduate directory after mount.
   useEffect(() => { void loadAlumni(); }, [loadAlumni]);
 
   const q = query.trim().toLowerCase();
