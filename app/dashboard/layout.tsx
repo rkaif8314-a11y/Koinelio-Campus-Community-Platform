@@ -265,12 +265,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F7F8FC]">
-      <aside className="hidden w-64 shrink-0 flex-col overflow-hidden bg-[#14213D] lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col overflow-hidden bg-[#173D36] lg:flex">
         <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} leadership={leadership} />
       </aside>
 
       {mobileOpen && <button aria-label="Close navigation overlay" className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-[#14213D] transition-transform duration-300 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-[#173D36] transition-transform duration-300 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} onNavClick={() => setMobileOpen(false)} leadership={leadership} />
       </aside>
 
