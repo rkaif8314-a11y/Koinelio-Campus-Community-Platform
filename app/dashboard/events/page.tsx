@@ -98,6 +98,7 @@ export default function EventsPage() {
       if (registrationResult.error) throw registrationResult.error;
       if (clubResult.error) throw clubResult.error;
       if (membershipResult.error) throw membershipResult.error;
+      if (roleResult.error) throw roleResult.error;
       setEvents((eventResult.data ?? []) as EventRecord[]);
       setRegistrations((registrationResult.data ?? []) as Registration[]);
       setClubs((clubResult.data ?? []) as Club[]);
@@ -108,7 +109,6 @@ export default function EventsPage() {
     } finally { setLoading(false); }
   }, [router]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetches the user's persisted event and registration state after mount.
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetches the user's persisted event and registration state after mount.
   useEffect(() => { void loadEvents(); }, [loadEvents]);
 
