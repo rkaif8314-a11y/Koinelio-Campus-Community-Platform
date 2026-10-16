@@ -55,8 +55,8 @@ export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <main className="min-h-screen bg-white font-sans text-slate-900">
-      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+    <main className="landing-page min-h-screen bg-white font-sans text-slate-900">
+      <nav className="landing-nav sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
             <KoinelioLogoMark size={33} />
@@ -86,13 +86,13 @@ export default function LandingPage() {
         </div>}
       </nav>
 
-      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white">
+      <section className="landing-hero relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white">
         <div className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-[500px] bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.13),transparent_62%)]" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:px-8 lg:py-28">
           <div>
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-800"><span className="h-2 w-2 rounded-full bg-emerald-500" /> IIT Bhilai email-restricted campus pilot</div>
             <h1 className="max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight text-[#14213D] sm:text-5xl lg:text-6xl">One campus. <span className="text-indigo-600">Every connection.</span></h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">A shared place for campus profiles, approved clubs, student leadership, events, and focused club conversations—with roles and access enforced by the database.</p>
+            <p className="landing-hero-description mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">A shared place for campus profiles, approved clubs, student leadership, events, and focused club conversations—with roles and access enforced by the database.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">Create your account <ArrowRight size={16} /></Link>
               <Link href="/auth/signin" className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Already registered? Sign in</Link>
