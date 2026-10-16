@@ -134,7 +134,7 @@ body {
 }
 
 :root[data-theme="dark"] [class~="bg-gradient-to-b"][class~="from-[#F7F8FC]"] {
-  background-image: linear-gradient(to bottom, #0b1020, #121a2b) !important;
+  background-image: linear-gradient(to bottom, #101814, #18221d) !important;
 }
 
 :root[data-theme="dark"] [class~="hover:bg-[#F7F8FC]"]:hover,
@@ -327,3 +327,12 @@ input[type="radio"] {
   }
 }
 /* KOINELIO INTERACTION POLISH: END */
+
+/* Keep the public landing page readable in either theme. */
+:root[data-theme="dark"] .landing-page { background-color: #101814 !important; color: #f8fafc !important; }
+:root[data-theme="dark"] .landing-page .landing-nav { background-color: #10182a !important; border-color: #2b3850 !important; }
+:root[data-theme="dark"] .landing-page .landing-nav a:not(.landing-primary-link) { color: #dbeafe !important; }
+:root[data-theme="dark"] .landing-page .landing-brand-name { color: #f3f2e9 !important; }
+:root[data-theme="dark"] .landing-page .landing-hero { background-image: none !important; background-color: #0b1020 !important; }
+:root[data-theme="dark"] .landing-page .landing-hero-prefix { color: #f8fafc !important; }
+:root[data-theme="dark"] .landing-page .landing-hero-description { color: #bac3b9 !important; }

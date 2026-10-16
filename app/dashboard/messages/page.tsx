@@ -4,7 +4,6 @@ import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   AlertCircle,
-  ArrowDown,
   CheckCircle2,
   LoaderCircle,
   LockKeyhole,
@@ -13,7 +12,8 @@ import {
   ShieldCheck,
   Users,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type RoomRecord = {
   id: string;
@@ -70,6 +70,8 @@ export default function ClubRoomsPage() {
     setLoading(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard/messages');
@@ -96,7 +98,7 @@ export default function ClubRoomsPage() {
         ? current
         : preferRequested?.id ?? loadedRooms[0]?.id ?? '');
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load your room list.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load your room list.'));
     } finally {
       setLoading(false);
     }
@@ -110,6 +112,8 @@ export default function ClubRoomsPage() {
     setLoadingMessages(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data, error: messagesError } = await supabase
         .from('club_room_messages')
         .select('id, room_id, sender_id, content, created_at, edited_at, profiles:profiles!club_room_messages_sender_id_fkey(display_name, avatar_url)')
@@ -120,14 +124,20 @@ export default function ClubRoomsPage() {
       setMessages((data ?? []) as unknown as RoomMessage[]);
     } catch (loadError) {
       setMessages([]);
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load messages for this room.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load messages for this room.'));
     } finally {
       setLoadingMessages(false);
     }
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the authenticated user's allowed rooms from Supabase.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the authenticated user's allowed rooms from Supabase.
   useEffect(() => { void loadRooms(); }, [loadRooms]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Load messages whenever the selected room changes.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Load messages whenever the selected room changes.
   useEffect(() => { void loadMessages(activeRoomId); }, [activeRoomId, loadMessages]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Subscribe to database changes for the selected room; cleanup removes the channel.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Subscribe to database changes for the selected room; cleanup removes the channel.
   useEffect(() => {
     if (!activeRoomId) return;
     const channel = supabase
@@ -167,7 +177,7 @@ export default function ClubRoomsPage() {
       setDraft('');
       await loadMessages(activeRoom.id);
     } catch (sendError) {
-      setError(sendError instanceof Error ? sendError.message : 'Unable to send the message. You may not have access to this room.');
+      setError(supabaseErrorMessage(sendError, 'Unable to send the message. You may not have access to this room.'));
     } finally {
       setSending(false);
     }

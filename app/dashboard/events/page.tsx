@@ -14,7 +14,8 @@ import {
   Ticket,
   Users,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type EventRecord = {
   id: string;
@@ -67,6 +68,8 @@ export default function EventsPage() {
   const loadEvents = useCallback(async () => {
     setLoading(true); setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard/events');
@@ -95,16 +98,18 @@ export default function EventsPage() {
       if (registrationResult.error) throw registrationResult.error;
       if (clubResult.error) throw clubResult.error;
       if (membershipResult.error) throw membershipResult.error;
+      if (roleResult.error) throw roleResult.error;
       setEvents((eventResult.data ?? []) as EventRecord[]);
       setRegistrations((registrationResult.data ?? []) as Registration[]);
       setClubs((clubResult.data ?? []) as Club[]);
       setMemberships((membershipResult.data ?? []) as Membership[]);
       setRoles((roleResult.data ?? []).map((item: { role: string }) => item.role));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load events from Supabase.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load events from Supabase.'));
     } finally { setLoading(false); }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetches the user's persisted event and registration state after mount.
   useEffect(() => { void loadEvents(); }, [loadEvents]);
 
   const registeredIds = useMemo(() => new Set(registrations.filter((item) => ['registered', 'attended'].includes(item.status)).map((item) => item.event_id)), [registrations]);
@@ -128,7 +133,7 @@ export default function EventsPage() {
       }
       await loadEvents();
     } catch (registrationError) {
-      setError(registrationError instanceof Error ? registrationError.message : 'Unable to update your event registration.');
+      setError(supabaseErrorMessage(registrationError, 'Unable to update your event registration.'));
     } finally { setSaving(false); }
   }
 
@@ -161,7 +166,7 @@ export default function EventsPage() {
       setNotice('Event draft saved. It will not appear to other members until authorized organizers publish it.');
       await loadEvents();
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Unable to save event draft.');
+      setError(supabaseErrorMessage(createError, 'Unable to save event draft.'));
     } finally { setSaving(false); }
   }
 
@@ -173,7 +178,7 @@ export default function EventsPage() {
       setNotice('Event published.');
       await loadEvents();
     } catch (publishError) {
-      setError(publishError instanceof Error ? publishError.message : 'Your role does not have permission to publish this event.');
+      setError(supabaseErrorMessage(publishError, 'Your role does not have permission to publish this event.'));
     } finally { setSaving(false); }
   }
 

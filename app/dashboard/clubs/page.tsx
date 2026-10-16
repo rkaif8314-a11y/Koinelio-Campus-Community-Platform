@@ -17,7 +17,8 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type ClubRecord = {
   id: string;
@@ -134,6 +135,8 @@ export default function ClubsPage() {
     setLoading(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard/clubs');
@@ -172,7 +175,7 @@ export default function ClubsPage() {
       if (clubResult.error) throw clubResult.error;
       if (membershipResult.error) throw membershipResult.error;
       if (invitationResult.error) throw invitationResult.error;
-      // Role requests may be hidden by RLS for a regular member; that is not a page failure.
+      if (roleResult.error) throw roleResult.error;
       if (peopleResult.error) throw peopleResult.error;
 
       setClubs((clubResult.data ?? []) as ClubRecord[]);
@@ -180,9 +183,6 @@ export default function ClubsPage() {
       setInvitations((invitationResult.data ?? []) as InvitationRecord[]);
       setRoleRequests((roleResult.data ?? []) as unknown as RoleRequestRecord[]);
       setCampusProfiles((peopleResult.data ?? []) as CampusProfile[]);
-      const activeRoles = (roleResult.data ?? [])
-        .filter((request: { user_id: string; status: string }) => request.user_id === authData.user.id && request.status === 'approved');
-      void activeRoles;
       const { data: userRoles } = await supabase
         .from('institution_roles')
         .select('role')
@@ -190,12 +190,14 @@ export default function ClubsPage() {
         .eq('status', 'active');
       setRoles((userRoles ?? []).map((item: { role: string }) => item.role));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load club data from the database.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load club data from the database.'));
     } finally {
       setLoading(false);
     }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads account-scoped club state from Supabase after mount.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads account-scoped club state from Supabase after mount.
   useEffect(() => { void loadData(); }, [loadData]);
 
   const activeMemberships = memberships.filter((item) => item.user_id === userId && item.status === 'active');
@@ -235,7 +237,7 @@ export default function ClubsPage() {
       setSuccess('Club proposal submitted. It will appear as an approved club only after administrator/president approval.');
       await loadData();
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Unable to submit the club proposal.');
+      setError(supabaseErrorMessage(createError, 'Unable to submit the club proposal.'));
     } finally { setSaving(false); }
   }
 
@@ -249,7 +251,7 @@ export default function ClubsPage() {
       setSuccess('Membership request sent. You will become a member only after the club coordinator approves it.');
       await loadData();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Unable to submit the membership request. Check your existing request status.');
+      setError(supabaseErrorMessage(requestError, 'Unable to submit the membership request. Check your existing request status.'));
     } finally { setSaving(false); }
   }
 
@@ -262,7 +264,7 @@ export default function ClubsPage() {
       setSuccess('You have left the club.');
       await loadData();
     } catch (leaveError) {
-      setError(leaveError instanceof Error ? leaveError.message : 'Unable to leave this club.');
+      setError(supabaseErrorMessage(leaveError, 'Unable to leave this club.'));
     } finally { setSaving(false); }
   }
 
@@ -277,7 +279,7 @@ export default function ClubsPage() {
       setSuccess(decision === 'active' ? 'Member approved. Their access is now enabled by database policies.' : 'Membership request rejected.');
       await loadData();
     } catch (reviewError) {
-      setError(reviewError instanceof Error ? reviewError.message : 'Unable to review membership request.');
+      setError(supabaseErrorMessage(reviewError, 'Unable to review membership request.'));
     } finally { setSaving(false); }
   }
 
@@ -297,7 +299,7 @@ export default function ClubsPage() {
       setSuccess('Invitation sent. The selected student must accept it before membership becomes active.');
       await loadData();
     } catch (inviteError) {
-      setError(inviteError instanceof Error ? inviteError.message : 'Unable to send the club invitation.');
+      setError(supabaseErrorMessage(inviteError, 'Unable to send the club invitation.'));
     } finally { setSaving(false); }
   }
 
@@ -312,7 +314,7 @@ export default function ClubsPage() {
       setSuccess(accept ? 'Invitation accepted. Your membership is active now.' : 'Invitation declined.');
       await loadData();
     } catch (responseError) {
-      setError(responseError instanceof Error ? responseError.message : 'Unable to respond to the invitation.');
+      setError(supabaseErrorMessage(responseError, 'Unable to respond to the invitation.'));
     } finally { setSaving(false); }
   }
 
@@ -338,7 +340,7 @@ export default function ClubsPage() {
       setSuccess('Leadership request submitted. It remains pending until the authorized administrator approves it.');
       await loadData();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Unable to submit leadership request.');
+      setError(supabaseErrorMessage(requestError, 'Unable to submit leadership request.'));
     } finally { setSaving(false); }
   }
 
@@ -358,7 +360,7 @@ export default function ClubsPage() {
       setSuccess('Coordinator request submitted. The responsible General Secretary, president, or administrator must approve it.');
       await loadData();
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : 'Unable to request coordinator consideration.');
+      setError(supabaseErrorMessage(requestError, 'Unable to request coordinator consideration.'));
     } finally { setSaving(false); }
   }
 
@@ -373,7 +375,7 @@ export default function ClubsPage() {
       setSuccess(decision === 'approved' ? 'Governance request approved and the role grant saved.' : 'Governance request rejected.');
       await loadData();
     } catch (decisionError) {
-      setError(decisionError instanceof Error ? decisionError.message : 'Unable to decide this governance request.');
+      setError(supabaseErrorMessage(decisionError, 'Unable to decide this governance request.'));
     } finally { setSaving(false); }
   }
 
@@ -596,7 +598,7 @@ export default function ClubsPage() {
       setSuccess(approval_status === 'approved' ? 'Club approved. Its three rooms are now provisioned and access is controlled by membership role.' : 'Club proposal rejected.');
       await loadData();
     } catch (updateError) {
-      setError(updateError instanceof Error ? updateError.message : 'Unable to update club approval status.');
+      setError(supabaseErrorMessage(updateError, 'Unable to update club approval status.'));
     } finally { setSaving(false); }
   }
 }

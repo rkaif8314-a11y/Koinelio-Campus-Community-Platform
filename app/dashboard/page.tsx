@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Users,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type Profile = {
   id: string;
@@ -39,6 +40,8 @@ type PostRecord = {
   created_at: string;
   visibility: 'public' | 'campus' | 'club';
   moderation_status: string;
+  post_type: 'discussion' | 'question' | 'project' | 'achievement' | 'opportunity' | 'announcement';
+  media_url: string | null;
   profiles?: { display_name: string; avatar_url: string | null; department: string | null } | null;
 };
 
@@ -68,14 +71,27 @@ function initials(name: string) {
 function readableTime(value: string) {
   return new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 }
+function mediaKind(path: string | null): 'video' | 'image' | 'gif' | null {
+  const extension = path?.split('?')[0].split('.').pop()?.toLowerCase();
+  if (extension === 'gif') return 'gif';
+  if (['mp4', 'webm'].includes(extension ?? '')) return 'video';
+  if (['jpg', 'jpeg', 'png', 'webp'].includes(extension ?? '')) return 'image';
+  return null;
+}
+const postTypeLabel: Record<PostRecord['post_type'], string> = {
+  discussion: 'Discussion', question: 'Question', project: 'Project',
+  achievement: 'Achievement', opportunity: 'Opportunity', announcement: 'Official update',
+};
 
 export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<PostRecord[]>([]);
+  const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const [likes, setLikes] = useState<Engagement[]>([]);
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementFilter, setAnnouncementFilter] = useState<'all' | 'urgent' | 'important' | 'normal'>('all');
   const [approvedClubCount, setApprovedClubCount] = useState(0);
   const [userId, setUserId] = useState('');
   const [composer, setComposer] = useState('');
@@ -90,6 +106,8 @@ export default function DashboardPage() {
     if (!quiet) setLoading(true); else setRefreshing(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard');
@@ -108,7 +126,7 @@ export default function DashboardPage() {
 
       const [postResult, eventResult, announcementResult, clubResult] = await Promise.all([
         supabase.from('posts')
-          .select('id, author_id, club_id, content, created_at, visibility, moderation_status, profiles:profiles!posts_author_id_fkey(display_name, avatar_url, department)')
+          .select('id, author_id, club_id, content, created_at, visibility, moderation_status, post_type, media_url, profiles:profiles!posts_author_id_fkey(display_name, avatar_url, department)')
           .eq('moderation_status', 'published')
           .order('created_at', { ascending: false })
           .limit(50),
@@ -122,14 +140,27 @@ export default function DashboardPage() {
           .select('id, title, body, priority, published_at')
           .eq('status', 'published')
           .order('published_at', { ascending: false })
-          .limit(5),
+          .limit(20),
         supabase.from('clubs')
           .select('id', { count: 'exact', head: true })
           .eq('approval_status', 'approved'),
       ]);
 
+      // Fail visibly if any dashboard section is unavailable; silently treating a
+      // schema/RLS error as an empty list makes a broken backend look like no data.
       if (postResult.error) throw postResult.error;
-      setPosts((postResult.data ?? []) as unknown as PostRecord[]);
+      if (eventResult.error) throw eventResult.error;
+      if (announcementResult.error) throw announcementResult.error;
+      if (clubResult.error) throw clubResult.error;
+      const loadedPosts = (postResult.data ?? []) as unknown as PostRecord[];
+      setPosts(loadedPosts);
+      const signedMedia = await Promise.all(loadedPosts.filter((post) => post.media_url).map(async (post) => {
+        const storedPath = post.media_url as string;
+        if (/^https?:\/\//i.test(storedPath)) return { id: post.id, url: storedPath };
+        const { data, error: mediaError } = await supabase.storage.from('campus-post-media').createSignedUrl(storedPath, 3600);
+        return { id: post.id, url: mediaError ? '' : data?.signedUrl ?? '' };
+      }));
+      setMediaUrls(Object.fromEntries(signedMedia.filter((item) => item.url).map((item) => [item.id, item.url])));
       setEvents((eventResult.data ?? []) as EventRecord[]);
       setAnnouncements((announcementResult.data ?? []) as Announcement[]);
       setApprovedClubCount(clubResult.count ?? 0);
@@ -146,16 +177,26 @@ export default function DashboardPage() {
         setLikes([]);
       }
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load campus data from Supabase.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load campus data from Supabase.'));
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the real campus dashboard from authenticated Supabase queries.
   useEffect(() => { void loadDashboard(); }, [loadDashboard]);
 
   const ownPostIds = useMemo(() => new Set(posts.filter((post) => post.author_id === userId).map((post) => post.id)), [posts, userId]);
+  const prioritizedAnnouncements = announcements
+    .filter((item) => announcementFilter === 'all' || item.priority === announcementFilter)
+    .slice()
+    .sort((a, b) => {
+      const rank: Record<string, number> = { urgent: 0, important: 1, normal: 2 };
+      const priorityDifference = (rank[a.priority] ?? 3) - (rank[b.priority] ?? 3);
+      if (priorityDifference !== 0) return priorityDifference;
+      return new Date(b.published_at ?? 0).getTime() - new Date(a.published_at ?? 0).getTime();
+    });
 
   async function createPost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -168,6 +209,8 @@ export default function DashboardPage() {
         content,
         visibility: 'campus',
         moderation_status: 'published',
+        post_type: 'discussion',
+        media_url: null,
         club_id: null,
       });
       if (insertError) throw insertError;
@@ -175,7 +218,7 @@ export default function DashboardPage() {
       setNotice('Your post has been saved to the campus feed.');
       await loadDashboard(true);
     } catch (createError) {
-      setError(createError instanceof Error ? createError.message : 'Unable to publish your post.');
+      setError(supabaseErrorMessage(createError, 'Unable to publish your post.'));
     } finally {
       setRefreshing(false);
     }
@@ -195,7 +238,7 @@ export default function DashboardPage() {
         setLikes((items) => [...items, { post_id: post.id, user_id: userId }]);
       }
     } catch (likeError) {
-      setError(likeError instanceof Error ? likeError.message : 'Unable to update this like.');
+      setError(supabaseErrorMessage(likeError, 'Unable to update this like.'));
     }
   }
 
@@ -214,7 +257,7 @@ export default function DashboardPage() {
       setCommentDrafts((items) => ({ ...items, [post.id]: '' }));
       setNotice('Comment posted.');
     } catch (commentError) {
-      setError(commentError instanceof Error ? commentError.message : 'Unable to add comment.');
+      setError(supabaseErrorMessage(commentError, 'Unable to add comment.'));
     } finally {
       setCommentingPostId('');
     }
@@ -224,15 +267,17 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
-      <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#14213D] via-[#253b68] to-[#5146E5] p-6 text-white shadow-sm sm:p-8">
+      <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#173D36] via-[#24584D] to-[#C65D43] p-6 text-white shadow-sm sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-5">
           <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-200">IIT Bhilai community</p>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-100">IIT Bhilai community</p>
             <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Welcome back, {profile?.display_name.split(' ')[0] ?? 'student'}.</h1>
             <p className="mt-2 text-sm leading-6 text-white/75">Share updates, discover approved clubs, and connect through real campus data linked to your account.</p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/dashboard/profile" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#14213D] hover:bg-indigo-50"><Users size={16} /> Complete profile</Link>
+          <div className="flex flex-wrap gap-2">
+            <Link href="/dashboard/profile" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#173D36] hover:bg-amber-50"><Users size={16} /> Complete profile</Link>
+            <Link href="/dashboard/community" className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"><Newspaper size={16} /> Campus feed</Link>
+            <Link href="/dashboard/alumni" className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"><ArrowRight size={16} /> Alumni</Link>
             <button onClick={() => void loadDashboard(true)} disabled={refreshing} className="rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
           </div>
         </div>
@@ -274,9 +319,12 @@ export default function DashboardPage() {
               <header className="flex items-start gap-3">
                 {author?.avatar_url ? <img src={author.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{initials(author?.display_name ?? 'Campus member')}</span>}
                 <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-slate-900">{author?.display_name ?? (post.author_id === userId ? profile?.display_name : 'Campus member')}</p><p className="mt-0.5 text-xs text-slate-500">{author?.department ?? 'IIT Bhilai'} · {readableTime(post.created_at)}</p></div>
-                {post.author_id === userId && <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-800">Your post</span>}
+                <span className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-[10px] font-semibold text-stone-700">{postTypeLabel[post.post_type] ?? 'Discussion'}</span>
+                {post.author_id === userId && <span className="rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-800">Your post</span>}
               </header>
               <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">{post.content}</p>
+              {post.media_url && mediaUrls[post.id] && mediaKind(post.media_url) === 'video' && <video src={mediaUrls[post.id]} controls preload="metadata" className="mt-4 max-h-[420px] w-full rounded-xl bg-black" />}
+              {post.media_url && mediaUrls[post.id] && ['image', 'gif'].includes(mediaKind(post.media_url) ?? '') && <img src={mediaUrls[post.id]} alt="Campus post attachment" loading="lazy" className="mt-4 max-h-[420px] w-full rounded-xl bg-stone-50 object-contain" />}
               <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
                 <button onClick={() => void toggleLike(post)} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold ${liked ? 'bg-rose-50 text-rose-700' : 'text-slate-500 hover:bg-slate-50'}`}><Heart size={15} className={liked ? 'fill-current' : ''} />{postLikes.length} {postLikes.length === 1 ? 'like' : 'likes'}</button>
                 <span className="inline-flex items-center gap-1.5 px-2 py-2 text-xs text-slate-400"><MessageCircle size={15} />Comments</span>
@@ -303,9 +351,13 @@ export default function DashboardPage() {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-slate-900">Campus announcements</h2><Bell size={18} className="text-indigo-600" /></div>
+            <div role="group" aria-label="Filter announcements by priority" className="mt-3 flex flex-wrap gap-1.5">
+              {(['all', 'urgent', 'important', 'normal'] as const).map((value) => <button key={value} type="button" aria-pressed={announcementFilter === value} onClick={() => setAnnouncementFilter(value)} className={`rounded-full border px-2.5 py-1.5 text-[11px] font-semibold capitalize transition ${announcementFilter === value ? 'border-[#173D36] bg-[#173D36] text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{value === 'all' ? 'All priorities' : value}</button>)}
+            </div>
             <div className="mt-4 space-y-3">
               {announcements.length === 0 && <p className="text-sm leading-6 text-slate-500">No published campus announcements are available.</p>}
-              {announcements.map((item) => <article key={item.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-800">{item.title}</p>{item.priority !== 'normal' && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold capitalize text-amber-800">{item.priority}</span>}</div><p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-600">{item.body}</p>{item.published_at && <p className="mt-1 text-[10px] text-slate-400">{readableTime(item.published_at)}</p>}</article>)}
+              {announcements.length > 0 && prioritizedAnnouncements.length === 0 && <p className="text-sm leading-6 text-slate-500">No {announcementFilter} announcements are available.</p>}
+              {prioritizedAnnouncements.slice(0, 8).map((item) => <article key={item.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-800">{item.title}</p>{item.priority !== 'normal' && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${item.priority === 'urgent' ? 'bg-rose-50 text-rose-800' : 'bg-amber-50 text-amber-800'}`}>{item.priority}</span>}</div><p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-600">{item.body}</p>{item.published_at && <p className="mt-1 text-[10px] text-slate-400">{readableTime(item.published_at)}</p>}</article>)}
             </div>
           </section>
 
