@@ -145,7 +145,12 @@ export default function DashboardPage() {
           .eq('approval_status', 'approved'),
       ]);
 
+      // Fail visibly if any dashboard section is unavailable; silently treating a
+      // schema/RLS error as an empty list makes a broken backend look like no data.
       if (postResult.error) throw postResult.error;
+      if (eventResult.error) throw eventResult.error;
+      if (announcementResult.error) throw announcementResult.error;
+      if (clubResult.error) throw clubResult.error;
       const loadedPosts = (postResult.data ?? []) as unknown as PostRecord[];
       setPosts(loadedPosts);
       const signedMedia = await Promise.all(loadedPosts.filter((post) => post.media_url).map(async (post) => {
