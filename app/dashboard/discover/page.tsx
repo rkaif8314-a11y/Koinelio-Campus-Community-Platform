@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, BadgeCheck, BookOpen, CalendarDays, LoaderCircle, Search, Users, UserRound } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -26,10 +26,12 @@ type Event = { id: string; title: string; description: string; starts_at: string
 
 type Tab = 'all' | 'people' | 'clubs' | 'events';
 
-export default function DiscoverPage() {
+function DiscoverPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get('q') ?? '';
   const [tab, setTab] = useState<Tab>('all');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(urlQuery);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -75,6 +77,7 @@ export default function DiscoverPage() {
   }, [router]);
 
   useEffect(() => { void loadDirectory(); }, [loadDirectory]);
+  useEffect(() => { setQuery(urlQuery); }, [urlQuery]);
 
   const normalized = query.trim().toLowerCase();
   const people = useMemo(() => profiles.filter((item) =>
@@ -123,5 +126,13 @@ export default function DiscoverPage() {
         </section>
       )}
     </div>
+  );
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-500">Loading campus discovery…</div>}>
+      <DiscoverPageContent />
+    </Suspense>
   );
 }
