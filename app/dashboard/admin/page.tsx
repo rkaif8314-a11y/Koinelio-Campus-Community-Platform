@@ -135,6 +135,7 @@ export default function AdminPage() {
   }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- The async Supabase loader hydrates the signed-in governance queue after mount.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- The async Supabase loader hydrates the signed-in governance queue after mount.
   useEffect(() => { void loadData(); }, [loadData]);
 
   const admin = isPlatformAdmin || roles.includes('institution_admin');
