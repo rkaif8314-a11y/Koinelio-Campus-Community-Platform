@@ -153,8 +153,13 @@ export default function CommunityPage() {
           .select('id, post_id, author_id, content, created_at, profiles:profiles!post_comments_author_id_fkey(display_name, avatar_url)')
           .in('post_id', ids).order('created_at', { ascending: true }).limit(500),
         Promise.all(rows.filter((post) => post.media_url).map(async (post) => {
+          const storedPath = post.media_url as string;
+          // Older posts may already hold an external URL; only object paths need signed URLs.
+          if (/^https?:\/\//i.test(storedPath)) {
+            return { postId: post.id, url: storedPath, error: null };
+          }
           const { data, error: mediaError } = await supabase.storage
-            .from('campus-post-media').createSignedUrl(post.media_url as string, 3600);
+            .from('campus-post-media').createSignedUrl(storedPath, 3600);
           return { postId: post.id, url: data?.signedUrl ?? '', error: mediaError };
         })),
       ]);
