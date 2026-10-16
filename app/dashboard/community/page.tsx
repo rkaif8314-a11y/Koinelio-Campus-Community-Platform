@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { getSupabaseConfigError, supabase } from '@/lib/supabase';
 import { supabaseErrorMessage } from '@/lib/supabase-errors';
+import { suggestPostType } from '@/lib/post-classification';
 
 type PostType = 'discussion' | 'question' | 'project' | 'achievement' | 'opportunity' | 'announcement';
 type Person = { display_name: string; avatar_url: string | null; department: string | null };
@@ -53,34 +54,6 @@ const typeStyles: Record<PostType, string> = {
   announcement: 'border-rose-200 bg-rose-50 text-rose-800',
 };
 const emojis = ['😀', '🎉', '💡', '🚀', '🤝', '📚', '✅', '❤️', '🔥', '💻'];
-
-/**
- * Small, transparent keyword heuristic to help people categorize posts.
- * It never creates official announcements and never overrides a user's choice.
- */
-function suggestPostType(text: string): PostType | null {
-  const value = text.toLowerCase().trim();
-  if (value.length < 12) return null;
-
-  const patterns: Array<{ type: PostType; keywords: string[] }> = [
-    { type: 'opportunity', keywords: ['internship', 'job opening', 'hiring', 'scholarship', 'application deadline', 'applications open', 'opportunity', 'apply here', 'call for volunteers', 'volunteer position'] },
-    { type: 'project', keywords: ['project', 'prototype', 'built ', 'building ', 'open source', 'github', 'repository', 'launched', 'implemented', 'developed', 'demo of', 'working on'] },
-    { type: 'achievement', keywords: ['won ', 'award', 'finalist', 'got selected', 'selected for', 'completed ', 'milestone', 'proud to share', 'placed at', 'ranked ', 'achievement'] },
-    { type: 'question', keywords: ['need help', 'anyone know', 'can someone', 'how do i', 'how can i', 'why does', 'what is', 'question:', 'any suggestions', 'looking for advice'] },
-  ];
-
-  const scores = patterns.map((pattern) => ({
-    type: pattern.type,
-    score: pattern.keywords.reduce((sum, keyword) => sum + (value.includes(keyword) ? 1 : 0), 0),
-  }));
-  if (value.includes('?')) {
-    const question = scores.find((item) => item.type === 'question');
-    if (question) question.score += 1;
-  }
-
-  scores.sort((left, right) => right.score - left.score);
-  return scores[0]?.score > 0 ? scores[0].type : null;
-}
 
 function initials(name: string): string {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'K';
