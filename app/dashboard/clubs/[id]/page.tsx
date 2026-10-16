@@ -72,6 +72,7 @@ export default function ClubDetailPage() {
     } finally { setLoading(false); }
   }, [clubId, router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the requested club from Supabase after route parameters are available.
   useEffect(() => { void loadClub(); }, [loadClub]);
 
   async function requestMembership() {
