@@ -122,6 +122,7 @@ export default function ProfilePage() {
 
       const payload = {
         display_name: cleanName,
+        campus_role: profile.campus_role,
         bio: profile.bio.trim(),
         department: profile.department?.trim() || null,
         study_year: profile.study_year,
@@ -293,6 +294,15 @@ export default function ProfilePage() {
               <input id="degree" maxLength={160} className={inputClass} value={profile.degree_program ?? ''} onChange={(e) => update('degree_program', e.target.value)} />
             </div>
             <div>
+              <label className={labelClass} htmlFor="campusRole">Campus profile type</label>
+              <select id="campusRole" className={inputClass} value={profile.campus_role} onChange={(e) => update('campus_role', e.target.value as ProfileRecord['campus_role'])}>
+                <option value="student">Student</option>
+                <option value="faculty">Faculty</option>
+                <option value="alumni">Alumni / graduate</option>
+              </select>
+              <p className="mt-1 text-xs leading-5 text-slate-500">This is a self-reported profile category, not an institutional appointment or admin permission.</p>
+            </div>
+            <div>
               <label className={labelClass} htmlFor="studyYear">Current study year</label>
               <select id="studyYear" className={inputClass} value={profile.study_year ?? ''} onChange={(e) => update('study_year', e.target.value ? Number(e.target.value) : null)}>
                 <option value="">Not set</option>
@@ -304,7 +314,7 @@ export default function ProfilePage() {
               <input id="batchYear" type="number" min={2016} max={new Date().getFullYear()} className={inputClass} value={profile.batch_year ?? ''} onChange={(e) => update('batch_year', e.target.value ? Number(e.target.value) : null)} />
             </div>
             <div>
-              <label className={labelClass} htmlFor="graduationYear">Expected graduation year</label>
+              <label className={labelClass} htmlFor="graduationYear">{profile.campus_role === 'alumni' ? 'Graduation year' : 'Expected graduation year'}</label>
               <input id="graduationYear" type="number" min={2016} max={2200} className={inputClass} value={profile.graduation_year ?? ''} onChange={(e) => update('graduation_year', e.target.value ? Number(e.target.value) : null)} />
             </div>
             <div>
