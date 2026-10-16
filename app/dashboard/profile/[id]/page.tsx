@@ -52,6 +52,7 @@ export default function PublicProfilePage() {
     } finally { setLoading(false); }
   }, [profileId, router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetches the profile only after the dynamic route and session are available.
   useEffect(() => { void loadProfile(); }, [loadProfile]);
 
   if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle size={18} className="mr-2 animate-spin" /> Loading profile…</div>;
