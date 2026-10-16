@@ -200,6 +200,7 @@ export default function ClubsPage() {
   }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads account-scoped club state from Supabase after mount.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads account-scoped club state from Supabase after mount.
   useEffect(() => { void loadData(); }, [loadData]);
 
   const activeMemberships = memberships.filter((item) => item.user_id === userId && item.status === 'active');
