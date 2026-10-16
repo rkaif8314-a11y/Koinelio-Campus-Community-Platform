@@ -26,7 +26,7 @@ function ResetPasswordPageContent() {
         }
         const { data, error: sessionError } = await supabase.auth.getUser();
         if (sessionError || !data.user) throw new Error('This password reset link is invalid or expired. Request a new reset email.');
-        if (!data.user.email_confirmed_at || !/^[^@\\s]+@iitbhilai\\.ac\\.in$/i.test(data.user.email ?? '')) {
+        if (!data.user.email_confirmed_at || !/^[^@\s]+@iitbhilai\.ac\.in$/i.test(data.user.email ?? '')) {
           throw new Error('A confirmed @iitbhilai.ac.in email account is required.');
         }
         if (active) setReady(true);
