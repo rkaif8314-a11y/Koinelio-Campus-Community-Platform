@@ -23,6 +23,7 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  Vote,
   UserRound,
   X,
 } from 'lucide-react';
@@ -54,6 +55,7 @@ const navItems: NavItem[] = [
   { label: 'My Clubs', href: '/dashboard/clubs', icon: Users },
   { label: 'Events', href: '/dashboard/events', icon: CalendarDays },
   { label: 'Club Recruitment', href: '/dashboard/recruitment', icon: Users },
+  { label: 'Elections', href: '/dashboard/elections', icon: Vote },
   { label: 'Alumni', href: '/dashboard/alumni', icon: GraduationCap },
   { label: 'Club Rooms', href: '/dashboard/messages', icon: MessageSquare },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
