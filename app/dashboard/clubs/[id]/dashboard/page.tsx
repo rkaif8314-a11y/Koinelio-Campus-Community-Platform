@@ -7,7 +7,6 @@ import {
   AlertCircle,
   ArrowLeft,
   BadgeCheck,
-  CalendarDays,
   Check,
   CheckCircle2,
   Clock3,
@@ -18,7 +17,6 @@ import {
   Search,
   ShieldCheck,
   Users,
-  UserRound,
   X,
 } from 'lucide-react';
 import { getSupabaseConfigError, supabase } from '@/lib/supabase';
@@ -354,7 +352,7 @@ export default function ClubLeaderDashboard() {
           </section>
           <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
             <h2 className="text-base font-bold text-slate-900">Invite a selected member</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Use after your club's selection/interview process. An invitee must explicitly accept before membership is activated.</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Use after your club&apos;s selection/interview process. An invitee must explicitly accept before membership is activated.</p>
             <form onSubmit={inviteSelectedMember} className="mt-4 space-y-3">
               <div><label htmlFor="invitee" className="mb-1.5 block text-xs font-semibold text-slate-700">Campus profile</label><select id="invitee" required value={inviteeId} onChange={(event) => setInviteeId(event.target.value)} className={inputClass}><option value="">Choose a student profile</option>{people.map((person) => <option key={person.id} value={person.id}>{person.display_name}{person.department ? ` · ${person.department}` : ''}</option>)}</select></div>
               <div><label htmlFor="inviteRole" className="mb-1.5 block text-xs font-semibold text-slate-700">Role offered</label><select id="inviteRole" value={inviteRole} onChange={(event) => setInviteRole(event.target.value as 'member' | 'core_member')} className={inputClass}><option value="member">General Member</option><option value="core_member">Core Member</option></select></div>
