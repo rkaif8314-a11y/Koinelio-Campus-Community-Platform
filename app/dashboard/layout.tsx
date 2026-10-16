@@ -53,6 +53,7 @@ const navItems: NavItem[] = [
   { label: 'Campus Guide', href: '/dashboard/campus', icon: BookOpen },
   { label: 'My Clubs', href: '/dashboard/clubs', icon: Users },
   { label: 'Events', href: '/dashboard/events', icon: CalendarDays },
+  { label: 'Club Recruitment', href: '/dashboard/recruitment', icon: Users },
   { label: 'Alumni', href: '/dashboard/alumni', icon: GraduationCap },
   { label: 'Club Rooms', href: '/dashboard/messages', icon: MessageSquare },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
