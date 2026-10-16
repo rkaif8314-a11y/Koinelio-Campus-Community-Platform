@@ -43,6 +43,7 @@ export default function NotificationsPage() {
     } finally { setLoading(false); }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrates account-scoped notification data after mount.
   useEffect(() => { void loadNotifications(); }, [loadNotifications]);
 
   async function markRead(item: NotificationRecord) {
