@@ -1,179 +1,98 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useApp, useCurrentUser } from '@/lib/app-context';
-import { getUserById, timeAgo, formatDate, Notification } from '@/lib/demo-data';
-import {
-  Bell,
-  CheckCircle,
-  MessageSquare,
-  Heart,
-  Users,
-  Calendar,
-  Shield,
-  Sparkles,
-  ArrowRight,
-  Settings,
-  Clock,
-  Megaphone,
-  Check,
-} from 'lucide-react';
+import { AlertCircle, Bell, CheckCheck, LoaderCircle, ShieldCheck } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+type NotificationRecord = {
+  id: string;
+  recipient_id: string;
+  title: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+};
 
 export default function NotificationsPage() {
-  const { state, actions } = useApp();
-  const currentUser = useCurrentUser();
+  const router = useRouter();
+  const [items, setItems] = useState<NotificationRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState('');
+  const [error, setError] = useState('');
 
-  const [filter, setFilter] = useState<'all' | 'unread'>('all');
+  const loadNotifications = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        router.replace('/auth/signin?next=/dashboard/notifications');
+        return;
+      }
+      const { data, error: queryError } = await supabase
+        .from('notifications')
+        .select('id, recipient_id, title, body, read_at, created_at')
+        .eq('recipient_id', authData.user.id)
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (queryError) throw queryError;
+      setItems((data ?? []) as NotificationRecord[]);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load notifications.');
+    } finally { setLoading(false); }
+  }, [router]);
 
-  const userNotifications = state.notifications.filter(n => n.userId === currentUser.id);
-  const unreadCount = userNotifications.filter(n => !n.isRead).length;
+  useEffect(() => { void loadNotifications(); }, [loadNotifications]);
 
-  const displayedNotifications = userNotifications.filter(n => {
-    if (filter === 'unread') return !n.isRead;
-    return true;
-  });
+  async function markRead(item: NotificationRecord) {
+    if (item.read_at) return;
+    setSavingId(item.id); setError('');
+    try {
+      const readAt = new Date().toISOString();
+      const { error: updateError } = await supabase.from('notifications')
+        .update({ read_at: readAt })
+        .eq('id', item.id)
+        .eq('recipient_id', item.recipient_id);
+      if (updateError) throw updateError;
+      setItems((current) => current.map((entry) => entry.id === item.id ? { ...entry, read_at: readAt } : entry));
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'Unable to mark notification as read.');
+    } finally { setSavingId(''); }
+  }
 
-  const getNotificationIcon = (type: Notification['type']) => {
-    switch (type) {
-      case 'comment':
-        return <MessageSquare size={16} className="text-[#5146E5]" />;
-      case 'like':
-        return <Heart size={16} className="text-rose-500" />;
-      case 'membership_decision':
-      case 'club_invite':
-        return <Users size={16} className="text-amber-500" />;
-      case 'event_reminder':
-      case 'registration':
-        return <Calendar size={16} className="text-[#0F9D8A]" />;
-      case 'verification':
-        return <Shield size={16} className="text-emerald-600" />;
-      case 'announcement':
-        return <Megaphone size={16} className="text-[#14213D]" />;
-      default:
-        return <Bell size={16} className="text-[#5146E5]" />;
-    }
-  };
+  async function markAllRead() {
+    const unread = items.filter((item) => !item.read_at);
+    if (!unread.length) return;
+    setSavingId('all'); setError('');
+    try {
+      const readAt = new Date().toISOString();
+      const { error: updateError } = await supabase.from('notifications')
+        .update({ read_at: readAt })
+        .is('read_at', null);
+      if (updateError) throw updateError;
+      setItems((current) => current.map((item) => item.read_at ? item : { ...item, read_at: readAt }));
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'Unable to mark notifications as read.');
+    } finally { setSavingId(''); }
+  }
+
+  const unreadCount = items.filter((item) => !item.read_at).length;
+
+  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle size={18} className="mr-2 animate-spin" /> Loading notifications…</div>;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-[#E5E7EB]">
-        <div>
-          <h1 className="text-2xl font-bold text-[#182230]">Notification Center</h1>
-          <p className="text-xs text-[#667085] mt-1">
-            Real-time campus updates, club requests, event reminders, and official notices
-          </p>
-        </div>
-
-        {unreadCount > 0 && (
-          <button
-            onClick={() => actions.markAllNotificationsRead()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#E5E7EB] hover:bg-[#F7F8FC] text-xs font-semibold text-[#182230] rounded-xl transition-colors self-start sm:self-center"
-          >
-            <Check size={14} className="text-[#0F9D8A]" />
-            Mark all as read
-          </button>
-        )}
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Your account</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Notifications</h1><p className="mt-2 text-sm text-slate-600">{unreadCount} unread notification{unreadCount === 1 ? '' : 's'} saved for your account.</p></div>
+        <button onClick={() => void markAllRead()} disabled={unreadCount === 0 || savingId !== ''} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"><CheckCheck size={16} />Mark all read</button>
       </div>
-
-      {/* Filter Chips */}
-      <div className="flex items-center gap-2 mb-6">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-            filter === 'all'
-              ? 'bg-[#14213D] text-white'
-              : 'bg-white border border-[#E5E7EB] text-[#667085] hover:text-[#182230]'
-          }`}
-        >
-          All Activity ({userNotifications.length})
-        </button>
-        <button
-          onClick={() => setFilter('unread')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-            filter === 'unread'
-              ? 'bg-[#14213D] text-white'
-              : 'bg-white border border-[#E5E7EB] text-[#667085] hover:text-[#182230]'
-          }`}
-        >
-          Unread ({unreadCount})
-        </button>
-      </div>
-
-      {/* List */}
-      {displayedNotifications.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] p-12 text-center max-w-md mx-auto">
-          <Bell size={36} className="text-[#667085] mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-[#182230]">All caught up</h3>
-          <p className="text-xs text-[#667085] mt-1">
-            You have no {filter === 'unread' ? 'unread ' : ''}notifications at this time.
-          </p>
-        </div>
+      {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
+      {items.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Bell size={33} className="mx-auto mb-3 text-slate-300" /><h2 className="font-bold text-slate-900">You are all caught up</h2><p className="mt-2 text-sm leading-6 text-slate-500">Notifications appear here when a database-backed campus workflow sends you an update.</p><Link href="/dashboard/clubs" className="mt-4 inline-flex text-sm font-semibold text-indigo-700 hover:underline">Explore clubs</Link></div>
       ) : (
-        <div className="bg-white rounded-2xl border border-[#E5E7EB] divide-y divide-[#E5E7EB] overflow-hidden shadow-sm">
-          {displayedNotifications.map(n => {
-            const actor = n.actorId ? getUserById(n.actorId) : null;
-            return (
-              <div
-                key={n.id}
-                onClick={() => actions.markNotificationRead(n.id)}
-                className={`p-4 sm:p-5 flex items-start gap-4 transition-colors cursor-pointer ${
-                  !n.isRead ? 'bg-[#EEF0FD]/30 hover:bg-[#EEF0FD]/50' : 'hover:bg-[#F7F8FC]'
-                }`}
-              >
-                {/* Icon Circle */}
-                <div className="w-10 h-10 rounded-xl bg-white border border-[#E5E7EB] shadow-xs flex items-center justify-center shrink-0 mt-0.5">
-                  {getNotificationIcon(n.type)}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <h4 className="text-xs font-bold text-[#182230] leading-snug">
-                      {n.title}
-                    </h4>
-                    <span className="text-[10px] text-[#667085] whitespace-nowrap shrink-0">
-                      {timeAgo(n.createdAt)}
-                    </span>
-                  </div>
-
-                  <p className="text-xs text-[#667085] mt-1 leading-relaxed">
-                    {n.message}
-                  </p>
-
-                  {/* Destination link if available */}
-                  {n.actionUrl && (
-                    <Link
-                      href={n.actionUrl}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#5146E5] hover:underline mt-2"
-                    >
-                      View Details
-                      <ArrowRight size={10} />
-                    </Link>
-                  )}
-                </div>
-
-                {/* Unread dot */}
-                {!n.isRead && (
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#5146E5] shrink-0 mt-2" />
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <div className="space-y-3">{items.map((item) => <article key={item.id} className={`flex gap-3 rounded-2xl border p-4 transition ${item.read_at ? 'border-slate-200 bg-white' : 'border-indigo-100 bg-indigo-50/50'}`}><div className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.read_at ? 'bg-slate-100 text-slate-500' : 'bg-indigo-100 text-indigo-700'}`}>{item.title.toLowerCase().includes('security') ? <ShieldCheck size={18} /> : <Bell size={18} />}</div><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h2 className="font-semibold text-slate-900">{item.title}</h2>{!item.read_at && <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-bold text-white">New</span>}</div><p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">{item.body}</p><p className="mt-2 text-xs text-slate-400">{new Date(item.created_at).toLocaleString()}</p></div>{!item.read_at && <button disabled={savingId !== ''} onClick={() => void markRead(item)} className="shrink-0 self-start rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50">{savingId === item.id ? 'Saving…' : 'Mark read'}</button>}</article>)}</div>
       )}
-
-      {/* Preferences note */}
-      <div className="mt-8 p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-start gap-3 text-xs text-[#667085]">
-        <Settings size={16} className="text-[#667085] shrink-0 mt-0.5" />
-        <div>
-          <span className="font-semibold text-[#182230] block mb-0.5">
-            Simulation Notice: Local Prototype Notifications
-          </span>
-          Notifications are generated and tracked locally within this session. External push notifications, SMS alerts, and email notifications will be deployed in Phase 2 with our Supabase & Postmark backend integrations.
-        </div>
-      </div>
     </div>
   );
 }

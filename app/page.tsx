@@ -1,669 +1,172 @@
 'use client';
 
 import Link from 'next/link';
-import ThemeToggle from '@/components/theme-toggle';
-import KoinelioLogoMark from '@/components/koinelio-logo-mark';
 import { useState } from 'react';
 import {
-  Users, Calendar, Award, Shield, Zap, Globe, ArrowRight,
-  ChevronRight, Star, CheckCircle, MessageSquare, Bell,
-  BookOpen, TrendingUp, Heart, Menu, X
+  ArrowRight,
+  BadgeCheck,
+  BookOpen,
+  CalendarDays,
+  CheckCircle2,
+  LockKeyhole,
+  Menu,
+  MessageCircle,
+  ShieldCheck,
+  Users,
+  X,
 } from 'lucide-react';
+import KoinelioLogoMark from '@/components/koinelio-logo-mark';
+import ThemeToggle from '@/components/theme-toggle';
+
+const features = [
+  {
+    icon: Users,
+    title: 'Real campus profiles',
+    text: 'Set up your personal and academic profile, add skills and interests, and upload a profile picture that stays with your Koinelio account.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Club membership with approval',
+    text: 'Discover approved clubs, request membership, and track decisions. A pending request never gives you member privileges.',
+  },
+  {
+    icon: BadgeCheck,
+    title: 'Clear leadership roles',
+    text: 'Coordinators, Core Members, General Secretaries, the President, and administrators have distinct responsibilities and approval paths.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Three club room levels',
+    text: 'General for the campus, Members for active members, and Core Team for Core Members and coordinators. Database policies enforce access.',
+  },
+  {
+    icon: CalendarDays,
+    title: 'Events that persist',
+    text: 'Find events published by authorized organizers, register from your account, and keep registrations tied to your actual signed-in profile.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Campus information',
+    text: 'Use the Campus Guide to explore publicly sourced information. The guide is distinct from private member records and club activity.',
+  },
+];
 
 export default function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white font-sans">
-      {/* NAV */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b border-[#E5E7EB]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <main className="min-h-screen bg-white font-sans text-slate-900">
+      <nav className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5">
-            <KoinelioLogoMark size={32} />
-            <span className="text-[#182230] font-bold text-xl tracking-tight">Koinelio</span>
+            <KoinelioLogoMark size={33} />
+            <span className="text-xl font-bold tracking-tight text-[#14213D]">Koinelio</span>
           </Link>
-
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Features</a>
-            <a href="#clubs" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Clubs</a>
-            <a href="#events" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Events</a>
-            <a href="#alumni" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">Alumni</a>
-            <Link href="/dashboard/campus" className="text-[#667085] hover:text-[#182230] text-sm font-medium transition-colors">IIT Bhilai guide</Link>
+          <div className="hidden items-center gap-7 md:flex">
+            <a href="#features" className="text-sm font-medium text-slate-600 transition hover:text-slate-900">Features</a>
+            <a href="#governance" className="text-sm font-medium text-slate-600 transition hover:text-slate-900">Club governance</a>
+            <Link href="/dashboard/campus" className="text-sm font-medium text-slate-600 transition hover:text-slate-900">Campus Guide</Link>
           </div>
-
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden items-center gap-2 md:flex">
             <ThemeToggle />
-            <Link href="/auth/signin" className="text-sm font-medium text-[#667085] hover:text-[#182230] transition-colors px-3 py-2">
-              Sign in
-            </Link>
-            <Link
-              href="/dashboard"
-              className="text-sm font-semibold text-white bg-[#5146E5] hover:bg-[#4338CA] px-4 py-2 rounded-lg transition-colors"
-            >
-              Preview demo — no account needed
-            </Link>
+            <Link href="/auth/signin" className="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100">Sign in</Link>
+            <Link href="/auth/signup" className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700">Create account <ArrowRight size={15} /></Link>
           </div>
-
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-[#F7F8FC] transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <button onClick={() => setMobileMenuOpen((open) => !open)} aria-label="Toggle navigation" className="rounded-lg p-2 text-slate-600 hover:bg-slate-100 md:hidden">{mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}</button>
         </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-[#E5E7EB] bg-white px-4 py-4 space-y-3">
-            <a href="#features" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Features</a>
-            <a href="#clubs" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Clubs</a>
-            <a href="#events" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Events</a>
-            <a href="#alumni" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">Alumni</a>
-            <Link href="/dashboard/campus" className="block text-[#667085] hover:text-[#182230] text-sm font-medium py-2">IIT Bhilai campus guide</Link>
-            <div className="flex items-center justify-between pt-1 text-sm text-[#667085]">
-              <span>Appearance</span>
-              <ThemeToggle />
-            </div>
-            <div className="pt-2 flex flex-col gap-2">
-              <Link href="/auth/signin" className="text-center text-sm font-medium text-[#667085] border border-[#E5E7EB] rounded-lg px-4 py-2.5">
-                Sign in
-              </Link>
-              <Link href="/dashboard" className="text-center text-sm font-semibold text-white bg-[#5146E5] rounded-lg px-4 py-2.5">
-                Preview demo — no account needed
-              </Link>
-            </div>
+        {mobileMenuOpen && <div className="space-y-2 border-t border-slate-200 bg-white px-4 py-4 md:hidden">
+          <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Features</a>
+          <a href="#governance" onClick={() => setMobileMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Club governance</a>
+          <Link href="/dashboard/campus" onClick={() => setMobileMenuOpen(false)} className="block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Campus Guide</Link>
+          <div className="flex items-center justify-between px-3 py-2"><span className="text-sm text-slate-500">Appearance</span><ThemeToggle /></div>
+          <div className="grid grid-cols-2 gap-2 pt-2">
+            <Link href="/auth/signin" className="rounded-xl border border-slate-200 px-3 py-2.5 text-center text-sm font-semibold text-slate-700">Sign in</Link>
+            <Link href="/auth/signup" className="rounded-xl bg-indigo-600 px-3 py-2.5 text-center text-sm font-semibold text-white">Create account</Link>
           </div>
-        )}
+        </div>}
       </nav>
 
-      {/* HERO */}
-      <section className="pt-24 pb-16 md:pt-32 md:pb-24 bg-gradient-to-b from-[#F7F8FC] to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-2 bg-[#EEF0FD] text-[#5146E5] text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
-              <span className="w-1.5 h-1.5 bg-[#5146E5] rounded-full animate-pulse" />
-              Independent prototype · IIT Bhilai public-source demo
+      <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 via-white to-white">
+        <div className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-[500px] bg-[radial-gradient(ellipse_at_top,rgba(79,70,229,0.13),transparent_62%)]" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:px-8 lg:py-28">
+          <div>
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-800"><span className="h-2 w-2 rounded-full bg-emerald-500" /> IIT Bhilai email-restricted campus pilot</div>
+            <h1 className="max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight text-[#14213D] sm:text-5xl lg:text-6xl">One campus. <span className="text-indigo-600">Every connection.</span></h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">A shared place for campus profiles, approved clubs, student leadership, events, and focused club conversations—with roles and access enforced by the database.</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700">Create your account <ArrowRight size={16} /></Link>
+              <Link href="/auth/signin" className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">Already registered? Sign in</Link>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-[#182230] leading-tight tracking-tight mb-6">
-              Your campus.{' '}
-              <span className="text-[#5146E5]">Your community.</span>{' '}
-              Your connections.
-            </h1>
-            <p className="text-lg text-[#667085] leading-relaxed mb-5 max-w-2xl mx-auto">
-              Explore a source-linked IIT Bhilai campus guide and preview how student communities, clubs, events, and alumni connections could work in one place.
-            </p>
-            <p className="mx-auto mb-8 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left text-xs leading-5 text-amber-900">
-              <strong>Demo only:</strong> Koinelio is independently built and is not endorsed or operated by IIT Bhilai. Sample people, club counts, posts, registrations, and demo events are fictional. Official facts link to public sources.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center gap-2 bg-[#5146E5] text-white font-semibold px-6 py-3.5 rounded-xl hover:bg-[#4338CA] transition-colors text-sm"
-              >
-                Preview demo — no account needed
-                <ArrowRight size={16} />
-              </Link>
-              <a
-                href="#features"
-                className="inline-flex items-center justify-center gap-2 bg-white text-[#182230] font-medium px-6 py-3.5 rounded-xl border border-[#E5E7EB] hover:border-[#5146E5] hover:text-[#5146E5] transition-colors text-sm"
-              >
-                See how it works
-              </a>
+            <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-500">
+              <span className="inline-flex items-center gap-1.5"><CheckCircle2 size={14} className="text-emerald-600" /> Real account and profile persistence</span>
+              <span className="inline-flex items-center gap-1.5"><LockKeyhole size={14} className="text-indigo-600" /> Email-restricted access</span>
             </div>
           </div>
 
-          {/* Product preview */}
-          <div className="relative max-w-5xl mx-auto">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#5146E5]/10 to-[#0F9D8A]/10 rounded-3xl blur-3xl -z-10" />
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-2xl overflow-hidden">
-              {/* Mock browser bar */}
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-[#E5E7EB] bg-[#F7F8FC]">
-                <div className="w-3 h-3 rounded-full bg-[#FC5F5F]" />
-                <div className="w-3 h-3 rounded-full bg-[#FDBC40]" />
-                <div className="w-3 h-3 rounded-full bg-[#34C749]" />
-                <div className="flex-1 mx-4 bg-white rounded-md px-3 py-1.5 text-xs text-[#667085] border border-[#E5E7EB]">
-                  koinelio.app/dashboard
-                </div>
+          <div className="relative mx-auto w-full max-w-xl">
+            <div className="absolute -inset-5 rounded-[2rem] bg-gradient-to-br from-indigo-200/50 via-sky-100/50 to-teal-100/40 blur-2xl" />
+            <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-indigo-900/5">
+              <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50 px-4 py-3">
+                <span className="h-2.5 w-2.5 rounded-full bg-rose-400" /><span className="h-2.5 w-2.5 rounded-full bg-amber-400" /><span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                <span className="ml-2 truncate rounded-md border border-slate-200 bg-white px-3 py-1 text-[11px] text-slate-400">Koinelio · Campus workspace</span>
               </div>
-              {/* Dashboard preview */}
-              <div className="flex h-80 sm:h-96">
-                {/* Sidebar */}
-                <div className="hidden sm:flex w-16 bg-[#14213D] flex-col items-center py-4 gap-4">
-                  <KoinelioLogoMark size={32} />
-                  {[0,1,2,3,4].map(i => (
-                    <div key={i} className={`w-8 h-1 rounded-full ${i === 0 ? 'bg-[#5146E5]' : 'bg-white/20'}`} />
-                  ))}
+              <div className="grid gap-0 sm:grid-cols-[126px_minmax(0,1fr)]">
+                <div className="hidden flex-col gap-2 bg-[#14213D] p-4 sm:flex">
+                  <div className="mb-4 flex items-center gap-2"><KoinelioLogoMark size={24} /><span className="text-xs font-bold text-white">Koinelio</span></div>
+                  {['Campus feed', 'My Clubs', 'Club Rooms', 'Events', 'Profile'].map((item, index) => <div key={item} className={`rounded-lg px-2 py-2 text-[10px] font-medium ${index === 1 ? 'bg-white text-[#14213D]' : 'text-white/65'}`}>{item}</div>)}
+                  <div className="mt-auto rounded-xl border border-white/10 bg-white/5 p-2.5"><div className="mb-1 text-[9px] text-white/45">Workspace</div><div className="text-[10px] font-semibold text-white">IIT Bhilai</div><div className="mt-1 text-[9px] text-emerald-300">Email-restricted</div></div>
                 </div>
-                {/* Content */}
-                <div className="flex-1 bg-[#F7F8FC] p-4 overflow-hidden">
-                  <div className="flex items-center justify-between gap-3 mb-4">
-                    <div className="min-w-0">
-                      <p className="text-sm sm:text-base font-bold text-[#182230]">Good morning, Maya <span aria-hidden="true">👋</span></p>
-                      <p className="text-[10px] sm:text-xs text-[#667085] mt-0.5">Your campus is buzzing today.</p>
-                    </div>
-                    <span className="hidden sm:inline-flex items-center gap-1.5 rounded-lg bg-[#5146E5] px-3 py-2 text-[10px] font-semibold text-white">
-                      <span aria-hidden="true">＋</span> Share an update
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-3">
+                <div className="min-w-0 bg-slate-50 p-4 sm:p-5">
+                  <div className="mb-4"><p className="text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-700">Club workspace</p><h2 className="mt-1 text-base font-bold text-slate-900">Membership has meaning</h2><p className="mt-1 text-[11px] leading-5 text-slate-500">Joining a club requires approval. Access follows your assigned role.</p></div>
+                  <div className="space-y-2.5">
                     {[
-                      { label: 'Connections', value: '24 new', icon: Users, tint: 'bg-[#EEF0FD]', color: 'text-[#5146E5]' },
-                      { label: 'Campus events', value: '08 soon', icon: Calendar, tint: 'bg-[#E6F6F4]', color: 'text-[#0F9D8A]' },
-                      { label: 'Achievements', value: '12 shared', icon: Award, tint: 'bg-[#FEF3C7]', color: 'text-[#B7791F]' },
-                    ].map(({ label, value, icon: Icon, tint, color }) => (
-                      <div key={label} className="flex items-center gap-2 rounded-xl border border-[#E5E7EB] bg-white p-2 sm:p-3">
-                        <div className={`hidden sm:flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${tint} ${color}`}>
-                          <Icon size={15} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-[9px] sm:text-[10px] text-[#667085]">{label}</p>
-                          <p className="truncate text-[10px] sm:text-xs font-bold text-[#182230]">{value}</p>
-                        </div>
-                      </div>
-                    ))}
+                      { title: 'General', sub: 'Campus email accounts', icon: Users, tone: 'bg-sky-50 text-sky-700' },
+                      { title: 'Members', sub: 'Active club members', icon: MessageCircle, tone: 'bg-indigo-50 text-indigo-700' },
+                      { title: 'Core Team', sub: 'Core Members + Coordinator', icon: ShieldCheck, tone: 'bg-teal-50 text-teal-700' },
+                    ].map(({ title, sub, icon: Icon, tone }) => <div key={title} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3"><div className={`flex h-9 w-9 items-center justify-center rounded-lg ${tone}`}><Icon size={17} /></div><div className="min-w-0 flex-1"><div className="text-xs font-bold text-slate-800">{title}</div><div className="mt-0.5 text-[10px] text-slate-500">{sub}</div></div><LockKeyhole size={14} className="text-slate-400" /></div>)}
                   </div>
-
-                  <div className="grid grid-cols-5 gap-2 sm:gap-3">
-                    <div className="col-span-3 rounded-xl border border-[#E5E7EB] bg-white p-2.5 sm:p-3">
-                      <div className="mb-2 flex items-center justify-between gap-2">
-                        <p className="text-[10px] sm:text-xs font-bold text-[#182230]">From your community</p>
-                        <span className="inline-flex items-center gap-1 text-[9px] text-[#0F9D8A]">
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#0F9D8A]" /> Live
-                        </span>
-                      </div>
-                      {[
-                        { name: 'Aarav Mehta', initials: 'AM', time: '12 min', text: 'Our robotics team is looking for curious minds. Join our build night!', likes: '18', avatar: 'bg-gradient-to-br from-[#818CF8] to-[#5146E5]' },
-                        { name: 'Sofia Khan', initials: 'SK', time: '34 min', text: 'Sharing a few moments from yesterday’s culture night 💛', likes: '32', avatar: 'bg-gradient-to-br from-[#F9A8D4] to-[#D946EF]' },
-                        { name: 'Rohan Das', initials: 'RD', time: '1 hr', text: 'Study group for signals and systems this evening. Everyone is welcome.', likes: '11', avatar: 'bg-gradient-to-br from-[#5EEAD4] to-[#0F9D8A]' },
-                      ].map((person) => (
-                        <div key={person.name} className="flex gap-2 border-t border-[#E5E7EB] py-2 first:border-0">
-                          <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white ${person.avatar}`}>
-                            {person.initials}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-baseline gap-1.5">
-                              <p className="truncate text-[9px] sm:text-[10px] font-bold text-[#182230]">{person.name}</p>
-                              <span className="shrink-0 text-[8px] text-[#667085]">{person.time}</span>
-                            </div>
-                            <p className="mt-0.5 line-clamp-2 text-[9px] leading-relaxed text-[#667085]">{person.text}</p>
-                            <div className="mt-1 flex items-center gap-1 text-[8px] text-[#5146E5]">
-                              <Heart size={9} /> {person.likes} appreciations
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="col-span-2 space-y-2">
-                      <div className="rounded-xl border border-[#E5E7EB] bg-white p-2.5 sm:p-3">
-                        <div className="mb-2 flex items-center gap-1.5">
-                          <Calendar size={12} className="text-[#5146E5]" />
-                          <p className="text-[10px] sm:text-xs font-bold text-[#182230]">Campus moments</p>
-                        </div>
-                        <div className="mb-2 rounded-lg bg-[#EEF0FD] p-2">
-                          <p className="text-[9px] font-bold text-[#5146E5]">TODAY · 4:30 PM</p>
-                          <p className="mt-0.5 text-[9px] font-semibold text-[#182230]">Tech meetup</p>
-                          <p className="text-[8px] text-[#667085]">Innovation lab</p>
-                        </div>
-                        <div className="rounded-lg bg-[#E6F6F4] p-2">
-                          <p className="text-[9px] font-bold text-[#0F766E]">TOMORROW</p>
-                          <p className="mt-0.5 text-[9px] font-semibold text-[#182230]">Design jam</p>
-                          <p className="text-[8px] text-[#667085]">Bring your ideas</p>
-                        </div>
-                      </div>
-                      <div className="rounded-xl bg-gradient-to-br from-[#5146E5] to-[#6557E8] p-2.5 sm:p-3 text-white">
-                        <p className="text-[10px] sm:text-xs font-bold">Better together ✨</p>
-                        <p className="mt-1 text-[9px] leading-relaxed text-white/85">Meet people who share your interests.</p>
-                        <div className="mt-2 flex items-center">
-                          {[
-                            ['MA', 'bg-[#F9A8D4]'],
-                            ['RK', 'bg-[#5EEAD4]'],
-                            ['SK', 'bg-[#FCD34D]'],
-                            ['+', 'bg-white/25'],
-                          ].map(([initials, avatar], index) => (
-                            <span key={initials} className={`flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#5C50E7] text-[8px] font-bold ${avatar} ${index === 3 ? 'text-white' : 'text-[#191B4D]'} ${index > 0 ? '-ml-1.5' : ''}`}>
-                              {initials}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <p className="mt-4 rounded-xl border border-sky-100 bg-sky-50 p-3 text-[10px] leading-5 text-sky-900">This preview illustrates the product structure. Actual membership, roles and messages are read from the database; no sample identities are used to sign in.</p>
                 </div>
-              </div>
-            </div>
-            {/* Floating cards */}
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl border border-[#E5E7EB] shadow-lg p-3 hidden md:flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#EEF0FD] flex items-center justify-center">
-                <Users size={14} className="text-[#5146E5]" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-[#182230]">Sample members</div>
-                <div className="text-[10px] text-[#667085]">Ingenuity — Competitive Programming Club</div>
-              </div>
-            </div>
-            <div className="absolute -top-4 -right-4 bg-white rounded-xl border border-[#E5E7EB] shadow-lg p-3 hidden md:flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-[#E6F6F4] flex items-center justify-center">
-                <CheckCircle size={14} className="text-[#0F9D8A]" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-[#182230]">Sample club profile</div>
-                <div className="text-[10px] text-[#667085]">Not institute-verified</div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* TRUST BAR */}
-      <section className="py-10 border-y border-[#E5E7EB] bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-[#667085] mb-6 font-medium">Built for campus communities that take connection seriously</p>
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+      <section id="features" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto max-w-2xl text-center"><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Built for campus life</p><h2 className="mt-3 text-3xl font-bold tracking-tight text-[#14213D] sm:text-4xl">A shared campus, with clear boundaries</h2><p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">Accounts and campus activity persist between sessions. Private content and leadership capabilities are controlled independently from profile labels.</p></div>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map(({ icon: Icon, title, text }) => <article key={title} className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-indigo-200 hover:shadow-md sm:p-6"><div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700"><Icon size={21} /></div><h3 className="mt-4 text-base font-bold text-slate-900">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{text}</p></article>)}
+        </div>
+      </section>
+
+      <section id="governance" className="border-y border-slate-200 bg-slate-50">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8 lg:py-20">
+          <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Leadership workflows</p><h2 className="mt-3 text-3xl font-bold tracking-tight text-[#14213D] sm:text-4xl">No self-appointed administrators</h2><p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">Student sign-up never grants leadership rights. The administrator appoints the President and General Secretaries; the responsible General Secretary reviews club coordinators, and the President or administrator can oversee club approvals.</p></div>
+          <div className="space-y-3">
             {[
-              { icon: Shield, label: 'Institution-verified roles' },
-              { icon: Users, label: 'Multi-role platform' },
-              { icon: Globe, label: 'Cross-campus discovery' },
-              { icon: Heart, label: 'Privacy by design' },
-              { icon: Zap, label: 'Real-time community' },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-2 text-[#667085]">
-                <Icon size={16} className="text-[#5146E5]" />
-                <span className="text-sm font-medium">{label}</span>
-              </div>
-            ))}
+              ['Administrator', 'Controls bootstrap and appoints campus leadership'],
+              ['President', 'Campus-wide club governance and approvals'],
+              ['General Secretary', 'Reviews coordinator requests within the assigned council'],
+              ['Coordinator', 'Reviews membership requests and invites selected students'],
+              ['Core Member', 'Private Core Team room plus normal member access'],
+              ['Member', 'Access only after approval or invitation acceptance'],
+            ].map(([title, text]) => <div key={title} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3.5"><CheckCircle2 size={17} className="mt-0.5 shrink-0 text-emerald-600" /><div><p className="text-sm font-bold text-slate-900">{title}</p><p className="mt-0.5 text-xs leading-5 text-slate-600">{text}</p></div></div>)}
           </div>
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section id="features" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#182230] mb-4">Everything your campus community needs</h2>
-            <p className="text-[#667085] text-lg max-w-2xl mx-auto">One platform for students, faculty, clubs, administrators and alumni. No scattered WhatsApp groups, no missed opportunities.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                icon: Users,
-                color: '#5146E5',
-                bg: '#EEF0FD',
-                title: 'Club & Society Management',
-                desc: 'Full lifecycle management for student clubs — memberships, leadership roles, announcements, and events all in one place.',
-              },
-              {
-                icon: Calendar,
-                color: '#0F9D8A',
-                bg: '#E6F6F4',
-                title: 'Event Discovery & Registration',
-                desc: 'Discover hackathons, cultural festivals, workshops and seminars. Register, get reminders, and track your campus calendar.',
-              },
-              {
-                icon: Shield,
-                color: '#14213D',
-                bg: '#E2E8F0',
-                title: 'Demo role statuss & Profiles',
-                desc: 'Institution-verified affiliation badges distinguish real student leaders and faculty advisers from unverified claims.',
-              },
-              {
-                icon: MessageSquare,
-                color: '#B7791F',
-                bg: '#FEF3C7',
-                title: 'Campus Community Feed',
-                desc: 'A curated, role-aware campus feed with posts from students, clubs and faculty. Official announcements always clearly marked.',
-              },
-              {
-                icon: TrendingUp,
-                color: '#16803D',
-                bg: '#DCFCE7',
-                title: 'Alumni Network',
-                desc: 'Stay connected with your institution long after graduation. Share career insights, discover reunions, and mentor the next generation.',
-              },
-              {
-                icon: Bell,
-                color: '#5146E5',
-                bg: '#EEF0FD',
-                title: 'Smart Notifications',
-                desc: 'Stay informed on what matters to you — club updates, event reminders, membership decisions and verification status.',
-              },
-            ].map(({ icon: Icon, color, bg, title, desc }) => (
-              <div key={title} className="bg-[#F7F8FC] rounded-2xl p-6 border border-[#E5E7EB] hover:border-[#5146E5]/30 hover:shadow-md transition-all group">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: bg }}>
-                  <Icon size={20} style={{ color }} />
-                </div>
-                <h3 className="font-semibold text-[#182230] mb-2">{title}</h3>
-                <p className="text-sm text-[#667085] leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      <section className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8 lg:py-20">
+        <div className="mx-auto max-w-3xl"><h2 className="text-3xl font-bold tracking-tight text-[#14213D] sm:text-4xl">Make your campus connections count</h2><p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">Create your account with your IIT Bhilai institute email, confirm your mailbox, and finish your profile after signing in.</p><div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row"><Link href="/auth/signup" className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-3.5 text-sm font-semibold text-white hover:bg-indigo-700">Create Koinelio account <ArrowRight size={16} /></Link><Link href="/dashboard/campus" className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Explore Campus Guide <BookOpen size={16} /></Link></div></div>
       </section>
 
-      {/* CLUBS SECTION */}
-      <section id="clubs" className="py-20 bg-[#F7F8FC]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-[#EEF0FD] text-[#5146E5] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-                <Users size={12} />
-                Club Management
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#182230] mb-4">
-                Your club, properly organized
-              </h2>
-              <p className="text-[#667085] leading-relaxed mb-6">
-                From membership requests to leadership verification, club announcements to event organization — Koinelio gives student organizations everything they need to run professionally.
-              </p>
-              <ul className="space-y-3">
-                {[
-                  'Verified leadership roles attached to clubs',
-                  'Membership request and approval flows',
-                  'Club-specific announcements and posts',
-                  'Faculty adviser oversight and verification',
-                  'Club discovery for new students',
-                ].map(item => (
-                  <li key={item} className="flex items-start gap-3 text-sm text-[#667085]">
-                    <CheckCircle size={16} className="text-[#0F9D8A] mt-0.5 flex-shrink-0" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/dashboard/clubs" className="inline-flex items-center gap-2 mt-8 text-[#5146E5] font-semibold text-sm hover:gap-3 transition-all">
-                See clubs in demo <ArrowRight size={16} />
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {[
-                { name: 'Ingenuity — Competitive Programming Club', cat: 'Sci-Tech', members: 'Sample roster', color: '#5146E5', verified: false },
-                { name: 'DSAI Club', cat: 'Data Science & AI', members: 'Sample roster', color: '#0F9D8A', verified: false },
-                { name: 'DesignX', cat: 'Cultural', members: 'Sample roster', color: '#B7791F', verified: false },
-                { name: 'Space Exploration Society', cat: 'Sci-Tech', members: 'Sample roster', color: '#5146E5', verified: false },
-              ].map((club) => (
-                <div key={club.name} className="bg-white rounded-xl border border-[#E5E7EB] p-4 flex items-center gap-4 hover:shadow-md transition-all">
-                  <div className="w-10 h-10 rounded-xl flex-shrink-0" style={{ backgroundColor: club.color + '20' }}>
-                    <div className="w-full h-full rounded-xl flex items-center justify-center">
-                      <span className="text-sm font-bold" style={{ color: club.color }}>{club.name[0]}</span>
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm text-[#182230] truncate">{club.name}</span>
-                      {club.verified && <CheckCircle size={12} className="text-[#0F9D8A] flex-shrink-0" />}
-                    </div>
-                    <span className="text-xs text-[#667085]">{club.cat} · {club.members}</span>
-                  </div>
-                  <ChevronRight size={16} className="text-[#667085]" />
-                </div>
-              ))}
-            </div>
-          </div>
+      <footer className="bg-[#14213D] text-white">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[1.4fr_1fr] lg:px-8">
+          <div><Link href="/" className="inline-flex items-center gap-2.5"><KoinelioLogoMark size={31} /><span className="text-xl font-bold">Koinelio</span></Link><p className="mt-3 max-w-lg text-sm leading-6 text-white/65">One campus. Every connection. A campus community pilot for profiles, clubs, events and role-based collaboration.</p></div>
+          <div className="grid grid-cols-2 gap-6"><div><h3 className="text-sm font-bold">Account</h3><div className="mt-3 space-y-2 text-sm text-white/65"><Link href="/auth/signup" className="block hover:text-white">Create account</Link><Link href="/auth/signin" className="block hover:text-white">Sign in</Link><Link href="/auth/forgot-password" className="block hover:text-white">Reset password</Link></div></div><div><h3 className="text-sm font-bold">Explore</h3><div className="mt-3 space-y-2 text-sm text-white/65"><Link href="/dashboard/campus" className="block hover:text-white">Campus Guide</Link><Link href="/dashboard/clubs" className="block hover:text-white">Clubs</Link><Link href="/dashboard/events" className="block hover:text-white">Events</Link></div></div></div>
         </div>
-      </section>
-
-      {/* EVENTS SECTION */}
-      <section id="events" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-[#E6F6F4] text-[#0F9D8A] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-              <Calendar size={12} />
-              Sample events · not official
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#182230] mb-4">Never miss a campus moment</h2>
-            <p className="text-[#667085] max-w-xl mx-auto">These cards demonstrate the event interface only. Dates, venues, registrations and event details are fictional; see the Campus Guide for official source links.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              {
-                title: 'Demo · Beginner Coding Jam',
-                date: 'Sample date · Oct 25, 2026',
-                category: 'Technical demo',
-                color: '#5146E5',
-                spots: 'Sample registration',
-                img: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400&h=200&fit=crop',
-                featured: true,
-              },
-              {
-                title: 'Demo · Student Design Showcase',
-                date: 'Sample date · Nov 4, 2026',
-                category: 'Cultural demo',
-                color: '#B7791F',
-                spots: 'Sample registration',
-                img: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=200&fit=crop',
-                featured: true,
-              },
-              {
-                title: 'Demo · Student Project Pitch Circle',
-                date: 'Sample date · Dec 5, 2026',
-                category: 'Project demo',
-                color: '#16803D',
-                spots: 'Sample registration',
-                img: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=400&h=200&fit=crop',
-                featured: false,
-              },
-            ].map((event) => (
-              <div key={event.title} className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition-all group">
-                <div className="h-40 overflow-hidden">
-                  <img src={event.img} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ backgroundColor: event.color + '15', color: event.color }}>
-                      {event.category}
-                    </span>
-                    {event.featured && (
-                      <span className="text-xs font-semibold text-[#B7791F] bg-[#FEF3C7] px-2 py-0.5 rounded-md flex items-center gap-1">
-                        <Star size={10} />Featured
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-[#182230] text-sm mb-1">{event.title}</h3>
-                  <p className="text-xs text-[#667085] mb-3">{event.date}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[#0F9D8A] font-medium">{event.spots}</span>
-                    <Link href="/dashboard/events" className="text-xs font-semibold text-[#5146E5] hover:underline">View event →</Link>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
-            <Link href="/dashboard/events" className="inline-flex items-center gap-2 text-[#5146E5] font-semibold text-sm hover:gap-3 transition-all">
-              See all events in demo <ArrowRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* VERIFICATION */}
-      <section className="py-20 bg-[#14213D] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-                <Shield size={12} />
-                Verification workflow preview
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Verification should be explicit</h2>
-              <p className="text-white/70 leading-relaxed mb-6">
-                This section previews how affiliation, faculty, club, and leadership claims could be reviewed. No identity or role shown in this demo is verified. A real institutional rollout needs approved administrators, scoped permissions, and an auditable review process.
-              </p>
-              <div className="space-y-3">
-                {[
-                  { badge: 'Demo student status', color: '#0F9D8A', desc: 'Real affiliation would require institutional review' },
-                  { badge: 'Demo faculty status', color: '#5146E5', desc: 'No real faculty identity is represented' },
-                  { badge: 'Demo club status', color: '#B7791F', desc: 'Club name is source-linked; Koinelio listing is not verified' },
-                  { badge: 'Demo role status', color: '#16803D', desc: 'No role in this prototype is institution-verified' },
-                ].map(({ badge, color, desc }) => (
-                  <div key={badge} className="flex items-center gap-3 bg-white/5 rounded-xl p-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color }}>
-                      <CheckCircle size={12} className="text-white" />
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold">{badge}</div>
-                      <div className="text-xs text-white/50">{desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="bg-white/5 rounded-2xl border border-white/10 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <img src="https://i.pravatar.cc/150?img=47" alt="Aisha" className="w-12 h-12 rounded-full object-cover" />
-                <div>
-                  <div className="font-semibold text-white">Aisha Verma</div>
-                  <div className="text-xs text-white/50">IIT Bhilai</div>
-                </div>
-              </div>
-              <div className="space-y-2 mb-4">
-                {[
-                  { label: 'Institution affiliation', status: 'demo', color: '#64748B' },
-                  { label: 'Student status', status: 'demo', color: '#64748B' },
-                  { label: 'Demo club coordinator', status: 'demo', color: '#64748B' },
-                  { label: 'Sample role request', status: 'demo', color: '#64748B' },
-                ].map(({ label, status, color }) => (
-                  <div key={label} className="flex items-center justify-between py-2 border-b border-white/10">
-                    <span className="text-xs text-white/70">{label}</span>
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-md" style={{ color, backgroundColor: color + '20' }}>
-                      {status === 'verified' ? '✓ Verified' : status === 'pending' ? '⏳ Pending' : 'Demo only'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-white/40">Future verification would require authorised institution roles. This is a fictional demo profile.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ALUMNI */}
-      <section id="alumni" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-[#EEF0FD] text-[#5146E5] text-xs font-semibold px-3 py-1.5 rounded-full mb-4">
-              <Award size={12} />
-              Alumni
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-[#182230] mb-4">Stay connected. Give back.</h2>
-            <p className="text-[#667085] max-w-xl mx-auto">Alumni remain part of the Koinelio community — discovering reunions, sharing career insights, and staying connected with their alma mater.</p>
-          </div>
-          <div className="grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
-            {[
-              { name: 'Riya Sen', year: '2022', dept: 'Computer Science and Engineering', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al1' },
-              { name: 'Vikram Anand', year: '2021', dept: 'Electrical Engineering', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al2' },
-              { name: 'Ira Thomas', year: '2022', dept: 'Data Science and Artificial Intelligence', role: 'Sample alumni persona', avatar: 'https://api.dicebear.com/9.x/notionists/svg?seed=al3' },
-            ].map((alumni) => (
-              <div key={alumni.name} className="text-center bg-[#F7F8FC] rounded-2xl border border-[#E5E7EB] p-5 hover:shadow-md transition-all">
-                <img src={alumni.avatar} alt={alumni.name} className="w-16 h-16 rounded-full object-cover mx-auto mb-3 border-2 border-white shadow" />
-                <div className="font-semibold text-[#182230] text-sm">{alumni.name}</div>
-                <div className="text-xs text-[#5146E5] font-medium mb-1">IIT Bhilai demo persona · class of {alumni.year}</div>
-                <div className="text-xs text-[#667085] mb-2">{alumni.dept}</div>
-                <div className="text-xs text-[#182230] font-medium bg-white rounded-lg px-2 py-1 border border-[#E5E7EB] inline-block">{alumni.role}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRIVACY */}
-      <section className="py-20 bg-[#F7F8FC]">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Shield size={32} className="text-[#5146E5] mx-auto mb-4" />
-          <h2 className="text-2xl md:text-3xl font-bold text-[#182230] mb-4">Privacy controls are a design goal</h2>
-          <p className="text-[#667085] leading-relaxed mb-8">
-            These are intended product principles shown in a prototype, not a claim that all production privacy controls are live. The current dashboard uses fictional profiles and local demo interactions. Production access control, institution verification and privacy enforcement must be implemented and tested before a real pilot.
-          </p>
-          <div className="grid sm:grid-cols-3 gap-4 text-left">
-            {[
-              { title: 'Profile settings preview', desc: 'Preview how audience and profile visibility settings might appear.' },
-              { title: 'Verification is not assumed', desc: 'Real verification would require an approved institution role and an auditable review.' },
-              { title: 'Demo data is clearly labeled', desc: 'Sample profiles, posts, member counts and demo events are fictional.' },
-            ].map(({ title, desc }) => (
-              <div key={title} className="bg-white rounded-xl border border-[#E5E7EB] p-4">
-                <CheckCircle size={16} className="text-[#0F9D8A] mb-2" />
-                <div className="font-semibold text-sm text-[#182230] mb-1">{title}</div>
-                <div className="text-xs text-[#667085] leading-relaxed">{desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-20 bg-[#5146E5]">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Experience Koinelio
-          </h2>
-          <p className="text-white/75 text-lg mb-8">
-            Explore the interactive prototype from student, faculty, admin, and alumni perspectives. All profile and community activity is sample data.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center justify-center gap-2 bg-white text-[#5146E5] font-semibold px-6 py-3.5 rounded-xl hover:bg-[#F7F8FC] transition-colors text-sm"
-            >
-              Enter Demo — Student View
-              <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/auth/signin"
-              className="inline-flex items-center justify-center gap-2 bg-white/15 text-white font-medium px-6 py-3.5 rounded-xl border border-white/25 hover:bg-white/25 transition-colors text-sm"
-            >
-              Sign In / Create Account
-            </Link>
-          </div>
-          <p className="mt-4 text-xs text-white/50">
-            ⓘ Supabase authentication is connected, while most dashboard activity is local demo state. This is not an official IIT Bhilai service; sample profiles, memberships, counts, and events are fictional.
-          </p>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="bg-[#14213D] text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div className="col-span-2 md:col-span-1">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-[#5146E5] flex items-center justify-center">
-                  <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                    <circle cx="5" cy="9" r="2.5" fill="white" />
-                    <circle cx="13" cy="5" r="2.5" fill="white" opacity="0.7" />
-                    <circle cx="13" cy="13" r="2.5" fill="white" opacity="0.7" />
-                    <line x1="7.2" y1="8" x2="11" y2="6" stroke="white" strokeWidth="1.2" />
-                    <line x1="7.2" y1="10" x2="11" y2="12" stroke="white" strokeWidth="1.2" />
-                  </svg>
-                </div>
-                <span className="font-bold text-lg">Koinelio</span>
-              </div>
-              <p className="text-white/50 text-xs leading-relaxed">One campus. Every connection.</p>
-              <p className="text-white/30 text-xs mt-2">Target launch: 1 January 2027</p>
-            </div>
-            {[
-              { title: 'Product', links: ['Features', 'Clubs', 'Events', 'Alumni', 'Administration'] },
-              { title: 'Company', links: ['About', 'Contact', 'Institutional Onboarding', 'Careers'] },
-              { title: 'Legal', links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Accessibility'] },
-            ].map(({ title, links }) => (
-              <div key={title}>
-                <h4 className="font-semibold text-sm mb-3">{title}</h4>
-                <ul className="space-y-2">
-                  {links.map(link => (
-                    <li key={link}>
-                      <a href="#" className="text-white/50 hover:text-white text-xs transition-colors">{link}</a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-white/30 text-xs">© 2026 Koinelio. Fictional prototype — not a live product.</p>
-            <p className="text-white/20 text-xs">Inspired by the Greek word <em>koinos</em> — shared, common.</p>
-          </div>
-        </div>
+        <div className="border-t border-white/10 px-4 py-4 text-center text-xs leading-5 text-white/45 sm:px-6">Koinelio is independently operated unless and until formally authorized by IIT Bhilai. An institute email confirms mailbox access, not current enrolment. Never enter your institute/LDAP password.</div>
       </footer>
-    </div>
+    </main>
   );
 }

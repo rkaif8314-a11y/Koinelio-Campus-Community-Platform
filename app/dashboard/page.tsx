@@ -1,678 +1,320 @@
 'use client';
 
-import React, { useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useApp, useCurrentUser } from '@/lib/app-context';
+import { useRouter } from 'next/navigation';
 import {
-  getUserById,
-  getClubById,
-  timeAgo,
-  formatShortDate,
-  DEMO_EVENTS,
-  DEMO_POSTS,
-  User,
-  Club,
-} from '@/lib/demo-data';
-import {
+  AlertCircle,
+  ArrowRight,
+  Bell,
+  CalendarDays,
+  CheckCircle2,
   Heart,
-  MessageSquare,
-  Bookmark,
-  Share2,
-  Send,
-  Plus,
-  Calendar,
-  Users,
-  ChevronRight,
-  MoreHorizontal,
-  CheckCircle,
-  Image as ImageIcon,
-  Smile,
-  Megaphone,
-  HelpCircle,
-  Trophy,
-  Code2,
+  LoaderCircle,
+  MessageCircle,
   Newspaper,
-  GraduationCap,
+  Plus,
+  Send,
+  ShieldCheck,
+  Users,
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'Good morning';
-  if (hour >= 12 && hour < 17) return 'Good afternoon';
-  return 'Good evening';
+type Profile = {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+  department: string | null;
+  degree_program: string | null;
+  skills: string[];
+  interests: string[];
+  verification_status: string;
+};
+
+type PostRecord = {
+  id: string;
+  author_id: string;
+  club_id: string | null;
+  content: string;
+  created_at: string;
+  visibility: 'public' | 'campus' | 'club';
+  moderation_status: string;
+  profiles?: { display_name: string; avatar_url: string | null; department: string | null } | null;
+};
+
+type EventRecord = {
+  id: string;
+  title: string;
+  description: string;
+  starts_at: string | null;
+  location: string | null;
+  category: string | null;
+};
+
+type Announcement = {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  published_at: string | null;
+};
+
+type Engagement = { post_id: string; user_id: string };
+
+function initials(name: string) {
+  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'K';
 }
 
-type PostType = 'general' | 'announcement' | 'event' | 'achievement' | 'question' | 'alumni' | 'project';
-
-function PostTypeBadge({ type }: { type: PostType }) {
-  const config: Record<PostType, { label: string; icon: React.ElementType; color: string }> = {
-    general: { label: 'Post', icon: Newspaper, color: 'text-[#667085] bg-[#F7F8FC]' },
-    announcement: { label: 'Announcement', icon: Megaphone, color: 'text-orange-600 bg-orange-50' },
-    event: { label: 'Event', icon: Calendar, color: 'text-[#5146E5] bg-indigo-50' },
-    achievement: { label: 'Achievement', icon: Trophy, color: 'text-yellow-600 bg-yellow-50' },
-    question: { label: 'Question', icon: HelpCircle, color: 'text-blue-600 bg-blue-50' },
-    alumni: { label: 'Alumni', icon: GraduationCap, color: 'text-[#0F9D8A] bg-teal-50' },
-    project: { label: 'Project', icon: Code2, color: 'text-purple-600 bg-purple-50' },
-  };
-
-  const { label, icon: Icon, color } = config[type] ?? config.general;
-  return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${color}`}>
-      <Icon size={11} />
-      {label}
-    </span>
-  );
+function readableTime(value: string) {
+  return new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' });
 }
 
-// ─── Post Composer ────────────────────────────────────────────────────────────
-function PostComposer() {
-  const { actions } = useApp();
-  const currentUser = useCurrentUser();
-  const firstName = currentUser.name.split(' ')[0];
-
-  const [expanded, setExpanded] = useState(false);
-  const [content, setContent] = useState('');
-  const [postType, setPostType] = useState<PostType>('general');
-  const [submitted, setSubmitted] = useState(false);
-
-  function handleSubmit() {
-    if (!content.trim()) return;
-    actions.addPost({
-      authorId: currentUser.id,
-      authorType: 'user',
-      content: content.trim(),
-      type: postType,
-      isOfficial: false,
-    });
-    setContent('');
-    setPostType('general');
-    setExpanded(false);
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-  }
-
-  const postTypes: { value: PostType; label: string }[] = [
-    { value: 'general', label: 'General' },
-    { value: 'question', label: 'Question' },
-    { value: 'achievement', label: 'Achievement' },
-    { value: 'project', label: 'Project' },
-  ];
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] p-4 shadow-sm">
-      {submitted && (
-        <div className="mb-3 flex items-center gap-2 text-sm text-[#0F9D8A] bg-teal-50 rounded-lg px-3 py-2">
-          <CheckCircle size={15} />
-          <span>Post shared with your campus community!</span>
-        </div>
-      )}
-      <div className="flex items-center gap-3">
-        <img
-          src={currentUser.avatar}
-          alt={currentUser.name}
-          className="w-9 h-9 rounded-full object-cover flex-shrink-0"
-        />
-        {!expanded ? (
-          <button
-            onClick={() => setExpanded(true)}
-            className="flex-1 text-left px-4 py-2.5 rounded-xl bg-[#F7F8FC] border border-[#E5E7EB] text-sm text-[#667085] hover:bg-[#F0F0FF] hover:border-[#5146E5]/30 transition-colors"
-          >
-            What&apos;s on your mind, {firstName}?
-          </button>
-        ) : (
-          <div className="flex-1">
-            <textarea
-              autoFocus
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder={`What's on your mind, ${firstName}?`}
-              rows={3}
-              className="w-full resize-none rounded-xl border border-[#E5E7EB] bg-[#F7F8FC] px-4 py-3 text-sm text-[#182230] placeholder:text-[#667085] focus:outline-none focus:ring-2 focus:ring-[#5146E5]/20 focus:border-[#5146E5] transition-colors"
-            />
-          </div>
-        )}
-      </div>
-
-      {expanded && (
-        <div className="mt-3 pt-3 border-t border-[#E5E7EB]">
-          {/* Post type selector */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="text-xs font-medium text-[#667085]">Post as:</span>
-            {postTypes.map(pt => (
-              <button
-                key={pt.value}
-                onClick={() => setPostType(pt.value)}
-                className={`text-xs px-3 py-1 rounded-full font-medium transition-colors border
-                  ${postType === pt.value
-                    ? 'bg-[#5146E5] text-white border-[#5146E5]'
-                    : 'bg-white text-[#667085] border-[#E5E7EB] hover:border-[#5146E5]/40'
-                  }`}
-              >
-                {pt.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Action row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1">
-              <button className="p-2 rounded-lg text-[#667085] hover:bg-[#F7F8FC] hover:text-[#5146E5] transition-colors" title="Add image">
-                <ImageIcon size={18} />
-              </button>
-              <button className="p-2 rounded-lg text-[#667085] hover:bg-[#F7F8FC] hover:text-[#5146E5] transition-colors" title="Add emoji">
-                <Smile size={18} />
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => { setExpanded(false); setContent(''); }}
-                className="px-4 py-1.5 rounded-lg text-sm font-medium text-[#667085] hover:bg-[#F7F8FC] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={!content.trim()}
-                className="px-5 py-1.5 rounded-lg text-sm font-semibold bg-[#5146E5] text-white hover:bg-[#4338ca] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Post
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!expanded && (
-        <div className="mt-3 pt-3 border-t border-[#E5E7EB] flex items-center gap-1">
-          <button
-            onClick={() => setExpanded(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#667085] hover:bg-[#F7F8FC] transition-colors"
-          >
-            <ImageIcon size={15} />
-            Photo
-          </button>
-          <button
-            onClick={() => setExpanded(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#667085] hover:bg-[#F7F8FC] transition-colors"
-          >
-            <HelpCircle size={15} />
-            Question
-          </button>
-          <button
-            onClick={() => setExpanded(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-[#667085] hover:bg-[#F7F8FC] transition-colors"
-          >
-            <Trophy size={15} />
-            Achievement
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Post Card ────────────────────────────────────────────────────────────────
-function PostCard({ post }: { post: (typeof DEMO_POSTS)[0] }) {
-  const { state, actions } = useApp();
-  const currentUser = useCurrentUser();
-  const [showComments, setShowComments] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [expanded, setExpanded] = useState(false);
-
-  const author: User | Club | undefined =
-    post.authorType === 'user'
-      ? getUserById(post.authorId)
-      : getClubById(post.authorId);
-
-  if (!author) return null;
-
-  const authorName = 'name' in author ? author.name : (author as Club).name;
-  const authorAvatar = 'avatar' in author ? (author as User).avatar : (author as Club).logo;
-  const isVerified =
-    'verificationStatus' in author && author.verificationStatus === 'verified';
-
-  const liked = post.likes.includes(currentUser.id);
-  const saved = state.savedPostIds.includes(post.id);
-  const MAX_LEN = 280;
-  const needsTruncation = post.content.length > MAX_LEN;
-  const displayContent =
-    needsTruncation && !expanded ? post.content.slice(0, MAX_LEN) + '…' : post.content;
-
-  function handleShare() {
-    const url = `${window.location.origin}/dashboard/posts/${post.id}`;
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Link copied to clipboard!');
-    }).catch(() => {
-      alert('Post link: ' + url);
-    });
-  }
-
-  function handleComment() {
-    if (!commentText.trim()) return;
-    actions.addComment(post.id, commentText.trim());
-    setCommentText('');
-  }
-
-  return (
-    <article
-      className={`bg-white rounded-2xl border shadow-sm overflow-hidden
-        ${post.isOfficial ? 'border-l-4 border-l-orange-400 border-[#E5E7EB]' : 'border-[#E5E7EB]'}`}
-    >
-      {/* Header */}
-      <div className="p-4 pb-0 flex items-start gap-3">
-        <img
-          src={authorAvatar}
-          alt={authorName}
-          className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-[#E5E7EB]"
-        />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-semibold text-sm text-[#182230]">{authorName}</span>
-            {isVerified && <CheckCircle size={14} className="text-[#5146E5] flex-shrink-0" />}
-            {post.isOfficial && (
-              <span className="text-[10px] font-semibold bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">
-                Official
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-xs text-[#667085]">{timeAgo(post.createdAt)}</span>
-            <span className="text-[#E5E7EB]">·</span>
-            <PostTypeBadge type={post.type} />
-          </div>
-        </div>
-        <button className="p-1.5 rounded-lg text-[#667085] hover:bg-[#F7F8FC] transition-colors flex-shrink-0">
-          <MoreHorizontal size={16} />
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="px-4 pt-3">
-        <p className="text-sm text-[#182230] leading-relaxed whitespace-pre-line">{displayContent}</p>
-        {needsTruncation && (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs font-medium text-[#5146E5] hover:underline mt-1"
-          >
-            {expanded ? 'Show less' : 'Read more'}
-          </button>
-        )}
-      </div>
-
-      {/* Post image */}
-      {post.image && (
-        <div className="mt-3 px-4">
-          <img
-            src={post.image}
-            alt="Post image"
-            className="w-full max-h-80 object-cover rounded-xl border border-[#E5E7EB]"
-          />
-        </div>
-      )}
-
-      {/* Action bar */}
-      <div className="px-4 py-3 mt-1 flex items-center gap-1">
-        {/* Like */}
-        <button
-          onClick={() => actions.toggleLikePost(post.id)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-            ${liked ? 'text-red-500 bg-red-50 hover:bg-red-100' : 'text-[#667085] hover:bg-[#F7F8FC]'}`}
-        >
-          <Heart size={16} className={liked ? 'fill-red-500' : ''} />
-          <span className="text-xs">{post.likes.length}</span>
-        </button>
-
-        {/* Comment */}
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-            ${showComments ? 'text-[#5146E5] bg-[#F0F0FF]' : 'text-[#667085] hover:bg-[#F7F8FC]'}`}
-        >
-          <MessageSquare size={16} />
-          <span className="text-xs">{post.comments.length}</span>
-        </button>
-
-        {/* Save */}
-        <button
-          onClick={() => actions.toggleSavePost(post.id)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors
-            ${saved ? 'text-[#0F9D8A] bg-teal-50 hover:bg-teal-100' : 'text-[#667085] hover:bg-[#F7F8FC]'}`}
-        >
-          <Bookmark size={16} className={saved ? 'fill-[#0F9D8A]' : ''} />
-        </button>
-
-        {/* Share */}
-        <button
-          onClick={handleShare}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-[#667085] hover:bg-[#F7F8FC] transition-colors"
-        >
-          <Share2 size={16} />
-        </button>
-      </div>
-
-      {/* Comments section */}
-      {showComments && (
-        <div className="border-t border-[#E5E7EB] px-4 py-3 space-y-3">
-          {post.comments.length > 0 && (
-            <div className="space-y-3">
-              {post.comments.map(comment => {
-                const commentAuthor = getUserById(comment.authorId);
-                return (
-                  <div key={comment.id} className="flex items-start gap-2.5">
-                    <img
-                      src={commentAuthor?.avatar ?? `https://i.pravatar.cc/150?u=${comment.authorId}`}
-                      alt={commentAuthor?.name ?? 'User'}
-                      className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 bg-[#F7F8FC] rounded-xl px-3 py-2">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-xs font-semibold text-[#182230]">
-                          {commentAuthor?.name ?? 'Unknown'}
-                        </span>
-                        <span className="text-[10px] text-[#667085]">
-                          {timeAgo(comment.createdAt)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#182230] leading-relaxed">{comment.content}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {post.comments.length === 0 && (
-            <p className="text-xs text-[#667085] text-center py-1">No comments yet. Be the first!</p>
-          )}
-
-          {/* Add comment input */}
-          <div className="flex items-center gap-2">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-            />
-            <div className="flex-1 flex items-center gap-2 bg-[#F7F8FC] rounded-xl border border-[#E5E7EB] px-3 py-1.5 focus-within:ring-2 focus-within:ring-[#5146E5]/20 focus-within:border-[#5146E5] transition-colors">
-              <input
-                type="text"
-                value={commentText}
-                onChange={e => setCommentText(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleComment()}
-                placeholder="Write a comment…"
-                className="flex-1 bg-transparent text-xs text-[#182230] placeholder:text-[#667085] focus:outline-none"
-              />
-              <button
-                onClick={handleComment}
-                disabled={!commentText.trim()}
-                className="text-[#5146E5] hover:text-[#4338ca] transition-colors disabled:opacity-30"
-              >
-                <Send size={14} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </article>
-  );
-}
-
-// ─── Upcoming events widget ───────────────────────────────────────────────────
-function UpcomingEventsWidget() {
-  const { state, actions } = useApp();
-
-  const upcomingEvents = DEMO_EVENTS
-    .filter(e => e.status === 'upcoming')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 3);
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E7EB]">
-        <h3 className="font-semibold text-sm text-[#182230] flex items-center gap-2">
-          <Calendar size={15} className="text-[#5146E5]" />
-          Upcoming Events
-        </h3>
-        <Link
-          href="/dashboard/events"
-          className="text-xs font-medium text-[#5146E5] hover:text-[#4338ca] flex items-center gap-0.5"
-        >
-          View all <ChevronRight size={13} />
-        </Link>
-      </div>
-      <div className="divide-y divide-[#F7F8FC]">
-        {upcomingEvents.map(event => {
-          const isRegistered = state.registeredEventIds.includes(event.id);
-          return (
-            <div key={event.id} className="flex items-start gap-3 p-3 hover:bg-[#F7F8FC] transition-colors">
-              <img
-                src={event.coverImage}
-                alt={event.title}
-                className="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-[#E5E7EB]"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-[#182230] line-clamp-2 leading-tight">
-                  {event.title}
-                </p>
-                <p className="text-[10px] text-[#667085] mt-0.5 flex items-center gap-1">
-                  <Calendar size={10} />
-                  {formatShortDate(event.date)} · {event.time}
-                </p>
-                <button
-                  onClick={() => actions.toggleRegisterEvent(event.id)}
-                  className={`mt-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full transition-colors
-                    ${isRegistered
-                      ? 'bg-[#0F9D8A]/10 text-[#0F9D8A] hover:bg-red-50 hover:text-red-500'
-                      : 'bg-[#5146E5]/10 text-[#5146E5] hover:bg-[#5146E5] hover:text-white'
-                    }`}
-                >
-                  {isRegistered ? '✓ Registered' : 'Register'}
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── My Clubs widget ──────────────────────────────────────────────────────────
-function MyClubsWidget() {
-  const { state } = useApp();
-  const currentUser = useCurrentUser();
-
-  const myClubs = state.clubs.filter(c =>
-    currentUser.clubMemberships.includes(c.id)
-  );
-
-  if (myClubs.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm p-4 text-center">
-        <Users size={28} className="text-[#E5E7EB] mx-auto mb-2" />
-        <p className="text-sm font-medium text-[#182230]">No clubs yet</p>
-        <p className="text-xs text-[#667085] mt-1">Discover and join clubs</p>
-        <Link
-          href="/dashboard/discover"
-          className="mt-3 inline-block text-xs font-medium text-[#5146E5] hover:underline"
-        >
-          Browse clubs →
-        </Link>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E7EB]">
-        <h3 className="font-semibold text-sm text-[#182230] flex items-center gap-2">
-          <Users size={15} className="text-[#0F9D8A]" />
-          My Clubs
-        </h3>
-        <Link
-          href="/dashboard/clubs"
-          className="text-xs font-medium text-[#5146E5] hover:text-[#4338ca] flex items-center gap-0.5"
-        >
-          View all <ChevronRight size={13} />
-        </Link>
-      </div>
-      <div className="divide-y divide-[#F7F8FC]">
-        {myClubs.map(club => (
-          <Link
-            key={club.id}
-            href={`/dashboard/clubs/${club.id}`}
-            className="flex items-center gap-3 p-3 hover:bg-[#F7F8FC] transition-colors"
-          >
-            <img
-              src={club.logo}
-              alt={club.name}
-              className="w-9 h-9 rounded-xl object-cover flex-shrink-0"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-[#182230] truncate">{club.name}</p>
-              <p className="text-[10px] text-[#667085] mt-0.5">
-                {club.memberCount.toLocaleString()} members · {club.category}
-              </p>
-            </div>
-            <ChevronRight size={13} className="text-[#667085] flex-shrink-0" />
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ─── Campus Announcements widget ──────────────────────────────────────────────
-function CampusAnnouncementsWidget() {
-  const { state } = useApp();
-
-  const announcements = state.posts
-    .filter(p => p.isOfficial)
-    .slice(0, 3);
-
-  return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E7EB]">
-        <h3 className="font-semibold text-sm text-[#182230] flex items-center gap-2">
-          <Megaphone size={15} className="text-orange-500" />
-          Announcements
-        </h3>
-      </div>
-      <div className="divide-y divide-[#F7F8FC]">
-        {announcements.map(post => {
-          const author = getUserById(post.authorId);
-          return (
-            <div key={post.id} className="p-3 hover:bg-[#F7F8FC] transition-colors">
-              <div className="flex items-center gap-1.5 mb-1">
-                <img
-                  src={author?.avatar ?? `https://i.pravatar.cc/150?u=${post.authorId}`}
-                  alt={author?.name ?? 'Author'}
-                  className="w-5 h-5 rounded-full object-cover"
-                />
-                <span className="text-[10px] font-medium text-[#667085] truncate">
-                  {author?.name ?? 'Campus'}
-                </span>
-                <span className="text-[10px] text-[#E5E7EB]">·</span>
-                <span className="text-[10px] text-[#667085]">{timeAgo(post.createdAt)}</span>
-              </div>
-              <p className="text-xs text-[#182230] line-clamp-2 leading-relaxed">
-                {post.content}
-              </p>
-            </div>
-          );
-        })}
-        {announcements.length === 0 && (
-          <p className="p-4 text-xs text-[#667085] text-center">No announcements yet.</p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Quick Actions ────────────────────────────────────────────────────────────
-function QuickActions({ onCreatePost }: { onCreatePost: () => void }) {
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <button
-        onClick={onCreatePost}
-        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#5146E5] text-white text-sm font-medium hover:bg-[#4338ca] transition-colors shadow-sm"
-      >
-        <Plus size={16} />
-        Create Post
-      </button>
-      <Link
-        href="/dashboard/events"
-        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-[#182230] text-sm font-medium hover:bg-[#F7F8FC] transition-colors border border-[#E5E7EB] shadow-sm"
-      >
-        <Calendar size={16} className="text-[#5146E5]" />
-        Browse Events
-      </Link>
-      <Link
-        href="/dashboard/discover"
-        className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-[#182230] text-sm font-medium hover:bg-[#F7F8FC] transition-colors border border-[#E5E7EB] shadow-sm"
-      >
-        <Users size={16} className="text-[#0F9D8A]" />
-        Explore Clubs
-      </Link>
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const { state } = useApp();
-  const currentUser = useCurrentUser();
-  const firstName = currentUser.name.split(' ')[0];
-  const greeting = getGreeting();
+  const router = useRouter();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [posts, setPosts] = useState<PostRecord[]>([]);
+  const [likes, setLikes] = useState<Engagement[]>([]);
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [approvedClubCount, setApprovedClubCount] = useState(0);
+  const [userId, setUserId] = useState('');
+  const [composer, setComposer] = useState('');
+  const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
+  const [commentingPostId, setCommentingPostId] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
 
-  // Ref/state to scroll to composer & expand it
-  const [composerFocused, setComposerFocused] = useState(false);
+  const loadDashboard = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true); else setRefreshing(true);
+    setError('');
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        router.replace('/auth/signin?next=/dashboard');
+        return;
+      }
+      const user = authData.user;
+      setUserId(user.id);
 
-  // Feed posts from state
-  const feedPosts = state.posts;
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, department, degree_program, skills, interests, verification_status')
+        .eq('id', user.id)
+        .single();
+      if (profileError) throw profileError;
+      setProfile(profileData as Profile);
+
+      const [postResult, eventResult, announcementResult, clubResult] = await Promise.all([
+        supabase.from('posts')
+          .select('id, author_id, club_id, content, created_at, visibility, moderation_status, profiles:profiles!posts_author_id_fkey(display_name, avatar_url, department)')
+          .eq('moderation_status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(50),
+        supabase.from('events')
+          .select('id, title, description, starts_at, location, category')
+          .eq('status', 'published')
+          .gte('starts_at', new Date().toISOString())
+          .order('starts_at', { ascending: true })
+          .limit(5),
+        supabase.from('announcements')
+          .select('id, title, body, priority, published_at')
+          .eq('status', 'published')
+          .order('published_at', { ascending: false })
+          .limit(5),
+        supabase.from('clubs')
+          .select('id', { count: 'exact', head: true })
+          .eq('approval_status', 'approved'),
+      ]);
+
+      if (postResult.error) throw postResult.error;
+      setPosts((postResult.data ?? []) as unknown as PostRecord[]);
+      setEvents((eventResult.data ?? []) as EventRecord[]);
+      setAnnouncements((announcementResult.data ?? []) as Announcement[]);
+      setApprovedClubCount(clubResult.count ?? 0);
+
+      const ids = (postResult.data ?? []).map((post: { id: string }) => post.id);
+      if (ids.length) {
+        const { data: likeData, error: likeError } = await supabase
+          .from('post_likes')
+          .select('post_id, user_id')
+          .in('post_id', ids);
+        if (likeError) throw likeError;
+        setLikes((likeData ?? []) as Engagement[]);
+      } else {
+        setLikes([]);
+      }
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load campus data from Supabase.');
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [router]);
+
+  useEffect(() => { void loadDashboard(); }, [loadDashboard]);
+
+  const ownPostIds = useMemo(() => new Set(posts.filter((post) => post.author_id === userId).map((post) => post.id)), [posts, userId]);
+
+  async function createPost(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const content = composer.trim();
+    if (!content) return;
+    setRefreshing(true); setError(''); setNotice('');
+    try {
+      const { error: insertError } = await supabase.from('posts').insert({
+        author_id: userId,
+        content,
+        visibility: 'campus',
+        moderation_status: 'published',
+        club_id: null,
+      });
+      if (insertError) throw insertError;
+      setComposer('');
+      setNotice('Your post has been saved to the campus feed.');
+      await loadDashboard(true);
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Unable to publish your post.');
+    } finally {
+      setRefreshing(false);
+    }
+  }
+
+  async function toggleLike(post: PostRecord) {
+    setError(''); setNotice('');
+    const currentlyLiked = likes.some((like) => like.post_id === post.id && like.user_id === userId);
+    try {
+      if (currentlyLiked) {
+        const { error: deleteError } = await supabase.from('post_likes').delete().eq('post_id', post.id).eq('user_id', userId);
+        if (deleteError) throw deleteError;
+        setLikes((items) => items.filter((item) => !(item.post_id === post.id && item.user_id === userId)));
+      } else {
+        const { error: insertError } = await supabase.from('post_likes').insert({ post_id: post.id, user_id: userId });
+        if (insertError) throw insertError;
+        setLikes((items) => [...items, { post_id: post.id, user_id: userId }]);
+      }
+    } catch (likeError) {
+      setError(likeError instanceof Error ? likeError.message : 'Unable to update this like.');
+    }
+  }
+
+  async function addComment(event: FormEvent<HTMLFormElement>, post: PostRecord) {
+    event.preventDefault();
+    const content = (commentDrafts[post.id] ?? '').trim();
+    if (!content) return;
+    setCommentingPostId(post.id); setError(''); setNotice('');
+    try {
+      const { error: insertError } = await supabase.from('post_comments').insert({
+        post_id: post.id,
+        author_id: userId,
+        content,
+      });
+      if (insertError) throw insertError;
+      setCommentDrafts((items) => ({ ...items, [post.id]: '' }));
+      setNotice('Comment posted.');
+    } catch (commentError) {
+      setError(commentError instanceof Error ? commentError.message : 'Unable to add comment.');
+    } finally {
+      setCommentingPostId('');
+    }
+  }
+
+  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading your campus…</div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* ── Greeting header ─────────────────────────────────────── */}
-      <div className="mb-5">
-        <h1 className="text-xl font-bold text-[#182230]">
-          {greeting}, {firstName}! 👋
-        </h1>
-        <p className="text-sm text-[#667085] mt-0.5">
-          Northstar University · <span className="text-[#5146E5] font-medium">Demo Mode</span>
-        </p>
+    <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
+      <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-r from-[#14213D] via-[#253b68] to-[#5146E5] p-6 text-white shadow-sm sm:p-8">
+        <div className="flex flex-wrap items-center justify-between gap-5">
+          <div className="max-w-2xl">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-200">IIT Bhilai community</p>
+            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Welcome back, {profile?.display_name.split(' ')[0] ?? 'student'}.</h1>
+            <p className="mt-2 text-sm leading-6 text-white/75">Share updates, discover approved clubs, and connect through real campus data linked to your account.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/dashboard/profile" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#14213D] hover:bg-indigo-50"><Users size={16} /> Complete profile</Link>
+            <button onClick={() => void loadDashboard(true)} disabled={refreshing} className="rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
+          </div>
+        </div>
+      </section>
+
+      {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" /><span className="break-words">{error}</span></div>}
+      {notice && <div role="status" className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 size={17} className="mt-0.5 shrink-0" />{notice}</div>}
+
+      <div className="mb-6 grid gap-3 sm:grid-cols-3">
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><Users size={22} className="text-indigo-600" /><div><p className="text-2xl font-bold text-slate-900">{approvedClubCount}</p><p className="text-xs text-slate-500">Approved clubs</p></div></div>
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><Newspaper size={22} className="text-indigo-600" /><div><p className="text-2xl font-bold text-slate-900">{posts.length}</p><p className="text-xs text-slate-500">Visible campus posts</p></div></div>
+        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><CalendarDays size={22} className="text-indigo-600" /><div><p className="text-2xl font-bold text-slate-900">{events.length}</p><p className="text-xs text-slate-500">Upcoming published events</p></div></div>
       </div>
 
-      {/* ── Quick actions ────────────────────────────────────────── */}
-      <div className="mb-6">
-        <QuickActions onCreatePost={() => setComposerFocused(true)} />
-      </div>
-
-      {/* ── Two-column grid ──────────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-        {/* ── LEFT: Feed ───────────────────────── */}
-        <div className="lg:col-span-3 space-y-4">
-          {/* Post composer */}
-          <PostComposer key={composerFocused ? 'focused' : 'idle'} />
-
-          {/* Feed */}
-          {feedPosts.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-10 text-center">
-              <Newspaper size={32} className="text-[#E5E7EB] mx-auto mb-3" />
-              <p className="text-sm font-medium text-[#182230]">No posts yet</p>
-              <p className="text-xs text-[#667085] mt-1">Be the first to share something!</p>
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.9fr)]">
+        <section className="min-w-0 space-y-4">
+          <form onSubmit={createPost} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            <div className="flex items-start gap-3">
+              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">{initials(profile?.display_name ?? '')}</span>}
+              <div className="min-w-0 flex-1">
+                <label htmlFor="postContent" className="mb-2 block text-sm font-semibold text-slate-800">Share with your campus</label>
+                <textarea id="postContent" rows={3} maxLength={5000} value={composer} onChange={(e) => setComposer(e.target.value)} placeholder="Share something you learned, a question, or a campus update…" className="w-full resize-y rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-slate-400">Visible to your campus according to profile and post access policies.</span><button disabled={refreshing || !composer.trim()} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"><Plus size={15} /> Publish post</button></div>
+              </div>
             </div>
-          ) : (
-            feedPosts.map(post => <PostCard key={post.id} post={post} />)
-          )}
-        </div>
+          </form>
 
-        {/* ── RIGHT: Widgets ───────────────────── */}
-        <div className="lg:col-span-2 space-y-4">
-          <UpcomingEventsWidget />
-          <MyClubsWidget />
-          <CampusAnnouncementsWidget />
-        </div>
+          {posts.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+              <Newspaper size={32} className="mx-auto mb-3 text-slate-300" />
+              <h2 className="font-bold text-slate-900">Your campus feed is ready for its first post</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">This feed shows database posts visible to your confirmed account. It does not seed fictional people or activity counts.</p>
+            </div>
+          ) : posts.map((post) => {
+            const author = post.profiles;
+            const postLikes = likes.filter((item) => item.post_id === post.id);
+            const liked = postLikes.some((item) => item.user_id === userId);
+            return <article key={post.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <header className="flex items-start gap-3">
+                {author?.avatar_url ? <img src={author.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{initials(author?.display_name ?? 'Campus member')}</span>}
+                <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-slate-900">{author?.display_name ?? (post.author_id === userId ? profile?.display_name : 'Campus member')}</p><p className="mt-0.5 text-xs text-slate-500">{author?.department ?? 'IIT Bhilai'} · {readableTime(post.created_at)}</p></div>
+                {post.author_id === userId && <span className="rounded-full border border-indigo-100 bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-800">Your post</span>}
+              </header>
+              <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">{post.content}</p>
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+                <button onClick={() => void toggleLike(post)} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold ${liked ? 'bg-rose-50 text-rose-700' : 'text-slate-500 hover:bg-slate-50'}`}><Heart size={15} className={liked ? 'fill-current' : ''} />{postLikes.length} {postLikes.length === 1 ? 'like' : 'likes'}</button>
+                <span className="inline-flex items-center gap-1.5 px-2 py-2 text-xs text-slate-400"><MessageCircle size={15} />Comments</span>
+                <span className="ml-auto text-[10px] uppercase tracking-wide text-slate-400">{post.visibility} visibility</span>
+              </div>
+              <form onSubmit={(event) => void addComment(event, post)} className="mt-2 flex items-center gap-2">
+                <label htmlFor={`comment-${post.id}`} className="sr-only">Add a comment</label>
+                <input id={`comment-${post.id}`} value={commentDrafts[post.id] ?? ''} onChange={(e) => setCommentDrafts((items) => ({ ...items, [post.id]: e.target.value }))} maxLength={3000} placeholder="Write a comment…" className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-xs outline-none focus:border-indigo-500" />
+                <button type="submit" disabled={!commentDrafts[post.id]?.trim() || commentingPostId === post.id} className="rounded-xl border border-slate-200 p-2.5 text-slate-600 hover:bg-slate-50 disabled:opacity-50" aria-label="Send comment">{commentingPostId === post.id ? <LoaderCircle size={15} className="animate-spin" /> : <Send size={15} />}</button>
+              </form>
+              {ownPostIds.has(post.id) && <p className="mt-2 text-[10px] text-slate-400">You can delete your post from the post menu in a later moderation update.</p>}
+            </article>;
+          })}
+        </section>
+
+        <aside className="space-y-4">
+          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-slate-900">Upcoming events</h2><CalendarDays size={18} className="text-indigo-600" /></div>
+            <div className="mt-4 space-y-3">
+              {events.length === 0 && <p className="text-sm leading-6 text-slate-500">No published upcoming events are available.</p>}
+              {events.map((event) => <article key={event.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><p className="font-semibold text-slate-800">{event.title}</p><p className="mt-1 text-xs text-slate-500">{event.starts_at ? readableTime(event.starts_at) : 'Date to be announced'}{event.location ? ` · ${event.location}` : ''}</p>{event.description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{event.description}</p>}</article>)}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-slate-900">Campus announcements</h2><Bell size={18} className="text-indigo-600" /></div>
+            <div className="mt-4 space-y-3">
+              {announcements.length === 0 && <p className="text-sm leading-6 text-slate-500">No published campus announcements are available.</p>}
+              {announcements.map((item) => <article key={item.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-800">{item.title}</p>{item.priority !== 'normal' && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold capitalize text-amber-800">{item.priority}</span>}</div><p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-600">{item.body}</p>{item.published_at && <p className="mt-1 text-[10px] text-slate-400">{readableTime(item.published_at)}</p>}</article>)}
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
+            <div className="flex items-center gap-2 text-sky-900"><ShieldCheck size={18} /><p className="text-sm font-bold">Real account, controlled access</p></div>
+            <p className="mt-2 text-xs leading-5 text-sky-900/80">Your posts, likes and comments are saved in Supabase. What you can read is controlled by your confirmed account and database policies.</p>
+            <Link href="/dashboard/profile" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-sky-900 underline underline-offset-2">Review your profile <ArrowRight size={13} /></Link>
+          </section>
+        </aside>
       </div>
     </div>
   );
