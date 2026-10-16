@@ -327,3 +327,12 @@ input[type="radio"] {
   }
 }
 /* KOINELIO INTERACTION POLISH: END */
+
+/* Keep the public landing page readable in either theme. */
+:root[data-theme="dark"] .landing-page { background-color: #0b1020 !important; color: #edf2ff !important; }
+:root[data-theme="dark"] .landing-page .landing-nav { background-color: #10182a !important; border-color: #2b3850 !important; }
+:root[data-theme="dark"] .landing-page .landing-nav a:not(.landing-primary-link) { color: #dbeafe !important; }
+:root[data-theme="dark"] .landing-page .landing-brand-name { color: #f8fafc !important; }
+:root[data-theme="dark"] .landing-page .landing-hero { background-image: none !important; background-color: #0b1020 !important; }
+:root[data-theme="dark"] .landing-page .landing-hero-prefix { color: #f8fafc !important; }
+:root[data-theme="dark"] .landing-page .landing-hero-description { color: #cbd5e1 !important; }
