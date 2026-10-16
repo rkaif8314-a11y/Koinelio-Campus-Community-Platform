@@ -121,6 +121,7 @@ function Sidebar({
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3">
         {navItems.map((item) => <NavigationLink key={item.href} item={item} pathname={pathname} onClick={onNavClick} />)}
+        {moderatorAccess && <NavigationLink item={{ label: 'Moderation', href: '/dashboard/moderation', icon: ShieldCheck }} pathname={pathname} onClick={onNavClick} />}
         {leadership && (
           <NavigationLink
             item={{ label: 'Governance', href: '/dashboard/admin', icon: ShieldCheck }}
@@ -184,6 +185,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [searchValue, setSearchValue] = useState('');
   const [profile, setProfile] = useState<ProfileSnapshot | null>(null);
   const [leadership, setLeadership] = useState(false);
+  const [moderatorAccess, setModeratorAccess] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState('');
@@ -225,6 +227,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       if (rolesError) throw rolesError;
       const roleNames = (roles ?? []).map((role) => String(role.role));
       setLeadership(roleNames.some((role) => ['institution_admin', 'president', 'technical_gs', 'cultural_gs'].includes(role)));
+      setModeratorAccess(roleNames.includes('moderator') || roleNames.includes('institution_admin'));
 
       const { count, error: notificationCountError } = await supabase
         .from('notifications')
