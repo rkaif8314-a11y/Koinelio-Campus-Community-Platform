@@ -60,6 +60,7 @@ export default function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [trustedBadges, setTrustedBadges] = useState<string[]>([]);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -81,17 +82,29 @@ export default function ProfilePage() {
         return;
       }
 
-      const { data, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, display_name, bio, department, study_year, profile_visibility, institution_id, campus_role, profile_category, degree_program, batch_year, graduation_year, avatar_url, skills, interests, verification_status, institution_slug')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) throw profileError;
-      const loaded = data as ProfileRecord;
+      const [profileResult, roleResult, membershipResult] = await Promise.all([
+        supabase.from('profiles')
+          .select('id, display_name, bio, department, study_year, profile_visibility, institution_id, campus_role, profile_category, degree_program, batch_year, graduation_year, avatar_url, skills, interests, verification_status, institution_slug')
+          .eq('id', user.id).single(),
+        supabase.from('institution_roles').select('role').eq('user_id', user.id).eq('status', 'active'),
+        supabase.from('club_memberships').select('role').eq('user_id', user.id).eq('status', 'active'),
+      ]);
+      if (profileResult.error) throw profileResult.error;
+      const loaded = profileResult.data as ProfileRecord;
       setProfile(loaded);
       setSkillsText(toCsv(loaded.skills));
       setInterestsText(toCsv(loaded.interests));
+      const institutionLabels: Record<string, string> = {
+        institution_admin: 'Institution Administrator', president: 'Campus President',
+        technical_gs: 'Technical Council GS', cultural_gs: 'Cultural Council GS',
+        moderator: 'Moderator', club_coordinator: 'Club Coordinator',
+      };
+      const clubLabels: Record<string, string> = {
+        coordinator: 'Club Coordinator', core_member: 'Club Core Member', member: 'Club Member',
+      };
+      const roleBadges = (roleResult.data ?? []).map((row: { role: string }) => institutionLabels[row.role]).filter(Boolean);
+      const clubBadges = (membershipResult.data ?? []).map((row: { role: string }) => clubLabels[row.role]).filter(Boolean);
+      setTrustedBadges(Array.from(new Set([...roleBadges, ...clubBadges])));
     } catch (loadError) {
       setError(supabaseErrorMessage(loadError, 'Unable to load your profile.'));
     } finally {
@@ -279,7 +292,11 @@ export default function ProfilePage() {
               <div><dt className="text-xs text-slate-500">Trusted campus role</dt><dd className="mt-1 font-medium capitalize text-slate-800">{profile.campus_role}</dd></div>
               <div><dt className="text-xs text-slate-500">Affiliation</dt><dd className="mt-1 font-medium text-slate-800">{accountStatus}</dd></div>
             </dl>
-            <p className="mt-3 text-xs leading-5 text-slate-500">A confirmed institute email is not by itself proof of current enrolment. Trusted affiliation fields cannot be changed from this form.</p>
+            <div className="mt-4 border-t border-slate-100 pt-3">
+              <h3 className="text-xs font-semibold text-slate-500">Trusted role badges</h3>
+              {trustedBadges.length > 0 ? <div className="mt-2 flex flex-wrap gap-1.5">{trustedBadges.map((badge) => <span key={badge} className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"><ShieldCheck size={12}/>{badge}</span>)}</div> : <p className="mt-1 text-xs text-slate-500">No active governance or club role assigned.</p>}
+            </div>
+            <p className="mt-3 text-xs leading-5 text-slate-500">Role badges come only from active database assignments. A confirmed institute email is not by itself proof of current enrolment; trusted affiliation fields cannot be changed from this form.</p>
           </section>
         </aside>
 
