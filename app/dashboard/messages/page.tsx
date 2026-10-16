@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   Users,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type RoomRecord = {
   id: string;
@@ -70,6 +71,8 @@ export default function ClubRoomsPage() {
     setLoading(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard/messages');
@@ -96,7 +99,7 @@ export default function ClubRoomsPage() {
         ? current
         : preferRequested?.id ?? loadedRooms[0]?.id ?? '');
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load your room list.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load your room list.'));
     } finally {
       setLoading(false);
     }
@@ -110,6 +113,8 @@ export default function ClubRoomsPage() {
     setLoadingMessages(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data, error: messagesError } = await supabase
         .from('club_room_messages')
         .select('id, room_id, sender_id, content, created_at, edited_at, profiles:profiles!club_room_messages_sender_id_fkey(display_name, avatar_url)')
@@ -120,7 +125,7 @@ export default function ClubRoomsPage() {
       setMessages((data ?? []) as unknown as RoomMessage[]);
     } catch (loadError) {
       setMessages([]);
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load messages for this room.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load messages for this room.'));
     } finally {
       setLoadingMessages(false);
     }
@@ -167,7 +172,7 @@ export default function ClubRoomsPage() {
       setDraft('');
       await loadMessages(activeRoom.id);
     } catch (sendError) {
-      setError(sendError instanceof Error ? sendError.message : 'Unable to send the message. You may not have access to this room.');
+      setError(supabaseErrorMessage(sendError, 'Unable to send the message. You may not have access to this room.'));
     } finally {
       setSending(false);
     }
