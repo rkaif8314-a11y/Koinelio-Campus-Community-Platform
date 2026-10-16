@@ -7,6 +7,10 @@ import {
   AlertCircle,
   Bell,
   BookOpen,
+  CalendarDays,
+  Compass,
+  GraduationCap,
+  Newspaper,
   Building2,
   CheckCircle2,
   HelpCircle,
@@ -24,7 +28,7 @@ import {
 } from 'lucide-react';
 import KoinelioLogoMark from '@/components/koinelio-logo-mark';
 import ThemeToggle from '@/components/theme-toggle';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
 
 type ProfileSnapshot = {
   id: string;
@@ -44,8 +48,12 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: 'Home', href: '/dashboard', icon: Home },
+  { label: 'Campus Feed', href: '/dashboard/community', icon: Newspaper },
+  { label: 'Discover', href: '/dashboard/discover', icon: Compass },
   { label: 'Campus Guide', href: '/dashboard/campus', icon: BookOpen },
   { label: 'My Clubs', href: '/dashboard/clubs', icon: Users },
+  { label: 'Events', href: '/dashboard/events', icon: CalendarDays },
+  { label: 'Alumni', href: '/dashboard/alumni', icon: GraduationCap },
   { label: 'Club Rooms', href: '/dashboard/messages', icon: MessageSquare },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
   { label: 'My Profile', href: '/dashboard/profile', icon: UserRound },
@@ -149,12 +157,8 @@ function Sidebar({
 }
 
 function MobileNavigation({ pathname }: { pathname: string }) {
-  const items = [
-    navItems[0],
-    navItems[2],
-    navItems[3],
-    navItems[5],
-  ];
+  const mobileHrefs = ['/dashboard', '/dashboard/community', '/dashboard/clubs', '/dashboard/events', '/dashboard/alumni'];
+  const items = navItems.filter((item) => mobileHrefs.includes(item.href));
   return (
     <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white lg:hidden">
       <div className="flex">
@@ -188,6 +192,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setAuthError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: userData, error: authError } = await supabase.auth.getUser();
       const user = userData.user;
       if (authError || !user) {
@@ -249,7 +255,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-[#F7F8FC] px-4">
         <div className="w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <AlertCircle className="mb-3 text-rose-600" size={25} />
-          <h1 className="text-xl font-bold text-slate-900">Account verification needed</h1>
+          <h1 className="text-xl font-bold text-slate-900">{authError?.includes('Supabase') ? 'Supabase connection needs attention' : 'Account verification needed'}</h1>
           <p className="mt-2 break-words text-sm leading-6 text-slate-600">{authError || 'Your account profile could not be loaded.'}</p>
           <button onClick={handleSignOut} className="mt-5 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Sign in again</button>
         </div>
