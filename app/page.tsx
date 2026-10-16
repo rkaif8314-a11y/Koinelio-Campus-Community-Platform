@@ -93,7 +93,7 @@ export default function LandingPage() {
             <span className="landing-brand-name text-xl font-bold tracking-tight text-[#173D36]">Koinelio</span>
           </Link>
 
-          <div className="hidden items-center gap-7 lg:flex">
+          <div className="hidden items-center gap-7 xl:flex">
             <a href="#why-koinelio" className="text-sm font-medium text-[#5B6560] transition hover:text-[#173D36]">Why Koinelio</a>
             <a href="#communities" className="text-sm font-medium text-[#5B6560] transition hover:text-[#173D36]">Communities</a>
             <Link href="/dashboard/community" className="text-sm font-medium text-[#5B6560] transition hover:text-[#173D36]">Campus Feed</Link>
@@ -101,15 +101,15 @@ export default function LandingPage() {
             <Link href="/dashboard/campus" className="text-sm font-medium text-[#5B6560] transition hover:text-[#173D36]">Campus Guide</Link>
           </div>
 
-          <div className="hidden items-center gap-2 md:flex">
+          <div className="hidden items-center gap-2 xl:flex">
             <ThemeToggle/>
             <Link href="/auth/signin" className="rounded-xl px-4 py-2.5 text-sm font-semibold text-[#46534D] transition hover:bg-[#F1EBE0]">Sign in</Link>
             <Link href="/auth/signup" className="landing-primary-link inline-flex items-center gap-2 rounded-xl bg-[#C65D43] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#A94832]">Join Koinelio <ArrowRight size={15}/></Link>
           </div>
 
-          <button type="button" onClick={() => setMobileMenuOpen((value) => !value)} aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileMenuOpen} className="rounded-xl border border-[#E7E0D6] p-2.5 text-[#34443C] hover:bg-white md:hidden">{mobileMenuOpen ? <X size={20}/> : <Menu size={20}/>}</button>
+          <button type="button" onClick={() => setMobileMenuOpen((value) => !value)} aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'} aria-expanded={mobileMenuOpen} className="rounded-xl border border-[#E7E0D6] p-2.5 text-[#34443C] hover:bg-white xl:hidden">{mobileMenuOpen ? <X size={20}/> : <Menu size={20}/>}</button>
         </div>
-        {mobileMenuOpen && <div className="border-t border-[#E7E0D6] bg-[#FBF8F2] px-4 py-4 md:hidden">
+        {mobileMenuOpen && <div className="border-t border-[#E7E0D6] bg-[#FBF8F2] px-4 py-4 xl:hidden">
           <div className="space-y-1">
             <a href="#why-koinelio" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-medium text-[#46534D] hover:bg-white">Why Koinelio</a>
             <a href="#communities" onClick={() => setMobileMenuOpen(false)} className="block rounded-xl px-3 py-2.5 text-sm font-medium text-[#46534D] hover:bg-white">Communities</a>

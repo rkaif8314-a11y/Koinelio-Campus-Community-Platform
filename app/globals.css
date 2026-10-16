@@ -437,6 +437,7 @@ input[type="radio"] {
   background-color: #b45740 !important;
 }
 :root[data-theme="dark"] [class~="bg-indigo-50"],
+:root[data-theme="dark"] [class~="bg-indigo-50/50"],
 :root[data-theme="dark"] [class~="bg-indigo-100"],
 :root[data-theme="dark"] [class~="bg-indigo-200"],
 :root[data-theme="dark"] [class~="bg-indigo-500/20"] {
