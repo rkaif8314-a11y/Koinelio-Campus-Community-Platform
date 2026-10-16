@@ -238,7 +238,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Verifies the Supabase session before rendering protected pages.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Verifies the Supabase session before rendering protected pages.
   useEffect(() => { void loadAuthenticatedUser(); }, [loadAuthenticatedUser]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Close the mobile drawer when navigation changes route.
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Close the mobile drawer when navigation changes route.
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
