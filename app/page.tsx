@@ -5,7 +5,6 @@ import { useState } from 'react';
 import {
   ArrowDownRight,
   ArrowRight,
-  BadgeCheck,
   BookOpen,
   CalendarDays,
   CheckCircle2,
