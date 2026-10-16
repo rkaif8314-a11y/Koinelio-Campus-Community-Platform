@@ -233,7 +233,7 @@ export default function LandingPage() {
           <div><h3 className="text-sm font-bold text-white">Trust & safety</h3><div className="mt-4 space-y-3 text-sm text-white/65"><span className="block">Confirmed campus email required</span><span className="block">Membership follows approval</span><span className="block">Room access follows role</span><span className="block">No LDAP password collection</span><Link href="/dashboard/help" className="block transition hover:text-white">Help & support</Link></div></div>
         </div>
         <div className="border-t border-white/10">
-          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-[11px] leading-5 text-white/45 sm:px-6 md:flex-row md:items-start md:justify-between lg:px-8"><p className="max-w-3xl">Koinelio is independently operated unless formally authorized by IIT Bhilai. An institute email confirms mailbox access, not current enrolment or official endorsement. Do not enter your institute/LDAP password.</p><span className="shrink-0">© {new Date().getFullYear()} Koinelio · Built for campus connection</span></div>
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-[11px] leading-5 text-white/45 sm:px-6 md:flex-row md:items-start md:justify-between lg:px-8"><p className="max-w-3xl">Koinelio is independently operated unless formally authorized by IIT Bhilai. An institute email confirms mailbox access, not current enrolment or official endorsement. Do not enter your institute/LDAP password.</p><span className="shrink-0">Koinelio · Built for campus connection</span></div>
         </div>
       </footer>
     </main>
