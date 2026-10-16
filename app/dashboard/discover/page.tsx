@@ -4,7 +4,8 @@ import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, BadgeCheck, BookOpen, CalendarDays, LoaderCircle, Search, Users, UserRound } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type Profile = {
   id: string;
@@ -42,6 +43,8 @@ function DiscoverPageContent() {
   const loadDirectory = useCallback(async () => {
     setLoading(true); setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard/discover');
@@ -72,7 +75,7 @@ function DiscoverPageContent() {
       setClubs((clubResult.data ?? []) as Club[]);
       setEvents((eventResult.data ?? []) as Event[]);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load the campus directory.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load the campus directory.'));
     } finally { setLoading(false); }
   }, [router]);
 
