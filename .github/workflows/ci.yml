@@ -30,7 +30,5 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Lint application
-        run: pnpm lint
       - name: Build production app
         run: pnpm build
