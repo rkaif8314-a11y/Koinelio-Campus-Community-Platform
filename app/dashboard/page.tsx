@@ -91,6 +91,7 @@ export default function DashboardPage() {
   const [likes, setLikes] = useState<Engagement[]>([]);
   const [events, setEvents] = useState<EventRecord[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [announcementFilter, setAnnouncementFilter] = useState<'all' | 'urgent' | 'important' | 'normal'>('all');
   const [approvedClubCount, setApprovedClubCount] = useState(0);
   const [userId, setUserId] = useState('');
   const [composer, setComposer] = useState('');
@@ -139,7 +140,7 @@ export default function DashboardPage() {
           .select('id, title, body, priority, published_at')
           .eq('status', 'published')
           .order('published_at', { ascending: false })
-          .limit(5),
+          .limit(20),
         supabase.from('clubs')
           .select('id', { count: 'exact', head: true })
           .eq('approval_status', 'approved'),
@@ -187,6 +188,15 @@ export default function DashboardPage() {
   useEffect(() => { void loadDashboard(); }, [loadDashboard]);
 
   const ownPostIds = useMemo(() => new Set(posts.filter((post) => post.author_id === userId).map((post) => post.id)), [posts, userId]);
+  const prioritizedAnnouncements = announcements
+    .filter((item) => announcementFilter === 'all' || item.priority === announcementFilter)
+    .slice()
+    .sort((a, b) => {
+      const rank: Record<string, number> = { urgent: 0, important: 1, normal: 2 };
+      const priorityDifference = (rank[a.priority] ?? 3) - (rank[b.priority] ?? 3);
+      if (priorityDifference !== 0) return priorityDifference;
+      return new Date(b.published_at ?? 0).getTime() - new Date(a.published_at ?? 0).getTime();
+    });
 
   async function createPost(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -341,9 +351,13 @@ export default function DashboardPage() {
 
           <section className="rounded-2xl border border-slate-200 bg-white p-5">
             <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-slate-900">Campus announcements</h2><Bell size={18} className="text-indigo-600" /></div>
+            <div role="group" aria-label="Filter announcements by priority" className="mt-3 flex flex-wrap gap-1.5">
+              {(['all', 'urgent', 'important', 'normal'] as const).map((value) => <button key={value} type="button" aria-pressed={announcementFilter === value} onClick={() => setAnnouncementFilter(value)} className={`rounded-full border px-2.5 py-1.5 text-[11px] font-semibold capitalize transition ${announcementFilter === value ? 'border-[#173D36] bg-[#173D36] text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{value === 'all' ? 'All priorities' : value}</button>)}
+            </div>
             <div className="mt-4 space-y-3">
               {announcements.length === 0 && <p className="text-sm leading-6 text-slate-500">No published campus announcements are available.</p>}
-              {announcements.map((item) => <article key={item.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-800">{item.title}</p>{item.priority !== 'normal' && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold capitalize text-amber-800">{item.priority}</span>}</div><p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-600">{item.body}</p>{item.published_at && <p className="mt-1 text-[10px] text-slate-400">{readableTime(item.published_at)}</p>}</article>)}
+              {announcements.length > 0 && prioritizedAnnouncements.length === 0 && <p className="text-sm leading-6 text-slate-500">No {announcementFilter} announcements are available.</p>}
+              {prioritizedAnnouncements.slice(0, 8).map((item) => <article key={item.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-800">{item.title}</p>{item.priority !== 'normal' && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${item.priority === 'urgent' ? 'bg-rose-50 text-rose-800' : 'bg-amber-50 text-amber-800'}`}>{item.priority}</span>}</div><p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-600">{item.body}</p>{item.published_at && <p className="mt-1 text-[10px] text-slate-400">{readableTime(item.published_at)}</p>}</article>)}
             </div>
           </section>
 
