@@ -178,6 +178,7 @@ export default function DashboardPage() {
     }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the real campus dashboard from authenticated Supabase queries.
   useEffect(() => { void loadDashboard(); }, [loadDashboard]);
 
   const ownPostIds = useMemo(() => new Set(posts.filter((post) => post.author_id === userId).map((post) => post.id)), [posts, userId]);
