@@ -57,6 +57,7 @@ export default function SettingsPage() {
     }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrates persistent account settings from Supabase after authentication.
   useEffect(() => { void loadSettings(); }, [loadSettings]);
 
   async function saveVisibility(value: AccountProfile['profile_visibility']) {
