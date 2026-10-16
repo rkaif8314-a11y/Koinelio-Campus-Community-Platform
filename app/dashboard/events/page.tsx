@@ -108,6 +108,7 @@ export default function EventsPage() {
     } finally { setLoading(false); }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Fetches the user's persisted event and registration state after mount.
   useEffect(() => { void loadEvents(); }, [loadEvents]);
 
   const registeredIds = useMemo(() => new Set(registrations.filter((item) => ['registered', 'attended'].includes(item.status)).map((item) => item.event_id)), [registrations]);
