@@ -99,7 +99,7 @@ function DiscoverPageContent() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="mb-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Discover campus</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">People, clubs and events</h1><p className="mt-2 text-sm leading-6 text-slate-600">Results come from the database and respect each user's profile visibility and club approval status. Only people visible to your account appear.</p></div>
+      <div className="mb-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Discover campus</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">People, clubs and events</h1><p className="mt-2 text-sm leading-6 text-slate-600">Results come from the database and respect each user&apos;s profile visibility and club approval status. Only people visible to your account appear.</p></div>
       {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
       <div className="mb-5 flex flex-wrap gap-2">
         {([['all','Everything'],['people','People'],['clubs','Approved clubs'],['events','Published events']] as [Tab,string][]).map(([value,label]) => <button key={value} onClick={() => setTab(value)} className={`rounded-xl px-3.5 py-2 text-sm font-semibold ${tab === value ? 'bg-[#14213D] text-white' : 'text-slate-600 hover:bg-white'}`}>{label}</button>)}
