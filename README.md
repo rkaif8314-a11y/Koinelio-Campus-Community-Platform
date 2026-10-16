@@ -57,6 +57,7 @@ Apply migrations to a disposable/staging project first, in ascending filename or
 - `20261016100000_profile_avatars_storage.sql` — private write controls for profile photos.
 - `20261016110000_koinelio_campus_tenant_bootstrap.sql` — creates the pending IIT Bhilai tenant row and backfills only confirmed campus-email profiles that have no tenant.
 - `20261016120000_koinelio_feed_media_and_classification.sql` — persisted post categories, role-gated official announcements, and private storage for feed images, GIFs, and videos.
+- `20261016130000_koinelio_profile_directory_category.sql` — keeps self-reported student/alumni directory category separate from trusted campus roles and permissions.
 
 Do **not** apply these to production until staging tests pass. Do not mark the IIT Bhilai tenant as institutionally verified unless formal authorization has actually been granted. The migration intentionally uses `pending` status.
 
