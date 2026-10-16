@@ -78,7 +78,7 @@ function NavigationLink({
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? 'bg-white text-[#14213D] shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? 'bg-white text-[#173D36] shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
       aria-current={active ? 'page' : undefined}
     >
       <Icon size={18} className="shrink-0" />
