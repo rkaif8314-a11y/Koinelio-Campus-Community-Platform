@@ -373,14 +373,14 @@ input[type="radio"] {
   --tw-ring-color: rgb(198 93 67 / 10%) !important;
 }
 .landing-page .landing-nav {
-  background-color: #173d36 !important;
-  border-color: rgb(255 255 255 / 13%) !important;
+  background-color: #fbf8f2 !important;
+  border-color: #e7e0d6 !important;
 }
 .landing-page .landing-nav a:not(.landing-primary-link) {
-  color: #f3f6f2 !important;
+  color: #46534d !important;
 }
 .landing-page .landing-nav .landing-brand-name {
-  color: #ffffff !important;
+  color: #173d36 !important;
 }
 .landing-page footer {
   background-color: #102e28 !important;
