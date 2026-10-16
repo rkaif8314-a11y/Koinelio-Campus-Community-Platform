@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, CalendarDays, CheckCircle2, GraduationCap, Heart, ImagePlus,
-  LoaderCircle, MessageCircle, Newspaper, Plus, RefreshCw, Send, ShieldCheck, Trash2, Users,
+  LoaderCircle, MessageCircle, Newspaper, Plus, RefreshCw, Send, ShieldCheck, Sparkles, Trash2, Users,
 } from 'lucide-react';
 import { getSupabaseConfigError, supabase } from '@/lib/supabase';
 import { supabaseErrorMessage } from '@/lib/supabase-errors';
@@ -53,6 +53,34 @@ const typeStyles: Record<PostType, string> = {
   announcement: 'border-rose-200 bg-rose-50 text-rose-800',
 };
 const emojis = ['😀', '🎉', '💡', '🚀', '🤝', '📚', '✅', '❤️', '🔥', '💻'];
+
+/**
+ * Small, transparent keyword heuristic to help people categorize posts.
+ * It never creates official announcements and never overrides a user's choice.
+ */
+function suggestPostType(text: string): PostType | null {
+  const value = text.toLowerCase().trim();
+  if (value.length < 12) return null;
+
+  const patterns: Array<{ type: PostType; keywords: string[] }> = [
+    { type: 'opportunity', keywords: ['internship', 'job opening', 'hiring', 'scholarship', 'application deadline', 'applications open', 'opportunity', 'apply here', 'call for volunteers', 'volunteer position'] },
+    { type: 'project', keywords: ['project', 'prototype', 'built ', 'building ', 'open source', 'github', 'repository', 'launched', 'implemented', 'developed', 'demo of', 'working on'] },
+    { type: 'achievement', keywords: ['won ', 'award', 'finalist', 'got selected', 'selected for', 'completed ', 'milestone', 'proud to share', 'placed at', 'ranked ', 'achievement'] },
+    { type: 'question', keywords: ['need help', 'anyone know', 'can someone', 'how do i', 'how can i', 'why does', 'what is', 'question:', 'any suggestions', 'looking for advice'] },
+  ];
+
+  const scores = patterns.map((pattern) => ({
+    type: pattern.type,
+    score: pattern.keywords.reduce((sum, keyword) => sum + (value.includes(keyword) ? 1 : 0), 0),
+  }));
+  if (value.includes('?')) {
+    const question = scores.find((item) => item.type === 'question');
+    if (question) question.score += 1;
+  }
+
+  scores.sort((left, right) => right.score - left.score);
+  return scores[0]?.score > 0 ? scores[0].type : null;
+}
 
 function initials(name: string): string {
   return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase() ?? '').join('') || 'K';
@@ -188,6 +216,7 @@ export default function CommunityPage() {
     if (filter === 'all') return true;
     return post.post_type === filter;
   }), [filter, posts, userId]);
+  const suggestedPostType = useMemo(() => suggestPostType(composer), [composer]);
 
   function selectMedia(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -356,6 +385,11 @@ export default function CommunityPage() {
                   </label>
                   <span className="text-xs text-stone-400">{composer.length}/5000 characters</span>
                 </div>
+                {suggestedPostType && suggestedPostType !== postType && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#D9E8DE] bg-[#F0F6F0] px-3 py-2.5">
+                  <Sparkles size={15} className="shrink-0 text-[#267354]"/>
+                  <p className="flex-1 text-xs leading-5 text-[#355C48]">Text pattern suggests <strong>{typeLabels[suggestedPostType]}</strong>. This is a heuristic, not an AI verdict.</p>
+                  <button type="button" onClick={() => setPostType(suggestedPostType)} className="rounded-lg bg-[#173D36] px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#0F2F29]">Use suggestion</button>
+                </div>}
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {emojis.map((emoji) => <button key={emoji} type="button" onClick={() => appendEmoji(emoji)} aria-label={'Insert emoji ' + emoji} className="rounded-lg border border-stone-200 bg-stone-50 px-2 py-1 text-base transition hover:bg-amber-50">{emoji}</button>)}
                   <label className="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-700 transition hover:border-[#C65D43] hover:bg-[#FFF5F1]">
