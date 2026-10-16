@@ -50,6 +50,18 @@ on storage.objects for select to authenticated
 using (
   bucket_id = 'campus-post-media'
   and private.is_iit_bhilai_email_verified((select auth.uid()))
+  and (
+    -- Users can always read their own uploaded object, including an upload
+    -- whose post insert failed and is awaiting cleanup.
+    (storage.foldername(name))[1] = (select auth.uid())::text
+    -- Other members can read media only when its parent post is visible to them.
+    or exists (
+      select 1
+      from public.posts p
+      where p.media_url = storage.objects.name
+        and private.can_view_post(p.id)
+    )
+  )
 );
 
 drop policy if exists "Verified campus members upload their own post media" on storage.objects;
