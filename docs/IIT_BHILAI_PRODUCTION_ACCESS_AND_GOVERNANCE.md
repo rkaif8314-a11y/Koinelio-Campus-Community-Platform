@@ -111,6 +111,29 @@ The migration's institution trigger assigns the scoped administrator role and as
 
 The `verified` status is a governance assertion, not a setting to enable product features. Change the institution's status only after the responsible IIT Bhilai authority has expressly authorised the service and branding. Until then, leave it pending and describe Koinelio as an independent campus project/pilot.
 
+## Phase 4–5 delivery and release gates
+
+### Phase 4 — Community classification and governance
+
+- [x] Move post classification into a small, independently testable utility. The heuristic is transparent, can return no suggestion, and cannot create an official announcement.
+- [x] Add automated regression tests for opportunity, project, achievement, question, short-text, casing, and unknown-text cases.
+- [x] Run the classification tests in CI before lint/build.
+- [x] Keep official announcement publishing gated in both the UI and the database policy.
+- [x] Keep role assignment and club approvals in trusted database workflows, not signup fields.
+- [ ] Before pilot acceptance, verify role decisions and announcement denial using separate staging accounts. Static tests cannot prove live RLS behavior.
+
+### Phase 5 — QA and release preparation
+
+- [x] Add a repeatable CI command for the classification regression tests.
+- [x] Include the active feature branch in push CI so new commits receive checks.
+- [ ] Complete staging migration replay from an empty disposable project and compare schema/migration history.
+- [ ] Complete the two-account-per-role authorization matrix, including negative tests for cross-user edits, role self-promotion, room access, and private media.
+- [ ] Complete responsive/accessibility review on mobile and desktop, including keyboard navigation, focus states, form errors, and contrast in both themes.
+- [ ] Verify Auth confirmation/recovery URLs, Storage limits, backups and restore, privacy/retention, report/abuse handling, and incident response.
+- [ ] Only after the above pass, review the release with the project owner. Keep the tenant pending until written institutional authorization exists; do not merge or deploy production without explicit approval.
+
+**Acceptance rule:** CI green means code checks passed; it is not a substitute for staging database, security, usability, or operational verification. Any unchecked staging item remains a release blocker.
+
 ## Supabase Auth and Storage configuration
 
 Before using account confirmation or recovery links, set the Supabase Auth Site URL to the intended application origin and add the exact local/staging/production callback URLs to the Auth redirect allowlist, including:

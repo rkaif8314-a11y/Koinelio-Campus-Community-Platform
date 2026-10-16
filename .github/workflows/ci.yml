@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - demo/iit-bhilai-source-backed-campus
+      - fix/restore-real-community-and-supabase
   pull_request:
     branches:
       - main
