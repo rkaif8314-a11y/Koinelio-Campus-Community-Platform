@@ -114,9 +114,9 @@ function Sidebar({
         <Building2 size={16} className="shrink-0 text-white/55" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-white">IIT Bhilai</p>
-          <p className="truncate text-[10px] text-white/50">Institute email-restricted pilot</p>
+          <p className="truncate text-[10px] text-white/60">Independent pilot · not institute-endorsed</p>
         </div>
-        <CheckCircle2 size={15} className="ml-auto shrink-0 text-emerald-300" />
+        <AlertCircle size={15} aria-label="Independent pilot" className="ml-auto shrink-0 text-amber-300" />
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3">
@@ -217,18 +217,21 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       if (profileError) throw profileError;
       setProfile(profileData as ProfileSnapshot);
 
-      const { data: roles } = await supabase
+      const { data: roles, error: rolesError } = await supabase
         .from('institution_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('status', 'active');
+      if (rolesError) throw rolesError;
       const roleNames = (roles ?? []).map((role) => String(role.role));
       setLeadership(roleNames.some((role) => ['institution_admin', 'president', 'technical_gs', 'cultural_gs'].includes(role)));
 
-      const { count } = await supabase
+      const { count, error: notificationCountError } = await supabase
         .from('notifications')
         .select('id', { count: 'exact', head: true })
+        .eq('recipient_id', user.id)
         .is('read_at', null);
+      if (notificationCountError) throw notificationCountError;
       setUnreadCount(count ?? 0);
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Unable to validate your account session.');
@@ -238,9 +241,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Verifies the Supabase session before rendering protected pages.
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Verifies the Supabase session before rendering protected pages.
   useEffect(() => { void loadAuthenticatedUser(); }, [loadAuthenticatedUser]);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- Close the mobile drawer when navigation changes route.
   // eslint-disable-next-line react-hooks/set-state-in-effect -- Close the mobile drawer when navigation changes route.
   useEffect(() => { setMobileOpen(false); }, [pathname]);
 
