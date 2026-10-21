@@ -4,7 +4,7 @@ import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } fro
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  AlertCircle, CalendarDays, CheckCircle2, GraduationCap, Heart, ImagePlus,
+  AlertCircle, CalendarDays, CheckCircle2, Flag, GraduationCap, Heart, ImagePlus,
   LoaderCircle, MessageCircle, Newspaper, Plus, RefreshCw, Send, ShieldCheck, Sparkles, Trash2, Users,
 } from 'lucide-react';
 import { getSupabaseConfigError, supabase } from '@/lib/supabase';
@@ -100,6 +100,7 @@ export default function CommunityPage() {
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
   const [notice, setNotice] = useState('');
+  const [reporting, setReporting] = useState('');
 
   useEffect(() => () => {
     if (mediaPreview) URL.revokeObjectURL(mediaPreview);
@@ -218,6 +219,39 @@ export default function CommunityPage() {
 
   function appendEmoji(emoji: string) {
     setComposer((current) => current + emoji);
+  }
+
+  async function reportPost(post: Post) {
+    if (post.author_id === userId) {
+      setError('You cannot report your own post.');
+      return;
+    }
+    const enteredReason = window.prompt('Report reason: spam, harassment, misinformation, inappropriate, or other');
+    if (!enteredReason) return;
+    const reason = enteredReason.trim().toLowerCase();
+    if (!['spam', 'harassment', 'misinformation', 'inappropriate', 'other'].includes(reason)) {
+      setError('Choose one of: spam, harassment, misinformation, inappropriate, other.');
+      return;
+    }
+    const details = window.prompt('Optional details (do not include private information).') ?? '';
+    if (details.length > 1200) {
+      setError('Report details must be 1200 characters or fewer.');
+      return;
+    }
+    setReporting(post.id); setError(''); setNotice('');
+    try {
+      const { error: reportError } = await supabase.rpc('submit_post_report', {
+        p_post_id: post.id,
+        p_reason: reason,
+        p_details: details.trim(),
+      });
+      if (reportError) throw reportError;
+      setNotice('Report sent to the campus moderation queue.');
+    } catch (reportError) {
+      setError(supabaseErrorMessage(reportError, 'Unable to submit this report.'));
+    } finally {
+      setReporting('');
+    }
   }
 
   async function createPost(event: FormEvent<HTMLFormElement>) {
@@ -416,6 +450,7 @@ export default function CommunityPage() {
                 <footer className="mt-4 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-3">
                   <button type="button" onClick={() => void toggleLike(post)} disabled={liking === post.id} className={'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold disabled:opacity-50 ' + (liked ? 'bg-rose-50 text-rose-700' : 'text-stone-500 hover:bg-stone-50')} aria-label={(liked ? 'Unlike post by ' : 'Like post by ') + author}><Heart size={15} className={liked ? 'fill-current' : ''}/>{postLikes.length} {postLikes.length === 1 ? 'like' : 'likes'}</button>
                   <button type="button" onClick={() => setExpanded((current) => ({ ...current, [post.id]: !current[post.id] }))} aria-expanded={Boolean(expanded[post.id])} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-stone-500 hover:bg-stone-50"><MessageCircle size={15}/>{postComments.length} {postComments.length === 1 ? 'comment' : 'comments'}</button>
+                  {post.author_id !== userId && <button type="button" onClick={() => void reportPost(post)} disabled={reporting === post.id} className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold text-stone-500 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-50"><Flag size={14}/>{reporting === post.id ? 'Sending…' : 'Report'}</button>}
                   {post.post_type === 'announcement' && <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold text-rose-700"><ShieldCheck size={13}/> Authorized announcement</span>}
                 </footer>
 

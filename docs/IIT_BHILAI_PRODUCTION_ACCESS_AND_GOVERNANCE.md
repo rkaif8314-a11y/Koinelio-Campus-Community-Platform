@@ -24,6 +24,7 @@ After the repository's existing base schema/security migrations, apply the new m
 3. `20261016110000_koinelio_campus_tenant_bootstrap.sql`
 4. `20261016120000_koinelio_feed_media_and_classification.sql`
 5. `20261016130000_koinelio_profile_directory_category.sql`
+6. `20261016140000_koinelio_post_reports_and_moderation.sql`
 
 Do not apply this sequence to the current live project without staging tests and a reviewed rollback/backup plan. The live project currently records only the earlier seven base migrations, so the signed-in app may report missing functions, columns or Storage buckets until the newer schema is applied correctly.
 
@@ -152,6 +153,7 @@ Confirm email confirmation is enabled. The profile-avatar Storage bucket is defi
 - [ ] Test as an unconfirmed user, a confirmed institute-domain user, a non-domain existing user, a member, a core member, a coordinator, a General Secretary, the president, and a platform administrator. Verify cross-room reads/writes and attempts to self-promote fail.
 - [x] Replace primary signed-in surfaces (dashboard feed, club membership/detail, profile and profile image, settings, notifications, events, discovery, alumni, governance and club rooms) with Supabase-backed data and actions; remove the demo user switcher.
 - [ ] Complete end-to-end staging tests for signup/confirmation/recovery, profile changes/image upload, club requests/invitations/Core Member access, and all three room tiers. This branch has not run those tests against a staging Supabase project yet.
+- [ ] Test post reporting and moderation decisions: duplicate/self-report rejection, reporter-only visibility, moderator queue access, and hide/dismiss outcomes under separate accounts.
 - [ ] Review remaining direct-entry routes and implement/report/flag queues, audit history, backup/restore, incident response, privacy/retention terms, abuse handling and end-user support.
 - [ ] Verify all RLS and Storage policies with at least two separate accounts per role, including attempts to self-promote or read another room.
 - [ ] Review the deployment and branding with IIT Bhilai before announcing it as an official institute service.

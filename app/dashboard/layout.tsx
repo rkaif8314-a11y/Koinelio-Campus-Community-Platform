@@ -53,6 +53,7 @@ const navItems: NavItem[] = [
   { label: 'Campus Guide', href: '/dashboard/campus', icon: BookOpen },
   { label: 'My Clubs', href: '/dashboard/clubs', icon: Users },
   { label: 'Events', href: '/dashboard/events', icon: CalendarDays },
+  { label: 'Club Recruitment', href: '/dashboard/recruitment', icon: Users },
   { label: 'Alumni', href: '/dashboard/alumni', icon: GraduationCap },
   { label: 'Club Rooms', href: '/dashboard/messages', icon: MessageSquare },
   { label: 'Notifications', href: '/dashboard/notifications', icon: Bell },
@@ -96,12 +97,14 @@ function Sidebar({
   onSignOut,
   onNavClick,
   leadership,
+  moderatorAccess,
 }: {
   profile: ProfileSnapshot;
   pathname: string;
   onSignOut: () => void;
   onNavClick?: () => void;
   leadership: boolean;
+  moderatorAccess: boolean;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -121,6 +124,7 @@ function Sidebar({
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3">
         {navItems.map((item) => <NavigationLink key={item.href} item={item} pathname={pathname} onClick={onNavClick} />)}
+        {moderatorAccess && <NavigationLink item={{ label: 'Moderation', href: '/dashboard/moderation', icon: ShieldCheck }} pathname={pathname} onClick={onNavClick} />}
         {leadership && (
           <NavigationLink
             item={{ label: 'Governance', href: '/dashboard/admin', icon: ShieldCheck }}
@@ -156,9 +160,10 @@ function Sidebar({
   );
 }
 
-function MobileNavigation({ pathname }: { pathname: string }) {
+function MobileNavigation({ pathname, moderatorAccess }: { pathname: string; moderatorAccess: boolean }) {
   const mobileHrefs = ['/dashboard', '/dashboard/community', '/dashboard/clubs', '/dashboard/events', '/dashboard/alumni'];
   const items = navItems.filter((item) => mobileHrefs.includes(item.href));
+  if (moderatorAccess) items.push({ label: 'Moderation', href: '/dashboard/moderation', icon: ShieldCheck });
   return (
     <nav aria-label="Mobile navigation" className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white lg:hidden">
       <div className="flex">
@@ -184,6 +189,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [searchValue, setSearchValue] = useState('');
   const [profile, setProfile] = useState<ProfileSnapshot | null>(null);
   const [leadership, setLeadership] = useState(false);
+  const [moderatorAccess, setModeratorAccess] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState('');
@@ -225,6 +231,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       if (rolesError) throw rolesError;
       const roleNames = (roles ?? []).map((role) => String(role.role));
       setLeadership(roleNames.some((role) => ['institution_admin', 'president', 'technical_gs', 'cultural_gs'].includes(role)));
+      setModeratorAccess(roleNames.includes('moderator') || roleNames.includes('institution_admin'));
 
       const { count, error: notificationCountError } = await supabase
         .from('notifications')
@@ -277,12 +284,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden bg-[#F7F8FC]">
       <aside className="hidden w-64 shrink-0 flex-col overflow-hidden bg-[#173D36] lg:flex">
-        <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} leadership={leadership} />
+        <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} leadership={leadership} moderatorAccess={moderatorAccess} />
       </aside>
 
       {mobileOpen && <button aria-label="Close navigation overlay" className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />}
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-[#173D36] transition-transform duration-300 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} onNavClick={() => setMobileOpen(false)} leadership={leadership} />
+        <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} onNavClick={() => setMobileOpen(false)} leadership={leadership} moderatorAccess={moderatorAccess} />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
@@ -317,7 +324,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <MobileNavigation pathname={pathname} />
+      <MobileNavigation pathname={pathname} moderatorAccess={moderatorAccess} />
     </div>
   );
 }

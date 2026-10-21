@@ -31,8 +31,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Test post classification
-        run: node --test tests/*.test.mjs
+      - name: Run automated regression tests
+        run: pnpm test
       - name: Lint application
         run: pnpm lint
       - name: Build production app
