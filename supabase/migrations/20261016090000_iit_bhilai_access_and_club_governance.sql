@@ -54,7 +54,88 @@ as $function$
 $function$;
 
 revoke all on function private.enforce_iit_bhilai_signup_email() from public, anon, authenticated;
-revoke all on function private.is_iit_bhilai_email_verified(uuid) from public, anon, authenticated;
+revoke all on function private.is_iit_bhilai_email_verified(uuid) from public, anon;
+grant execute on function private.is_iit_bhilai_email_verified(uuid) to authenticated;
+
+-- Trusted signup profile creation. Institution affiliation is assigned from
+-- the tenant record, never from signup metadata.
+create or replace function private.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_display_name text;
+  v_department text;
+  v_degree_program text;
+  v_institution_slug text;
+  v_institution_id uuid;
+  v_batch_text text;
+  v_batch_year smallint;
+  v_interests text[];
+begin
+  v_display_name := left(coalesce(
+    nullif(btrim(new.raw_user_meta_data ->> 'display_name'), ''),
+    nullif(btrim(new.raw_user_meta_data ->> 'full_name'), ''),
+    nullif(split_part(coalesce(new.email, ''), '@', 1), ''),
+    'Student'
+  ), 100);
+
+  v_institution_slug := case
+    when btrim(coalesce(new.raw_user_meta_data ->> 'institution_slug', '')) = 'iit-bhilai'
+      then 'iit-bhilai'
+    else null
+  end;
+
+  select i.id into v_institution_id
+  from public.institutions i
+  where i.slug = 'iit-bhilai'
+    and i.approval_status in ('pending', 'verified')
+  limit 1;
+
+  v_department := left(nullif(btrim(new.raw_user_meta_data ->> 'department'), ''), 120);
+  v_degree_program := left(nullif(btrim(new.raw_user_meta_data ->> 'degree_program'), ''), 160);
+  v_batch_text := nullif(btrim(new.raw_user_meta_data ->> 'batch_year'), '');
+
+  if v_batch_text ~ '^[0-9]{4}$'
+     and v_batch_text::integer between 2016 and extract(year from current_date)::integer then
+    v_batch_year := v_batch_text::smallint;
+  else
+    v_batch_year := null;
+  end if;
+
+  select coalesce(array_agg(cleaned.interest), array[]::text[])
+    into v_interests
+  from (
+    select distinct left(btrim(item.value), 48) as interest
+    from jsonb_array_elements_text(
+      case
+        when jsonb_typeof(new.raw_user_meta_data -> 'interests') = 'array'
+          then new.raw_user_meta_data -> 'interests'
+        else '[]'::jsonb
+      end
+    ) with ordinality as item(value, ordinality)
+    where nullif(btrim(item.value), '') is not null
+    order by interest
+    limit 20
+  ) as cleaned;
+
+  insert into public.profiles (
+    id, display_name, institution_id, campus_role, department,
+    degree_program, batch_year, interests, institution_slug
+  )
+  values (
+    new.id, v_display_name, v_institution_id, 'student', v_department,
+    v_degree_program, v_batch_year, v_interests, v_institution_slug
+  )
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$function$;
+
+revoke all on function private.handle_new_user() from public, anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 2. Owner-managed, private bootstrap allowlist for platform administrators.
@@ -89,6 +170,25 @@ begin
     insert into public.platform_admins (user_id)
     values (new.id)
     on conflict (user_id) do nothing;
+
+    -- If the tenant already exists, mirror the allowlisted platform admin
+    -- into its institution-scoped admin role so existing RLS-protected
+    -- workflows see the same administrator.
+    insert into public.institution_roles (
+      institution_id, user_id, role, status, granted_by
+    )
+    select i.id, new.id, 'institution_admin', 'active', null
+    from public.institutions i
+    where i.slug = 'iit-bhilai'
+      and i.approval_status in ('pending', 'verified')
+      and not exists (
+        select 1 from public.institution_roles ir
+        where ir.institution_id = i.id
+          and ir.user_id = new.id
+          and ir.role = 'institution_admin'
+          and ir.club_id is null
+          and ir.status = 'active'
+      );
   end if;
 
   return new;
@@ -101,6 +201,56 @@ drop trigger if exists zzz_koinelio_provision_bootstrap_admin on auth.users;
 create trigger zzz_koinelio_provision_bootstrap_admin
 after insert or update of email, email_confirmed_at on auth.users
 for each row execute function private.provision_bootstrap_admin();
+
+-- The platform admin can bootstrap the single-campus institution row in the
+-- Supabase SQL Editor. When it appears, associate existing domain-gated
+-- profiles and grant the allowlisted platform admin their scoped admin role.
+create or replace function private.sync_iit_bhilai_tenant_bootstrap()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+begin
+  if new.slug = 'iit-bhilai'
+     and new.approval_status in ('pending', 'verified') then
+    insert into public.institution_roles (
+      institution_id, user_id, role, status, granted_by
+    )
+    select new.id, pa.user_id, 'institution_admin', 'active', null
+    from public.platform_admins pa
+    where not exists (
+      select 1 from public.institution_roles ir
+      where ir.institution_id = new.id
+        and ir.user_id = pa.user_id
+        and ir.role = 'institution_admin'
+        and ir.club_id is null
+        and ir.status = 'active'
+    );
+
+    -- Do not bypass the affiliation trigger for the current signed-in user.
+    -- Supabase SQL Editor (the owner bootstrap path) has no auth.uid(), so it
+    -- can safely attach the first admin and any already-created pilot profiles.
+    update public.profiles p
+      set institution_id = new.id
+    where p.institution_slug = 'iit-bhilai'
+      and p.institution_id is distinct from new.id
+      and ((select auth.uid()) is null or (select auth.uid()) <> p.id);
+  end if;
+  return new;
+end;
+$function$;
+
+revoke all on function private.sync_iit_bhilai_tenant_bootstrap() from public, anon, authenticated;
+
+drop trigger if exists institutions_sync_iit_bhilai_tenant on public.institutions;
+create trigger institutions_sync_iit_bhilai_tenant
+after insert or update of slug, approval_status on public.institutions
+for each row execute function private.sync_iit_bhilai_tenant_bootstrap();
+
+-- This is a single-institution product. New institution creation is disabled
+-- for students; initialize the IIT Bhilai row through the owner bootstrap SQL.
+drop policy if exists "Request an institution" on public.institutions;
 
 -- ---------------------------------------------------------------------------
 -- 3. Add the Core Member tier and campus-president governance role.
@@ -247,6 +397,86 @@ as $function$
   end;
 $function$;
 
+-- Only platform administrators and the campus president can change a club's
+-- approval status. Creator/coordinator paths cannot approve clubs.
+create or replace function public.guard_club_privileged_fields()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+begin
+  if current_user = 'authenticated' then
+    if new.created_by is distinct from old.created_by
+      or new.institution_id is distinct from old.institution_id then
+      raise exception 'Club ownership and institution cannot be changed directly';
+    end if;
+    if new.approval_status is distinct from old.approval_status
+      and not public.has_institution_role(old.institution_id, array['institution_admin'])
+      and not private.can_oversee_club(old.id) then
+      raise exception 'Club approval status requires an administrator or campus president';
+    end if;
+  end if;
+  return new;
+end;
+$function$;
+
+-- Preserve existing coordinator/admin management while adding platform-admin
+-- and campus-president oversight for every club.
+create or replace function private.can_manage_club(p_club_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select case when p_club_id is null then false else
+    (
+      exists (
+        select 1 from public.club_memberships cm
+        where cm.club_id = p_club_id
+          and cm.user_id = (select auth.uid())
+          and cm.role = 'coordinator'
+          and cm.status = 'active'
+      )
+      or exists (
+        select 1 from public.institution_roles ir
+        where ir.club_id = p_club_id
+          and ir.user_id = (select auth.uid())
+          and ir.role = 'club_coordinator'
+          and ir.status = 'active'
+      )
+      or exists (
+        select 1
+        from public.clubs c
+        join public.institution_roles ir on ir.institution_id = c.institution_id
+        where c.id = p_club_id
+          and ir.user_id = (select auth.uid())
+          and ir.role = 'institution_admin'
+          and ir.status = 'active'
+      )
+      or private.can_oversee_club(p_club_id)
+    )
+  end;
+$function$;
+
+-- The club creator may edit ordinary club details, including a pending draft,
+-- but this never grants coordinator powers. The trigger above separately
+-- protects approval_status and trusted ownership fields.
+drop policy if exists "Club owners or institution admins update clubs" on public.clubs;
+create policy "Club owners or institution admins update clubs"
+on public.clubs
+for update to authenticated
+using (
+  created_by = (select auth.uid())
+  or private.can_manage_club(id)
+  or private.has_institution_role(institution_id, array['institution_admin'])
+)
+with check (
+  created_by = (select auth.uid())
+  or private.can_manage_club(id)
+  or private.has_institution_role(institution_id, array['institution_admin'])
+);
+
 -- A central definition shared by room RLS and all UI entry points.
 create or replace function private.can_access_club_room(p_room_id uuid)
 returns boolean
@@ -264,8 +494,9 @@ as $function$
         private.can_oversee_club(club.id)
         or (
           private.is_iit_bhilai_email_verified((select auth.uid()))
+          and club.approval_status = 'approved'
           and (
-            (room.room_type = 'general' and club.approval_status = 'approved')
+            room.room_type = 'general'
             or (
               room.room_type = 'members'
               and exists (
@@ -292,9 +523,11 @@ as $function$
   );
 $function$;
 
-revoke all on function private.is_campus_president() from public, anon, authenticated;
-revoke all on function private.can_oversee_club(uuid) from public, anon, authenticated;
-revoke all on function private.can_access_club_room(uuid) from public, anon, authenticated;
+revoke all on function private.is_campus_president() from public, anon;
+revoke all on function private.can_oversee_club(uuid) from public, anon;
+revoke all on function private.can_access_club_room(uuid) from public, anon;
+grant execute on function private.can_oversee_club(uuid) to authenticated;
+grant execute on function private.can_access_club_room(uuid) to authenticated;
 
 drop policy if exists "Read accessible club rooms" on public.club_rooms;
 create policy "Read accessible club rooms"
@@ -446,7 +679,7 @@ begin
     end if;
 
     v_required_council_role := case
-      when v_category ~ '(technical|engineering|robot|electronics|computer|coding|science|data science|artificial intelligence|innovation|startup)' then 'technical_gs'
+      when v_category ~ '(sci[- ]?tech|tech(nical)?|engineering|robot|electronics|computer|coding|science|data science|artificial intelligence|innovation|startup)' then 'technical_gs'
       when v_category ~ '(culture|art|music|dance|film|photo|literary|oratory|debate|performing)' then 'cultural_gs'
       else null
     end;
@@ -515,6 +748,56 @@ grant execute on function public.decide_institution_role_request(uuid, text) to 
 -- Leadership requests may only be decided through the validated RPC above.
 drop policy if exists "Authorized staff decide role requests" on public.institution_role_requests;
 
+drop policy if exists "Read own or pending role requests" on public.institution_role_requests;
+create policy "Read own or pending role requests"
+on public.institution_role_requests
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  or private.is_platform_admin()
+  or private.has_institution_role(
+    institution_id,
+    array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
+  )
+);
+
+-- Campus president and platform administrators can review the institution
+-- leadership roster. General users see only their own role grants.
+drop policy if exists "Read own institutional roles or admin roles" on public.institution_roles;
+create policy "Read own institutional roles or admin roles"
+on public.institution_roles
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  or private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
+);
+
+-- Campus executives can review affiliation requests; ordinary students still
+-- see only their own request.
+drop policy if exists "Users read own or institution affiliation requests" on public.institution_affiliation_requests;
+create policy "Users read own or institution affiliation requests"
+on public.institution_affiliation_requests
+for select to authenticated
+using (
+  user_id = (select auth.uid())
+  or private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
+);
+
+drop policy if exists "Institution admins decide affiliation requests" on public.institution_affiliation_requests;
+create policy "Institution admins decide affiliation requests"
+on public.institution_affiliation_requests
+for update to authenticated
+using (
+  private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
+)
+with check (
+  private.is_platform_admin()
+  or private.has_institution_role(institution_id, array['institution_admin', 'president'])
+);
+
 -- ---------------------------------------------------------------------------
 -- 7. Coordinator-controlled interview invitations and Core Member promotion.
 -- ---------------------------------------------------------------------------
@@ -543,6 +826,12 @@ begin
   end if;
   if not private.can_manage_club(p_club_id) then
     raise exception 'Only an approved club coordinator or overseer can invite members.' using errcode = '42501';
+  end if;
+  if not exists (
+    select 1 from public.clubs club
+    where club.id = p_club_id and club.approval_status = 'approved'
+  ) then
+    raise exception 'Invitations are available only for approved clubs.' using errcode = '42501';
   end if;
   if not private.is_iit_bhilai_email_verified(p_invitee_id) then
     raise exception 'The invitee must have a confirmed IIT Bhilai email.' using errcode = '42501';
@@ -644,6 +933,12 @@ begin
   if not private.can_manage_club(p_club_id) then
     raise exception 'Only the club coordinator or an administrator/president can promote Core Members.' using errcode = '42501';
   end if;
+  if not exists (
+    select 1 from public.clubs club
+    where club.id = p_club_id and club.approval_status = 'approved'
+  ) then
+    raise exception 'Membership roles can be changed only in approved clubs.' using errcode = '42501';
+  end if;
 
   update public.club_memberships
     set role = 'core_member'
@@ -665,5 +960,38 @@ revoke all on function public.promote_club_core_member(uuid, uuid) from public, 
 grant execute on function public.invite_club_member(uuid, uuid, text, text) to authenticated;
 grant execute on function public.respond_to_club_invitation(uuid, boolean) to authenticated;
 grant execute on function public.promote_club_core_member(uuid, uuid) to authenticated;
+
+
+-- ---------------------------------------------------------------------------
+-- 8. Enforce confirmed institute-email ownership in every authenticated RLS
+--    policy on public tables. This wraps existing expressions and adds no
+--    permissive policy. Tables with RLS but no policy remain inaccessible.
+-- ---------------------------------------------------------------------------
+do $policy_hardening$
+declare
+  p record;
+begin
+  for p in
+    select schemaname, tablename, policyname, roles, qual, with_check
+    from pg_policies
+    where schemaname = 'public'
+      and roles @> array['authenticated']::name[]
+  loop
+    if p.qual is not null then
+      execute format(
+        'alter policy %I on %I.%I using (private.is_iit_bhilai_email_verified((select auth.uid())) and (%s))',
+        p.policyname, p.schemaname, p.tablename, p.qual
+      );
+    end if;
+
+    if p.with_check is not null then
+      execute format(
+        'alter policy %I on %I.%I with check (private.is_iit_bhilai_email_verified((select auth.uid())) and (%s))',
+        p.policyname, p.schemaname, p.tablename, p.with_check
+      );
+    end if;
+  end loop;
+end;
+$policy_hardening$;
 
 commit;
