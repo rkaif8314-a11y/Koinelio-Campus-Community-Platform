@@ -78,7 +78,7 @@ function NavigationLink({
     <Link
       href={item.href}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? 'bg-white text-[#14213D] shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
+      className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${active ? 'bg-white text-[#173D36] shadow-sm' : 'text-white/70 hover:bg-white/10 hover:text-white'}`}
       aria-current={active ? 'page' : undefined}
     >
       <Icon size={18} className="shrink-0" />
@@ -114,9 +114,9 @@ function Sidebar({
         <Building2 size={16} className="shrink-0 text-white/55" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-white">IIT Bhilai</p>
-          <p className="truncate text-[10px] text-white/50">Institute email-restricted pilot</p>
+          <p className="truncate text-[10px] text-white/60">Independent pilot · not institute-endorsed</p>
         </div>
-        <CheckCircle2 size={15} className="ml-auto shrink-0 text-emerald-300" />
+        <AlertCircle size={15} aria-label="Independent pilot" className="ml-auto shrink-0 text-amber-300" />
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3">
@@ -217,18 +217,21 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       if (profileError) throw profileError;
       setProfile(profileData as ProfileSnapshot);
 
-      const { data: roles } = await supabase
+      const { data: roles, error: rolesError } = await supabase
         .from('institution_roles')
         .select('role')
         .eq('user_id', user.id)
         .eq('status', 'active');
+      if (rolesError) throw rolesError;
       const roleNames = (roles ?? []).map((role) => String(role.role));
       setLeadership(roleNames.some((role) => ['institution_admin', 'president', 'technical_gs', 'cultural_gs'].includes(role)));
 
-      const { count } = await supabase
+      const { count, error: notificationCountError } = await supabase
         .from('notifications')
         .select('id', { count: 'exact', head: true })
+        .eq('recipient_id', user.id)
         .is('read_at', null);
+      if (notificationCountError) throw notificationCountError;
       setUnreadCount(count ?? 0);
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Unable to validate your account session.');
@@ -237,8 +240,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Verifies the Supabase session before rendering protected pages.
   useEffect(() => { void loadAuthenticatedUser(); }, [loadAuthenticatedUser]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Close the mobile drawer when navigation changes route.
   useEffect(() => { setMobileOpen(false); }, [pathname]);
+
+  function submitGlobalSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = searchValue.trim();
+    router.push(query ? `/dashboard/discover?q=${encodeURIComponent(query)}` : '/dashboard/discover');
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -265,12 +276,12 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-[#F7F8FC]">
-      <aside className="hidden w-64 shrink-0 flex-col overflow-hidden bg-[#14213D] lg:flex">
+      <aside className="hidden w-64 shrink-0 flex-col overflow-hidden bg-[#173D36] lg:flex">
         <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} leadership={leadership} />
       </aside>
 
       {mobileOpen && <button aria-label="Close navigation overlay" className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setMobileOpen(false)} />}
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-[#14213D] transition-transform duration-300 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-[#173D36] transition-transform duration-300 lg:hidden ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <Sidebar profile={profile} pathname={pathname} onSignOut={handleSignOut} onNavClick={() => setMobileOpen(false)} leadership={leadership} />
       </aside>
 
@@ -278,11 +289,13 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4">
           <button className="text-slate-500 hover:text-slate-900 lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open navigation"><Menu size={22} /></button>
           <span className="truncate text-sm font-semibold text-slate-900 lg:hidden">IIT Bhilai</span>
-          <div className="relative hidden max-w-md flex-1 lg:flex">
+          <form onSubmit={submitGlobalSearch} role="search" className="relative hidden max-w-md flex-1 lg:flex">
             <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input type="search" placeholder="Search approved clubs and campus guide…" value={searchValue} onChange={(event) => setSearchValue(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
-            {searchValue && <button onClick={() => setSearchValue('')} aria-label="Clear search" className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"><X size={14} /></button>}
-          </div>
+            <label htmlFor="campus-global-search" className="sr-only">Search campus people, clubs and events</label>
+            <input id="campus-global-search" type="search" placeholder="Search people, clubs, events…" value={searchValue} onChange={(event) => setSearchValue(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-slate-50 py-1.5 pl-9 pr-20 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20" />
+            {searchValue && <button type="button" onClick={() => setSearchValue('')} aria-label="Clear search" className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-400"><X size={14} /></button>}
+            <button type="submit" aria-label="Run campus search" className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-[#C65D43] px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#A94832]">Go</button>
+          </form>
           <div className="flex-1" />
           <ThemeToggle />
           <Link href="/dashboard/notifications" aria-label={`${unreadCount} unread notifications`} className="relative rounded-lg p-2 text-slate-500 hover:bg-slate-50 hover:text-slate-900">

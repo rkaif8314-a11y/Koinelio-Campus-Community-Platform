@@ -15,6 +15,18 @@ This is a **production-hardening change under review**, not a deployed release. 
 - Each club has three room types: **General** (all confirmed institute-email accounts for an approved club), **Members** (active members, core members, and coordinators), and **Core Team** (active core members and coordinators). Campus president/platform admin can oversee club rooms. Personal direct messages are not opened to campus leadership by this feature.
 - Authenticated RLS policies on public tables are wrapped with the same confirmed-domain check so a client-side form cannot bypass the institute-email requirement.
 
+## Migration sequence to validate in staging
+
+After the repository's existing base schema/security migrations, apply the new migrations in filename order to a disposable/staging project:
+
+1. `20261016090000_iit_bhilai_access_and_club_governance.sql`
+2. `20261016100000_profile_avatars_storage.sql`
+3. `20261016110000_koinelio_campus_tenant_bootstrap.sql`
+4. `20261016120000_koinelio_feed_media_and_classification.sql`
+5. `20261016130000_koinelio_profile_directory_category.sql`
+
+Do not apply this sequence to the current live project without staging tests and a reviewed rollback/backup plan. The live project currently records only the earlier seven base migrations, so the signed-in app may report missing functions, columns or Storage buckets until the newer schema is applied correctly.
+
 ## Important verification limitation
 
 The `@iitbhilai.ac.in` address proves access to a mailbox on that domain after confirmation; it **does not by itself prove that the person is currently an enrolled student**. IIT Bhilai's official ITIS services page describes email/LDAP access for students, staff, researchers, and faculty, so a strict student-only launch needs an institute-approved enrolment verification method. Do not collect or ask for anyone's LDAP password. Use an official SSO/verification integration or a documented approval process authorised by IIT Bhilai.
@@ -98,6 +110,29 @@ The migration's institution trigger assigns the scoped administrator role and as
 ### 3. Mark the institute verified only after authorisation
 
 The `verified` status is a governance assertion, not a setting to enable product features. Change the institution's status only after the responsible IIT Bhilai authority has expressly authorised the service and branding. Until then, leave it pending and describe Koinelio as an independent campus project/pilot.
+
+## Phase 4–5 delivery and release gates
+
+### Phase 4 — Community classification and governance
+
+- [x] Move post classification into a small, independently testable utility. The heuristic is transparent, can return no suggestion, and cannot create an official announcement.
+- [x] Add automated regression tests for opportunity, project, achievement, question, short-text, casing, and unknown-text cases.
+- [x] Run the classification tests in CI before lint/build.
+- [x] Keep official announcement publishing gated in both the UI and the database policy.
+- [x] Keep role assignment and club approvals in trusted database workflows, not signup fields.
+- [ ] Before pilot acceptance, verify role decisions and announcement denial using separate staging accounts. Static tests cannot prove live RLS behavior.
+
+### Phase 5 — QA and release preparation
+
+- [x] Add a repeatable CI command for the classification regression tests.
+- [x] Include the active feature branch in push CI so new commits receive checks.
+- [ ] Complete staging migration replay from an empty disposable project and compare schema/migration history.
+- [ ] Complete the two-account-per-role authorization matrix, including negative tests for cross-user edits, role self-promotion, room access, and private media.
+- [ ] Complete responsive/accessibility review on mobile and desktop, including keyboard navigation, focus states, form errors, and contrast in both themes.
+- [ ] Verify Auth confirmation/recovery URLs, Storage limits, backups and restore, privacy/retention, report/abuse handling, and incident response.
+- [ ] Only after the above pass, review the release with the project owner. Keep the tenant pending until written institutional authorization exists; do not merge or deploy production without explicit approval.
+
+**Acceptance rule:** CI green means code checks passed; it is not a substitute for staging database, security, usability, or operational verification. Any unchecked staging item remains a release blocker.
 
 ## Supabase Auth and Storage configuration
 

@@ -43,6 +43,7 @@ export default function NotificationsPage() {
     } finally { setLoading(false); }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrates account-scoped notification data after mount.
   useEffect(() => { void loadNotifications(); }, [loadNotifications]);
 
   async function markRead(item: NotificationRecord) {
@@ -69,6 +70,7 @@ export default function NotificationsPage() {
       const readAt = new Date().toISOString();
       const { error: updateError } = await supabase.from('notifications')
         .update({ read_at: readAt })
+        .eq('recipient_id', unread[0].recipient_id)
         .is('read_at', null);
       if (updateError) throw updateError;
       setItems((current) => current.map((item) => item.read_at ? item : { ...item, read_at: readAt }));

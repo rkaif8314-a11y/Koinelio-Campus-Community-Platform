@@ -57,6 +57,7 @@ export default function SettingsPage() {
     }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrates persistent account settings from Supabase after authentication.
   useEffect(() => { void loadSettings(); }, [loadSettings]);
 
   async function saveVisibility(value: AccountProfile['profile_visibility']) {
@@ -126,7 +127,7 @@ export default function SettingsPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-          <div className="flex items-start gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-700"><ShieldCheck size={20} /></div><div><h2 className="font-bold text-slate-900">Profile visibility</h2><p className="mt-1 text-sm leading-6 text-slate-600">Choose how your profile appears to other authenticated campus accounts. The database's row-level policies still govern what each user may access.</p></div></div>
+          <div className="flex items-start gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-700"><ShieldCheck size={20} /></div><div><h2 className="font-bold text-slate-900">Profile visibility</h2><p className="mt-1 text-sm leading-6 text-slate-600">Choose how your profile appears to other authenticated campus accounts. The database&apos;s row-level policies still govern what each user may access.</p></div></div>
           <div className="mt-5 space-y-2">
             {([
               ['campus', 'Campus directory', 'Visible to allowed users in the same campus directory.'],

@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   AlertCircle, CalendarDays, CheckCircle2, GraduationCap, Heart, ImagePlus,
-  LoaderCircle, MessageCircle, Newspaper, Plus, RefreshCw, Send, ShieldCheck, Trash2, Users,
+  LoaderCircle, MessageCircle, Newspaper, Plus, RefreshCw, Send, ShieldCheck, Sparkles, Trash2, Users,
 } from 'lucide-react';
 import { getSupabaseConfigError, supabase } from '@/lib/supabase';
 import { supabaseErrorMessage } from '@/lib/supabase-errors';
+import { suggestPostType } from '@/lib/post-classification';
 
 type PostType = 'discussion' | 'question' | 'project' | 'achievement' | 'opportunity' | 'announcement';
 type Person = { display_name: string; avatar_url: string | null; department: string | null };
@@ -153,8 +154,13 @@ export default function CommunityPage() {
           .select('id, post_id, author_id, content, created_at, profiles:profiles!post_comments_author_id_fkey(display_name, avatar_url)')
           .in('post_id', ids).order('created_at', { ascending: true }).limit(500),
         Promise.all(rows.filter((post) => post.media_url).map(async (post) => {
+          const storedPath = post.media_url as string;
+          // Older posts may already hold an external URL; only object paths need signed URLs.
+          if (/^https?:\/\//i.test(storedPath)) {
+            return { postId: post.id, url: storedPath, error: null };
+          }
           const { data, error: mediaError } = await supabase.storage
-            .from('campus-post-media').createSignedUrl(post.media_url as string, 3600);
+            .from('campus-post-media').createSignedUrl(storedPath, 3600);
           return { postId: post.id, url: data?.signedUrl ?? '', error: mediaError };
         })),
       ]);
@@ -176,6 +182,7 @@ export default function CommunityPage() {
     }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads database-backed feed state after authentication is available.
   useEffect(() => { void loadFeed(); }, [loadFeed]);
 
   const filteredPosts = useMemo(() => posts.filter((post) => {
@@ -183,6 +190,7 @@ export default function CommunityPage() {
     if (filter === 'all') return true;
     return post.post_type === filter;
   }), [filter, posts, userId]);
+  const suggestedPostType = useMemo(() => suggestPostType(composer), [composer]);
 
   function selectMedia(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -351,6 +359,11 @@ export default function CommunityPage() {
                   </label>
                   <span className="text-xs text-stone-400">{composer.length}/5000 characters</span>
                 </div>
+                {suggestedPostType && suggestedPostType !== postType && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-[#D9E8DE] bg-[#F0F6F0] px-3 py-2.5">
+                  <Sparkles size={15} className="shrink-0 text-[#267354]"/>
+                  <p className="flex-1 text-xs leading-5 text-[#355C48]">Text pattern suggests <strong>{typeLabels[suggestedPostType]}</strong>. This is a heuristic, not an AI verdict.</p>
+                  <button type="button" onClick={() => setPostType(suggestedPostType)} className="rounded-lg bg-[#173D36] px-2.5 py-1.5 text-xs font-bold text-white transition hover:bg-[#0F2F29]">Use suggestion</button>
+                </div>}
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {emojis.map((emoji) => <button key={emoji} type="button" onClick={() => appendEmoji(emoji)} aria-label={'Insert emoji ' + emoji} className="rounded-lg border border-stone-200 bg-stone-50 px-2 py-1 text-base transition hover:bg-amber-50">{emoji}</button>)}
                   <label className="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-lg border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-700 transition hover:border-[#C65D43] hover:bg-[#FFF5F1]">

@@ -26,14 +26,14 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --app-bg: #0b1020;
-  --app-surface: #121a2b;
-  --app-surface-raised: #172137;
-  --app-surface-muted: #1d2940;
-  --app-text: #edf2ff;
-  --app-muted: #aab6cd;
-  --app-border: #2b3850;
-  --app-input: #10182a;
+  --app-bg: #101814;
+  --app-surface: #18221d;
+  --app-surface-raised: #202c25;
+  --app-surface-muted: #26332b;
+  --app-text: #f3f2e9;
+  --app-muted: #bac3b9;
+  --app-border: #344138;
+  --app-input: #141c17;
   --app-shadow: 0 1px 2px rgb(0 0 0 / 25%);
 }
 
@@ -77,19 +77,19 @@ body {
 :root[data-theme="dark"] [class~="bg-[#EEF0FD]"],
 :root[data-theme="dark"] [class~="bg-[#F0F0FF]"],
 :root[data-theme="dark"] [class~="bg-indigo-50"] {
-  background-color: #282552 !important;
+  background-color: #35251f !important;
 }
 
 :root[data-theme="dark"] [class~="bg-[#E6F6F4]"],
 :root[data-theme="dark"] [class~="bg-emerald-50"],
 :root[data-theme="dark"] [class~="bg-teal-50"] {
-  background-color: #123b37 !important;
+  background-color: #183b31 !important;
 }
 
 :root[data-theme="dark"] [class~="bg-[#FEF3C7]"],
 :root[data-theme="dark"] [class~="bg-amber-50"],
 :root[data-theme="dark"] [class~="bg-yellow-50"] {
-  background-color: #47350e !important;
+  background-color: #3d321b !important;
 }
 
 :root[data-theme="dark"] [class~="text-[#182230]"],
@@ -134,7 +134,7 @@ body {
 }
 
 :root[data-theme="dark"] [class~="bg-gradient-to-b"][class~="from-[#F7F8FC]"] {
-  background-image: linear-gradient(to bottom, #0b1020, #121a2b) !important;
+  background-image: linear-gradient(to bottom, #101814, #18221d) !important;
 }
 
 :root[data-theme="dark"] [class~="hover:bg-[#F7F8FC]"]:hover,
@@ -329,10 +329,135 @@ input[type="radio"] {
 /* KOINELIO INTERACTION POLISH: END */
 
 /* Keep the public landing page readable in either theme. */
-:root[data-theme="dark"] .landing-page { background-color: #0b1020 !important; color: #edf2ff !important; }
-:root[data-theme="dark"] .landing-page .landing-nav { background-color: #10182a !important; border-color: #2b3850 !important; }
-:root[data-theme="dark"] .landing-page .landing-nav a:not(.landing-primary-link) { color: #dbeafe !important; }
-:root[data-theme="dark"] .landing-page .landing-brand-name { color: #f8fafc !important; }
+:root[data-theme="dark"] .landing-page { background-color: #101814 !important; color: #f3f2e9 !important; }
+:root[data-theme="dark"] .landing-page .landing-nav { background-color: #141c17 !important; border-color: #344138 !important; }
+:root[data-theme="dark"] .landing-page .landing-nav a:not(.landing-primary-link) { color: #e3e9df !important; }
+:root[data-theme="dark"] .landing-page .landing-brand-name { color: #f3f2e9 !important; }
 :root[data-theme="dark"] .landing-page .landing-hero { background-image: none !important; background-color: #0b1020 !important; }
 :root[data-theme="dark"] .landing-page .landing-hero-prefix { color: #f8fafc !important; }
-:root[data-theme="dark"] .landing-page .landing-hero-description { color: #cbd5e1 !important; }
+:root[data-theme="dark"] .landing-page .landing-hero-description { color: #bac3b9 !important; }
+
+
+/* Koinelio's product palette: warm terracotta, deep evergreen, warm paper. */
+:root {
+  --brand-navy: #173d36;
+  --brand-navy-dark: #102e28;
+  --brand-blue: #24584d;
+  --brand-purple: #c65d43;
+  --brand-blue-light: #fff1eb;
+  --brand-emerald: #16766c;
+  --brand-emerald-light: #eef8f3;
+}
+:root:not([data-theme="dark"]) [class~="bg-indigo-600"] {
+  background-color: #c65d43 !important;
+}
+:root:not([data-theme="dark"]) [class~="hover:bg-indigo-700"]:hover {
+  background-color: #a94832 !important;
+}
+:root:not([data-theme="dark"]) [class~="bg-indigo-50"],
+:root:not([data-theme="dark"]) [class~="bg-indigo-100"] {
+  background-color: #fff1eb !important;
+}
+:root:not([data-theme="dark"]) [class~="text-indigo-600"],
+:root:not([data-theme="dark"]) [class~="text-indigo-700"] {
+  color: #b94f37 !important;
+}
+:root:not([data-theme="dark"]) [class~="border-indigo-100"],
+:root:not([data-theme="dark"]) [class~="border-indigo-200"] {
+  border-color: #f0d0c5 !important;
+}
+:root:not([data-theme="dark"]) [class~="focus:border-indigo-500"]:focus {
+  border-color: #c65d43 !important;
+}
+:root:not([data-theme="dark"]) [class~="focus:ring-indigo-500/10"]:focus {
+  --tw-ring-color: rgb(198 93 67 / 10%) !important;
+}
+.landing-page .landing-nav {
+  background-color: #fbf8f2 !important;
+  border-color: #e7e0d6 !important;
+}
+.landing-page .landing-nav a:not(.landing-primary-link) {
+  color: #46534d !important;
+}
+.landing-page .landing-nav .landing-brand-name {
+  color: #173d36 !important;
+}
+.landing-page footer {
+  background-color: #102e28 !important;
+}
+:root[data-theme="dark"] .landing-page {
+  background-color: #0b1020 !important;
+  color: #edf2ff !important;
+}
+:root[data-theme="dark"] .landing-page .landing-nav {
+  background-color: #10182a !important;
+  border-color: #2b3850 !important;
+}
+:root[data-theme="dark"] .landing-page .landing-nav a:not(.landing-primary-link) {
+  color: #dbeafe !important;
+}
+:root[data-theme="dark"] .landing-page .landing-brand-name {
+  color: #f8fafc !important;
+}
+:root[data-theme="dark"] .landing-page .landing-hero {
+  background-image: none !important;
+  background-color: #0b1020 !important;
+}
+:root[data-theme="dark"] .landing-page .landing-hero-prefix {
+  color: #f8fafc !important;
+}
+:root[data-theme="dark"] .landing-page .landing-hero-description {
+  color: #cbd5e1 !important;
+}
+:root[data-theme="dark"] .landing-page section:not(.landing-hero):not([class~="bg-[#5146E5]"]) {
+  background-color: #0b1020 !important;
+  border-color: #2b3850 !important;
+}
+:root[data-theme="dark"] .landing-page article {
+  background-color: #18221d !important;
+  border-color: #2b3850 !important;
+}
+:root[data-theme="dark"] .landing-page h2:not([class~="text-white"]),
+:root[data-theme="dark"] .landing-page h3:not([class~="text-white"]) {
+  color: #edf2ff !important;
+}
+:root[data-theme="dark"] .landing-page p:not([class~="text-white"]):not([class~="text-white/65"]):not([class~="text-white/45"]) {
+  color: #bac3b9;
+}
+
+
+/* Dark mode keeps the same identity: evergreen surfaces and a restrained terracotta accent. */
+:root[data-theme="dark"] [class~="bg-indigo-600"],
+:root[data-theme="dark"] [class~="bg-indigo-700"],
+:root[data-theme="dark"] [class~="bg-indigo-500"] {
+  background-color: #9d4935 !important;
+}
+:root[data-theme="dark"] [class~="hover:bg-indigo-700"]:hover,
+:root[data-theme="dark"] [class~="hover:bg-indigo-800"]:hover {
+  background-color: #b45740 !important;
+}
+:root[data-theme="dark"] [class~="bg-indigo-50"],
+:root[data-theme="dark"] [class~="bg-indigo-50/50"],
+:root[data-theme="dark"] [class~="bg-indigo-100"],
+:root[data-theme="dark"] [class~="bg-indigo-200"],
+:root[data-theme="dark"] [class~="bg-indigo-500/20"] {
+  background-color: #35251f !important;
+}
+:root[data-theme="dark"] [class~="text-indigo-500"],
+:root[data-theme="dark"] [class~="text-indigo-600"],
+:root[data-theme="dark"] [class~="text-indigo-700"],
+:root[data-theme="dark"] [class~="text-indigo-800"] {
+  color: #f0a58e !important;
+}
+:root[data-theme="dark"] [class~="border-indigo-100"],
+:root[data-theme="dark"] [class~="border-indigo-200"],
+:root[data-theme="dark"] [class~="border-indigo-300"],
+:root[data-theme="dark"] [class~="border-indigo-400"] {
+  border-color: #684238 !important;
+}
+:root[data-theme="dark"] [class~="focus:border-indigo-500"]:focus {
+  border-color: #c65d43 !important;
+}
+:root[data-theme="dark"] [class~="focus:ring-indigo-500/10"]:focus {
+  --tw-ring-color: rgb(198 93 67 / 18%) !important;
+}

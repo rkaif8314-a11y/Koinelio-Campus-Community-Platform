@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, BadgeCheck, BookOpen, CalendarDays, LoaderCircle, Search, Users, UserRound } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type Profile = {
   id: string;
@@ -26,10 +27,12 @@ type Event = { id: string; title: string; description: string; starts_at: string
 
 type Tab = 'all' | 'people' | 'clubs' | 'events';
 
-export default function DiscoverPage() {
+function DiscoverPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlQuery = searchParams.get('q') ?? '';
   const [tab, setTab] = useState<Tab>('all');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(urlQuery);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [clubs, setClubs] = useState<Club[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -40,6 +43,8 @@ export default function DiscoverPage() {
   const loadDirectory = useCallback(async () => {
     setLoading(true); setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard/discover');
@@ -70,11 +75,16 @@ export default function DiscoverPage() {
       setClubs((clubResult.data ?? []) as Club[]);
       setEvents((eventResult.data ?? []) as Event[]);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load the campus directory.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load the campus directory.'));
     } finally { setLoading(false); }
   }, [router]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- The directory loader hydrates query results after authentication.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- The directory loader hydrates query results after authentication.
   useEffect(() => { void loadDirectory(); }, [loadDirectory]);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Keep the controlled search field synchronized with navigation from the global search.
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Keep the controlled search field synchronized with navigation from the global search.
+  useEffect(() => { setQuery(urlQuery); }, [urlQuery]);
 
   const normalized = query.trim().toLowerCase();
   const people = useMemo(() => profiles.filter((item) =>
@@ -89,7 +99,7 @@ export default function DiscoverPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <div className="mb-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Discover campus</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">People, clubs and events</h1><p className="mt-2 text-sm leading-6 text-slate-600">Results come from the database and respect each user's profile visibility and club approval status. Only people visible to your account appear.</p></div>
+      <div className="mb-6"><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Discover campus</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">People, clubs and events</h1><p className="mt-2 text-sm leading-6 text-slate-600">Results come from the database and respect each user&apos;s profile visibility and club approval status. Only people visible to your account appear.</p></div>
       {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
       <div className="mb-5 flex flex-wrap gap-2">
         {([['all','Everything'],['people','People'],['clubs','Approved clubs'],['events','Published events']] as [Tab,string][]).map(([value,label]) => <button key={value} onClick={() => setTab(value)} className={`rounded-xl px-3.5 py-2 text-sm font-semibold ${tab === value ? 'bg-[#14213D] text-white' : 'text-slate-600 hover:bg-white'}`}>{label}</button>)}
@@ -123,5 +133,13 @@ export default function DiscoverPage() {
         </section>
       )}
     </div>
+  );
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[50vh] items-center justify-center text-sm text-slate-500">Loading campus discovery…</div>}>
+      <DiscoverPageContent />
+    </Suspense>
   );
 }

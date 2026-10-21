@@ -28,7 +28,7 @@ function AuthCallbackPageContent() {
         if (!data.user.email_confirmed_at) {
           throw new Error('The institute email has not been confirmed yet. Open the latest confirmation message from your inbox.');
         }
-        if (!/^[^@\\s]+@iitbhilai\\.ac\\.in$/i.test(data.user.email ?? '')) {
+        if (!/^[^@\s]+@iitbhilai\.ac\.in$/i.test(data.user.email ?? '')) {
           await supabase.auth.signOut();
           throw new Error('Only confirmed @iitbhilai.ac.in accounts can sign in to this campus pilot.');
         }

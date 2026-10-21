@@ -25,6 +25,7 @@ type ProfileRecord = {
   profile_visibility: 'public' | 'campus' | 'private';
   institution_id: string | null;
   campus_role: 'student' | 'faculty' | 'alumni';
+  profile_category: 'student' | 'alumni';
   degree_program: string | null;
   batch_year: number | null;
   graduation_year: number | null;
@@ -82,7 +83,7 @@ export default function ProfilePage() {
 
       const { data, error: profileError } = await supabase
         .from('profiles')
-        .select('id, display_name, bio, department, study_year, profile_visibility, institution_id, campus_role, degree_program, batch_year, graduation_year, avatar_url, skills, interests, verification_status, institution_slug')
+        .select('id, display_name, bio, department, study_year, profile_visibility, institution_id, campus_role, profile_category, degree_program, batch_year, graduation_year, avatar_url, skills, interests, verification_status, institution_slug')
         .eq('id', user.id)
         .single();
 
@@ -99,6 +100,7 @@ export default function ProfilePage() {
   }, [router]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads the signed-in profile from Supabase after authentication.
     void loadProfile();
   }, [loadProfile]);
 
@@ -119,9 +121,20 @@ export default function ProfilePage() {
       if (profile.study_year !== null && (!Number.isInteger(profile.study_year) || profile.study_year < 1 || profile.study_year > 10)) {
         throw new Error('Study year must be between 1 and 10.');
       }
+      const currentYear = new Date().getFullYear();
+      if (profile.batch_year !== null && (!Number.isInteger(profile.batch_year) || profile.batch_year < 2016 || profile.batch_year > currentYear)) {
+        throw new Error('Admission batch year must be a valid year from 2016 through the current year.');
+      }
+      if (profile.graduation_year !== null && (!Number.isInteger(profile.graduation_year) || profile.graduation_year < 2016 || profile.graduation_year > 2200)) {
+        throw new Error('Enter a valid graduation year.');
+      }
+      if (profile.profile_category === 'alumni' && (profile.graduation_year === null || profile.graduation_year > currentYear)) {
+        throw new Error('Alumni directory profiles need a graduation year that is not in the future.');
+      }
 
       const payload = {
         display_name: cleanName,
+        profile_category: profile.profile_category,
         bio: profile.bio.trim(),
         department: profile.department?.trim() || null,
         study_year: profile.study_year,
@@ -136,7 +149,7 @@ export default function ProfilePage() {
         .from('profiles')
         .update(payload)
         .eq('id', profile.id)
-        .select('id, display_name, bio, department, study_year, profile_visibility, institution_id, campus_role, degree_program, batch_year, graduation_year, avatar_url, skills, interests, verification_status, institution_slug')
+        .select('id, display_name, bio, department, study_year, profile_visibility, institution_id, campus_role, profile_category, degree_program, batch_year, graduation_year, avatar_url, skills, interests, verification_status, institution_slug')
         .single();
 
       if (updateError) throw updateError;
@@ -263,7 +276,7 @@ export default function ProfilePage() {
             <h2 className="text-sm font-bold text-slate-900">Account identity</h2>
             <dl className="mt-3 space-y-3 text-sm">
               <div><dt className="text-xs text-slate-500">Sign-in email</dt><dd className="mt-1 break-all font-medium text-slate-800">{email}</dd></div>
-              <div><dt className="text-xs text-slate-500">Profile label</dt><dd className="mt-1 font-medium capitalize text-slate-800">{profile.campus_role}</dd></div>
+              <div><dt className="text-xs text-slate-500">Trusted campus role</dt><dd className="mt-1 font-medium capitalize text-slate-800">{profile.campus_role}</dd></div>
               <div><dt className="text-xs text-slate-500">Affiliation</dt><dd className="mt-1 font-medium text-slate-800">{accountStatus}</dd></div>
             </dl>
             <p className="mt-3 text-xs leading-5 text-slate-500">A confirmed institute email is not by itself proof of current enrolment. Trusted affiliation fields cannot be changed from this form.</p>
@@ -293,6 +306,14 @@ export default function ProfilePage() {
               <input id="degree" maxLength={160} className={inputClass} value={profile.degree_program ?? ''} onChange={(e) => update('degree_program', e.target.value)} />
             </div>
             <div>
+              <label className={labelClass} htmlFor="profileCategory">Directory category</label>
+              <select id="profileCategory" className={inputClass} value={profile.profile_category} onChange={(e) => update('profile_category', e.target.value as ProfileRecord['profile_category'])}>
+                <option value="student">Student</option>
+                <option value="alumni">Alumni / graduate</option>
+              </select>
+              <p className="mt-1 text-xs leading-5 text-slate-500">Self-reported directory category only. Trusted campus roles, verification, and administrative permissions remain protected.</p>
+            </div>
+            <div>
               <label className={labelClass} htmlFor="studyYear">Current study year</label>
               <select id="studyYear" className={inputClass} value={profile.study_year ?? ''} onChange={(e) => update('study_year', e.target.value ? Number(e.target.value) : null)}>
                 <option value="">Not set</option>
@@ -301,10 +322,10 @@ export default function ProfilePage() {
             </div>
             <div>
               <label className={labelClass} htmlFor="batchYear">Admission batch year</label>
-              <input id="batchYear" type="number" min={2016} max={new Date().getFullYear()} className={inputClass} value={profile.batch_year ?? ''} onChange={(e) => update('batch_year', e.target.value ? Number(e.target.value) : null)} />
+              <input id="batchYear" type="number" min={2016} max={2200} className={inputClass} value={profile.batch_year ?? ''} onChange={(e) => update('batch_year', e.target.value ? Number(e.target.value) : null)} />
             </div>
             <div>
-              <label className={labelClass} htmlFor="graduationYear">Expected graduation year</label>
+              <label className={labelClass} htmlFor="graduationYear">{profile.profile_category === 'alumni' ? 'Graduation year' : 'Expected graduation year'}</label>
               <input id="graduationYear" type="number" min={2016} max={2200} className={inputClass} value={profile.graduation_year ?? ''} onChange={(e) => update('graduation_year', e.target.value ? Number(e.target.value) : null)} />
             </div>
             <div>
@@ -323,7 +344,7 @@ export default function ProfilePage() {
                 <option value="private">Private — only you</option>
                 <option value="public">Public profile</option>
               </select>
-              <p className="mt-1 text-xs leading-5 text-slate-500">This preference uses the database's actual privacy setting, not a browser-only demo toggle.</p>
+              <p className="mt-1 text-xs leading-5 text-slate-500">This preference uses the database&apos;s actual privacy setting, not a browser-only demo toggle.</p>
             </div>
           </div>
 
