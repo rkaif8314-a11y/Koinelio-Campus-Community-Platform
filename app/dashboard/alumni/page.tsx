@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, BriefcaseBusiness, GraduationCap, LoaderCircle, Search, UserRound } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type AlumniProfile = {
   id: string;
@@ -30,6 +31,8 @@ export default function AlumniPage() {
   const loadAlumni = useCallback(async () => {
     setLoading(true); setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: authData, error: authError } = await supabase.auth.getUser();
       if (authError || !authData.user) {
         router.replace('/auth/signin?next=/dashboard/alumni');
@@ -44,7 +47,7 @@ export default function AlumniPage() {
       if (queryError) throw queryError;
       setItems((data ?? []) as AlumniProfile[]);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load visible graduate profiles.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load visible graduate profiles.'));
     } finally { setLoading(false); }
   }, [router]);
 

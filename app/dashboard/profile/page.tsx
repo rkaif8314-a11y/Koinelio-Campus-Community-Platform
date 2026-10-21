@@ -13,7 +13,8 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
 
 type ProfileRecord = {
   id: string;
@@ -63,6 +64,8 @@ export default function ProfilePage() {
     setLoading(true);
     setError('');
     try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError || !userData.user) {
         router.replace('/auth/signin?next=/dashboard/profile');
@@ -89,7 +92,7 @@ export default function ProfilePage() {
       setSkillsText(toCsv(loaded.skills));
       setInterestsText(toCsv(loaded.interests));
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Unable to load your profile.');
+      setError(supabaseErrorMessage(loadError, 'Unable to load your profile.'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +146,7 @@ export default function ProfilePage() {
       setInterestsText(toCsv(saved.interests));
       setSuccess('Profile saved to your Koinelio account.');
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Unable to save profile changes.');
+      setError(supabaseErrorMessage(saveError, 'Unable to save profile changes.'));
     } finally {
       setSaving(false);
     }
@@ -190,7 +193,7 @@ export default function ProfilePage() {
       setProfile((current) => current ? { ...current, avatar_url: avatarUrl } : current);
       setSuccess('Profile photo uploaded and saved.');
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : 'Unable to upload your profile photo.');
+      setError(supabaseErrorMessage(uploadError, 'Unable to upload your profile photo.'));
     } finally {
       setUploading(false);
     }
