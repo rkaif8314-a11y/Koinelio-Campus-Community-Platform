@@ -4,6 +4,8 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
+  AlertCircle,
+  ArrowRight,
   Bell,
   CalendarDays,
   CheckCircle2,
@@ -127,7 +129,7 @@ export default function DashboardPage() {
       ]);
 
       if (postResult.error) throw postResult.error;
-      setPosts((postResult.data ?? []) as PostRecord[]);
+      setPosts((postResult.data ?? []) as unknown as PostRecord[]);
       setEvents((eventResult.data ?? []) as EventRecord[]);
       setAnnouncements((announcementResult.data ?? []) as Announcement[]);
       setApprovedClubCount(clubResult.count ?? 0);

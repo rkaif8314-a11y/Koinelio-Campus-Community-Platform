@@ -117,7 +117,7 @@ export default function ClubRoomsPage() {
         .order('created_at', { ascending: true })
         .limit(150);
       if (messagesError) throw messagesError;
-      setMessages((data ?? []) as RoomMessage[]);
+      setMessages((data ?? []) as unknown as RoomMessage[]);
     } catch (loadError) {
       setMessages([]);
       setError(loadError instanceof Error ? loadError.message : 'Unable to load messages for this room.');

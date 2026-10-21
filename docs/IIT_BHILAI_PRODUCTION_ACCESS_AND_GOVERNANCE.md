@@ -2,7 +2,7 @@
 
 ## Status
 
-This is a **production-hardening change under review**, not a deployed release. The migration in this branch has not been applied to the live Supabase database. The current dashboard still uses browser-local demo records, including the demo user switcher, sample posts, events, and counts. Do not advertise Koinelio as an institutionally official IIT Bhilai service until written authorization has been obtained from the institute.
+This is a **production-hardening change under review**, not a deployed release. The migration in this branch has not been applied to the live Supabase database. The signed-in pilot surfaces now use Supabase for the profile, avatar upload, club membership/governance, feed, events, notifications, and club-room messaging rather than fictional account personas. Production launch remains blocked on staging migration tests, full route/security review, Auth/Storage configuration, backups/privacy/abuse operations, and explicit IIT Bhilai authorization. Do not advertise Koinelio as an institutionally official IIT Bhilai service without written authorization.
 
 ## What this branch adds
 
@@ -99,6 +99,15 @@ The migration's institution trigger assigns the scoped administrator role and as
 
 The `verified` status is a governance assertion, not a setting to enable product features. Change the institution's status only after the responsible IIT Bhilai authority has expressly authorised the service and branding. Until then, leave it pending and describe Koinelio as an independent campus project/pilot.
 
+## Supabase Auth and Storage configuration
+
+Before using account confirmation or recovery links, set the Supabase Auth Site URL to the intended application origin and add the exact local/staging/production callback URLs to the Auth redirect allowlist, including:
+
+- `/auth/callback` for email confirmation
+- `/auth/reset-password` for recovery links
+
+Confirm email confirmation is enabled. The profile-avatar Storage bucket is defined as `profile-avatars`, currently public for display URLs, with JPG/PNG/WebP limited to 2 MB. Profile pictures should be treated as public display assets even if the profile details themselves are private. Do not upload sensitive images/documents.
+
 ## Configuration and rollout checklist
 
 - [ ] Confirm the first administrator's authorisation and add only their intended institute email to the private allowlist.
@@ -106,9 +115,10 @@ The `verified` status is a governance assertion, not a setting to enable product
 - [ ] Review existing Auth accounts before applying this migration. Existing accounts with an unconfirmed or non-`@iitbhilai.ac.in` email will lose access to RLS-protected public data after migration.
 - [ ] Apply the SQL migration first in a disposable/staging Supabase project and check every DDL, trigger, role transition, and RLS path before production.
 - [ ] Test as an unconfirmed user, a confirmed institute-domain user, a non-domain existing user, a member, a core member, a coordinator, a General Secretary, the president, and a platform administrator. Verify cross-room reads/writes and attempts to self-promote fail.
-- [ ] Replace dashboard mock/local-storage persistence with Supabase-backed queries and writes; remove the demo user switcher and synthetic records from the normal signed-in product.
-- [ ] Implement the UI for room messages, pending membership requests, coordinator invitations, invitation accept/decline, promotion to Core Member, club approval, and leadership appointments.
-- [ ] Add backup/restore and incident-response procedures, privacy/retention terms, abuse reporting, moderator actions, logging/audit history, and end-user support.
+- [x] Replace primary signed-in surfaces (dashboard feed, club membership/detail, profile and profile image, settings, notifications, events, discovery, alumni, governance and club rooms) with Supabase-backed data and actions; remove the demo user switcher.
+- [ ] Complete end-to-end staging tests for signup/confirmation/recovery, profile changes/image upload, club requests/invitations/Core Member access, and all three room tiers. This branch has not run those tests against a staging Supabase project yet.
+- [ ] Review remaining direct-entry routes and implement/report/flag queues, audit history, backup/restore, incident response, privacy/retention terms, abuse handling and end-user support.
+- [ ] Verify all RLS and Storage policies with at least two separate accounts per role, including attempts to self-promote or read another room.
 - [ ] Review the deployment and branding with IIT Bhilai before announcing it as an official institute service.
 
 ## Northstar University

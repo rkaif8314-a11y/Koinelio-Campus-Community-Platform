@@ -39,7 +39,6 @@ type ClubProposal = {
   created_at: string;
   created_by: string;
 };
-type CampusProfile = { id: string; display_name: string; department: string | null };
 type Announcement = { id: string; title: string; body: string; priority: string; status: string; published_at: string | null };
 
 const labelByRole: Record<RoleName, string> = {
@@ -63,7 +62,6 @@ export default function AdminPage() {
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [roleRequests, setRoleRequests] = useState<RoleRequest[]>([]);
   const [clubs, setClubs] = useState<ClubProposal[]>([]);
-  const [people, setPeople] = useState<CampusProfile[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -110,7 +108,7 @@ export default function AdminPage() {
         return;
       }
 
-      const [requestsResult, clubsResult, peopleResult, announcementsResult] = await Promise.all([
+      const [requestsResult, clubsResult, announcementsResult] = await Promise.all([
         supabase.from('institution_role_requests')
           .select('id, institution_id, user_id, requested_role, club_id, rationale, status, created_at, profiles:profiles!institution_role_requests_user_id_fkey(display_name, department), clubs:clubs!institution_role_requests_club_id_fkey(name, category)')
           .eq('status', 'pending')
@@ -119,10 +117,6 @@ export default function AdminPage() {
           .select('id, name, description, category, approval_status, created_at, created_by')
           .in('approval_status', ['pending', 'draft'])
           .order('created_at', { ascending: true }),
-        supabase.from('profiles')
-          .select('id, display_name, department')
-          .order('display_name')
-          .limit(100),
         supabase.from('announcements')
           .select('id, title, body, priority, status, published_at')
           .order('created_at', { ascending: false })
@@ -132,9 +126,8 @@ export default function AdminPage() {
       if (clubsResult.error) throw clubsResult.error;
       // Privacy rules may hide some profiles or announcements; a failed optional
       // list should not grant additional privileges or prevent the basic queue.
-      setRoleRequests((requestsResult.data ?? []) as RoleRequest[]);
+      setRoleRequests((requestsResult.data ?? []) as unknown as RoleRequest[]);
       setClubs((clubsResult.data ?? []) as ClubProposal[]);
-      setPeople((peopleResult.data ?? []) as CampusProfile[]);
       setAnnouncements((announcementsResult.data ?? []) as Announcement[]);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Unable to load governance data.');
@@ -216,14 +209,13 @@ export default function AdminPage() {
     return <div className="mx-auto max-w-2xl px-4 py-12"><section className="rounded-2xl border border-slate-200 bg-white p-6"><ShieldCheck size={30} className="mb-3 text-slate-400" /><h1 className="text-xl font-bold text-slate-900">Governance access is restricted</h1><p className="mt-2 text-sm leading-6 text-slate-600">This area is for the designated campus administrator, president, and General Secretaries. A student account cannot self-assign these roles.</p><Link href="/dashboard" className="mt-5 inline-flex rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Return to dashboard</Link></section></div>;
   }
 
-  const displayedRequests = pendingRequests.filter((request) =>
-    request.requested_role !== 'institution_admin' &&
-    (request.requested_role !== 'club_coordinator' || (
-      admin || president ||
+  const displayedRequests = pendingRequests.filter((request) => {
+    if (request.requested_role === 'institution_admin') return false;
+    if (request.requested_role !== 'club_coordinator') return isPlatformAdmin;
+    return admin || president ||
       (technicalGs && /sci[- ]?tech|technical|engineering|robot|electronics|computer|coding|science|data science|artificial intelligence|innovation|startup/i.test(request.clubs?.category ?? '')) ||
-      (culturalGs && /culture|art|music|dance|film|photo|literary|oratory|debate|performing/i.test(request.clubs?.category ?? ''))
-    ))
-  );
+      (culturalGs && /culture|art|music|dance|film|photo|literary|oratory|debate|performing/i.test(request.clubs?.category ?? ''));
+  });
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">

@@ -765,11 +765,25 @@ on public.institution_role_requests
 for select to authenticated
 using (
   user_id = (select auth.uid())
-  or private.is_platform_admin()
+  or public.is_platform_admin()
   or private.has_institution_role(
     institution_id,
     array['institution_admin', 'president', 'technical_gs', 'cultural_gs']
   )
+);
+
+-- Presidents and platform administrators can inspect institution status and
+-- affiliation details, but only the platform/institution administrator can
+-- change the institution's official verification status.
+drop policy if exists "Read verified or own institution requests" on public.institutions;
+create policy "Read verified or own institution requests"
+on public.institutions
+for select to authenticated
+using (
+  approval_status = 'verified'
+  or requested_by = (select auth.uid())
+  or public.is_platform_admin()
+  or private.has_institution_role(id, array['institution_admin', 'president'])
 );
 
 -- Campus president and platform administrators can review the institution
@@ -780,7 +794,7 @@ on public.institution_roles
 for select to authenticated
 using (
   user_id = (select auth.uid())
-  or private.is_platform_admin()
+  or public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 );
 
@@ -792,7 +806,7 @@ on public.institution_affiliation_requests
 for select to authenticated
 using (
   user_id = (select auth.uid())
-  or private.is_platform_admin()
+  or public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 );
 
@@ -801,11 +815,11 @@ create policy "Institution admins decide affiliation requests"
 on public.institution_affiliation_requests
 for update to authenticated
 using (
-  private.is_platform_admin()
+  public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 )
 with check (
-  private.is_platform_admin()
+  public.is_platform_admin()
   or private.has_institution_role(institution_id, array['institution_admin', 'president'])
 );
 
@@ -974,6 +988,74 @@ grant execute on function public.promote_club_core_member(uuid, uuid) to authent
 
 
 
+-- Moderators, institution admins, and the President can review posts hidden
+-- by moderation and remove campus content. This does not open private direct
+-- conversations to leadership.
+create or replace function private.can_view_post(p_post_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path to ''
+as $function$
+  select exists (
+    select 1
+    from public.posts p
+    left join public.profiles author on author.id = p.author_id
+    where p.id = p_post_id
+      and (
+        p.author_id = (select auth.uid())
+        or private.is_platform_admin()
+        or private.has_institution_role(
+          private.current_user_institution_id(),
+          array['institution_admin', 'moderator', 'president']
+        )
+        or (
+          p.moderation_status = 'published'
+          and (
+            p.visibility = 'public'
+            or (
+              p.visibility = 'campus'
+              and author.institution_id is not null
+              and author.institution_id = private.current_user_institution_id()
+            )
+            or (
+              p.visibility = 'club'
+              and p.club_id is not null
+              and private.is_active_club_member(p.club_id)
+            )
+          )
+        )
+      )
+  );
+$function$;
+
+drop policy if exists "Authors or moderators delete posts" on public.posts;
+create policy "Authors or campus leaders delete posts"
+on public.posts
+for delete to authenticated
+using (
+  author_id = (select auth.uid())
+  or public.is_platform_admin()
+  or private.has_institution_role(
+    private.current_user_institution_id(),
+    array['institution_admin', 'moderator', 'president']
+  )
+);
+
+drop policy if exists "Authors delete comments" on public.post_comments;
+create policy "Authors or campus leaders delete comments"
+on public.post_comments
+for delete to authenticated
+using (
+  author_id = (select auth.uid())
+  or public.is_platform_admin()
+  or private.has_institution_role(
+    private.current_user_institution_id(),
+    array['institution_admin', 'moderator', 'president']
+  )
+);
+
 -- Presidents have institute-wide governance authority for announcements, events,
 -- registrations, and affiliation review. They still do not get access to personal
 -- direct-message conversations through these policies.
@@ -1132,6 +1214,214 @@ with check (
         or private.has_institution_role(e.institution_id, array['institution_admin', 'president', 'technical_gs', 'cultural_gs'])
       )
   )
+);
+
+
+-- ---------------------------------------------------------------------------
+-- 7b. Notification delivery for real club and governance workflows.
+-- Trigger functions are SECURITY DEFINER so users cannot write notifications
+-- for arbitrary recipients; recipient IDs are derived from trusted DB rows.
+-- ---------------------------------------------------------------------------
+create or replace function private.notify_club_membership_change()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_club_name text;
+  v_member_name text;
+begin
+  select c.name into v_club_name
+  from public.clubs c
+  where c.id = new.club_id;
+
+  select p.display_name into v_member_name
+  from public.profiles p
+  where p.id = new.user_id;
+
+  if tg_op = 'INSERT' then
+    if new.status = 'pending' then
+      insert into public.notifications(recipient_id, title, body)
+      select distinct recipients.user_id,
+             'New club membership request',
+             coalesce(v_member_name, 'A campus member') || ' requested to join ' || coalesce(v_club_name, 'your club') || '.'
+      from (
+        select cm.user_id
+        from public.club_memberships cm
+        where cm.club_id = new.club_id
+          and cm.role = 'coordinator'
+          and cm.status = 'active'
+          and cm.user_id <> new.user_id
+        union
+        select ir.user_id
+        from public.institution_roles ir
+        join public.clubs c on c.institution_id = ir.institution_id
+        where c.id = new.club_id
+          and ir.role in ('institution_admin', 'president')
+          and ir.status = 'active'
+          and ir.club_id is null
+          and ir.user_id <> new.user_id
+      ) as recipients;
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if old.status is distinct from new.status
+       and new.status in ('active', 'rejected')
+       and new.role in ('member', 'core_member') then
+      insert into public.notifications(recipient_id, title, body)
+      values (
+        new.user_id,
+        case when new.status = 'active' then 'Club membership approved' else 'Club membership request declined' end,
+        case when new.status = 'active'
+          then 'Your membership in ' || coalesce(v_club_name, 'the club') || ' is now active.'
+          else 'Your request to join ' || coalesce(v_club_name, 'the club') || ' was declined.' end
+      );
+    end if;
+  end if;
+
+  return new;
+end;
+$function$;
+
+revoke all on function private.notify_club_membership_change() from public, anon, authenticated;
+drop trigger if exists club_memberships_notify_status on public.club_memberships;
+create trigger club_memberships_notify_status
+after insert or update on public.club_memberships
+for each row execute function private.notify_club_membership_change();
+
+create or replace function private.notify_club_approval_change()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+begin
+  if old.approval_status is distinct from new.approval_status
+     and new.approval_status in ('approved', 'rejected', 'suspended') then
+    insert into public.notifications(recipient_id, title, body)
+    values (
+      new.created_by,
+      case when new.approval_status = 'approved' then 'Club proposal approved'
+           when new.approval_status = 'rejected' then 'Club proposal rejected'
+           else 'Club approval suspended' end,
+      'Your club proposal "' || new.name || '" is now ' || new.approval_status || '.'
+    );
+  end if;
+  return new;
+end;
+$function$;
+
+revoke all on function private.notify_club_approval_change() from public, anon, authenticated;
+drop trigger if exists clubs_notify_approval_status on public.clubs;
+create trigger clubs_notify_approval_status
+after update of approval_status on public.clubs
+for each row execute function private.notify_club_approval_change();
+
+create or replace function private.notify_club_invitation_change()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_club_name text;
+begin
+  select c.name into v_club_name
+  from public.clubs c where c.id = new.club_id;
+
+  if tg_op = 'INSERT' then
+    if new.status = 'pending' then
+      insert into public.notifications(recipient_id, title, body)
+      values (
+        new.invitee_id,
+        'Club invitation received',
+        'You have been invited to join ' || coalesce(v_club_name, 'a campus club') ||
+        ' as ' || replace(new.invited_role, '_', ' ') || '. Accept or decline it in My Clubs.'
+      );
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if old.status = 'pending' and new.status in ('accepted', 'declined') then
+      insert into public.notifications(recipient_id, title, body)
+      values (
+        new.invited_by,
+        case when new.status = 'accepted' then 'Club invitation accepted' else 'Club invitation declined' end,
+        coalesce(v_club_name, 'Your club') || ' invitation was ' || new.status || ' by the selected campus member.'
+      );
+    end if;
+  end if;
+
+  return new;
+end;
+$function$;
+
+revoke all on function private.notify_club_invitation_change() from public, anon, authenticated;
+drop trigger if exists club_invitations_notify_status on public.club_member_invitations;
+create trigger club_invitations_notify_status
+after insert or update on public.club_member_invitations
+for each row execute function private.notify_club_invitation_change();
+
+create or replace function private.notify_role_request_change()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_role_label text;
+begin
+  v_role_label := replace(new.requested_role, '_', ' ');
+
+  if tg_op = 'INSERT' then
+    if new.status = 'pending' and new.requested_role = 'club_coordinator' then
+      insert into public.notifications(recipient_id, title, body)
+      select distinct ir.user_id,
+             'Club coordinator request',
+             'A coordinator request is waiting for review for club ' ||
+             coalesce((select c.name from public.clubs c where c.id = new.club_id), '') || '.'
+      from public.institution_roles ir
+      where ir.institution_id = new.institution_id
+        and ir.role in ('institution_admin', 'president', 'technical_gs', 'cultural_gs')
+        and ir.status = 'active'
+        and ir.club_id is null
+        and ir.user_id <> new.user_id;
+    elsif new.status = 'pending' and new.requested_role <> 'institution_admin' then
+      insert into public.notifications(recipient_id, title, body)
+      select pa.user_id,
+             'Campus leadership request',
+             'A request for ' || v_role_label || ' is waiting for administrator review.'
+      from public.platform_admins pa
+      where pa.user_id <> new.user_id;
+    end if;
+  elsif tg_op = 'UPDATE' then
+    if old.status = 'pending' and new.status in ('approved', 'rejected') then
+      insert into public.notifications(recipient_id, title, body)
+      values (
+        new.user_id,
+        case when new.status = 'approved' then 'Governance request approved' else 'Governance request rejected' end,
+        'Your request for ' || v_role_label || ' was ' || new.status || '.'
+      );
+    end if;
+  end if;
+
+  return new;
+end;
+$function$;
+
+revoke all on function private.notify_role_request_change() from public, anon, authenticated;
+drop trigger if exists institution_role_requests_notify_status on public.institution_role_requests;
+create trigger institution_role_requests_notify_status
+after insert or update on public.institution_role_requests
+for each row execute function private.notify_role_request_change();
+
+-- Never allow account registration to request the institution-administrator role.
+drop policy if exists "Request an institutional role" on public.institution_role_requests;
+create policy "Request an institutional role"
+on public.institution_role_requests
+for insert to authenticated
+with check (
+  user_id = (select auth.uid())
+  and status = 'pending'
+  and requested_role <> 'institution_admin'
 );
 
 -- ---------------------------------------------------------------------------

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AlertCircle, CheckCircle2, LoaderCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-export default function AuthCallbackPage() {
+function AuthCallbackPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState('');
@@ -55,5 +55,14 @@ export default function AuthCallbackPage() {
         {!loading && error && <a href="/auth/signin" className="mt-5 inline-flex rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Return to sign in</a>}
       </div>
     </main>
+  );
+}
+
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 text-sm text-slate-500">Checking your confirmation link…</main>}>
+      <AuthCallbackPageContent />
+    </Suspense>
   );
 }
