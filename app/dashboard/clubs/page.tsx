@@ -175,7 +175,7 @@ export default function ClubsPage() {
       if (clubResult.error) throw clubResult.error;
       if (membershipResult.error) throw membershipResult.error;
       if (invitationResult.error) throw invitationResult.error;
-      // Role requests may be hidden by RLS for a regular member; that is not a page failure.
+      if (roleResult.error) throw roleResult.error;
       if (peopleResult.error) throw peopleResult.error;
 
       setClubs((clubResult.data ?? []) as ClubRecord[]);
@@ -183,9 +183,6 @@ export default function ClubsPage() {
       setInvitations((invitationResult.data ?? []) as InvitationRecord[]);
       setRoleRequests((roleResult.data ?? []) as unknown as RoleRequestRecord[]);
       setCampusProfiles((peopleResult.data ?? []) as CampusProfile[]);
-      const activeRoles = (roleResult.data ?? [])
-        .filter((request: { user_id: string; status: string }) => request.user_id === authData.user.id && request.status === 'approved');
-      void activeRoles;
       const { data: userRoles } = await supabase
         .from('institution_roles')
         .select('role')
