@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, CheckCircle, Mail, KeyRound } from 'lucide-react';
 import ThemeToggle from '@/components/theme-toggle';
+import KoinelioLogoMark from '@/components/koinelio-logo-mark';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -19,15 +20,7 @@ export default function ForgotPasswordPage() {
       <div className="fixed right-4 top-4 z-[60]"><ThemeToggle /></div>
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <Link href="/" className="flex items-center justify-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#5146E5] flex items-center justify-center">
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <circle cx="5" cy="9" r="2.5" fill="white" />
-              <circle cx="13" cy="5" r="2.5" fill="white" opacity="0.7" />
-              <circle cx="13" cy="13" r="2.5" fill="white" opacity="0.7" />
-              <line x1="7.2" y1="8" x2="11" y2="6" stroke="white" strokeWidth="1.2" />
-              <line x1="7.2" y1="10" x2="11" y2="12" stroke="white" strokeWidth="1.2" />
-            </svg>
-          </div>
+          <KoinelioLogoMark size={32} />
           <span className="text-[#182230] font-bold text-xl tracking-tight">Koinelio</span>
         </Link>
         <h2 className="mt-4 text-center text-2xl font-bold tracking-tight text-[#182230]">

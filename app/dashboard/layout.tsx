@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useApp, useCurrentUser, useUnreadNotificationCount } from '@/lib/app-context';
 import { DEMO_SESSION_USERS, DEMO_USERS } from '@/lib/demo-data';
+import KoinelioLogoMark from '@/components/koinelio-logo-mark';
 import ThemeToggle from '@/components/theme-toggle';
 
 // ─── Nav item definition ──────────────────────────────────────────────────────
@@ -116,17 +117,7 @@ function SidebarLink({
 }
 // ─── Logo mark ────────────────────────────────────────────────────────────────
 function LogoMark({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="14" cy="14" r="13" stroke="#5146E5" strokeWidth="2" />
-      <circle cx="14" cy="8" r="3" fill="#5146E5" />
-      <circle cx="22" cy="19" r="3" fill="#0F9D8A" />
-      <circle cx="6" cy="19" r="3" fill="#0F9D8A" />
-      <line x1="14" y1="10.5" x2="21" y2="17.5" stroke="#5146E5" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="14" y1="10.5" x2="7" y2="17.5" stroke="#5146E5" strokeWidth="1.5" strokeLinecap="round" />
-      <line x1="8" y1="19" x2="20" y2="19" stroke="#0F9D8A" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
+  return <KoinelioLogoMark size={size} />;
 }
 
 // ─── Demo user switcher ───────────────────────────────────────────────────────

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import ThemeToggle from '@/components/theme-toggle';
+import KoinelioLogoMark from '@/components/koinelio-logo-mark';
 import { useState } from 'react';
 import {
   Users, Calendar, Award, Shield, Zap, Globe, ArrowRight,
@@ -18,15 +19,7 @@ export default function LandingPage() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur border-b border-[#E5E7EB]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#5146E5] flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <circle cx="5" cy="9" r="2.5" fill="white" />
-                <circle cx="13" cy="5" r="2.5" fill="white" opacity="0.7" />
-                <circle cx="13" cy="13" r="2.5" fill="white" opacity="0.7" />
-                <line x1="7.2" y1="8" x2="11" y2="6" stroke="white" strokeWidth="1.2" />
-                <line x1="7.2" y1="10" x2="11" y2="12" stroke="white" strokeWidth="1.2" />
-              </svg>
-            </div>
+            <KoinelioLogoMark size={32} />
             <span className="text-[#182230] font-bold text-xl tracking-tight">Koinelio</span>
           </Link>
 
@@ -137,15 +130,7 @@ export default function LandingPage() {
               <div className="flex h-80 sm:h-96">
                 {/* Sidebar */}
                 <div className="hidden sm:flex w-16 bg-[#14213D] flex-col items-center py-4 gap-4">
-                  <div className="w-8 h-8 rounded-lg bg-[#5146E5] flex items-center justify-center">
-                    <svg width="14" height="14" viewBox="0 0 18 18" fill="none">
-                      <circle cx="5" cy="9" r="2.5" fill="white" />
-                      <circle cx="13" cy="5" r="2.5" fill="white" opacity="0.7" />
-                      <circle cx="13" cy="13" r="2.5" fill="white" opacity="0.7" />
-                      <line x1="7.2" y1="8" x2="11" y2="6" stroke="white" strokeWidth="1.2" />
-                      <line x1="7.2" y1="10" x2="11" y2="12" stroke="white" strokeWidth="1.2" />
-                    </svg>
-                  </div>
+                  <KoinelioLogoMark size={32} />
                   {[0,1,2,3,4].map(i => (
                     <div key={i} className={`w-8 h-1 rounded-full ${i === 0 ? 'bg-[#5146E5]' : 'bg-white/20'}`} />
                   ))}
