@@ -1,330 +1,225 @@
 'use client';
 
-import React, { useState } from 'react';
+import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useApp, useCurrentUser } from '@/lib/app-context';
-import { getClubById, getUserById, formatDate, formatShortDate, Event } from '@/lib/demo-data';
 import {
-  Calendar,
-  Clock,
+  AlertCircle,
+  CalendarDays,
+  Check,
+  Clock3,
+  LoaderCircle,
   MapPin,
-  Users,
-  Search,
-  Filter,
-  CheckCircle,
-  Star,
-  Globe,
-  Share2,
-  Sparkles,
-  ArrowRight,
+  Plus,
   Ticket,
+  Users,
 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+type EventRecord = {
+  id: string;
+  title: string;
+  description: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  location: string | null;
+  created_by: string;
+  institution_id: string | null;
+  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  capacity: number | null;
+  category: string | null;
+  banner_url: string | null;
+  club_id: string | null;
+};
+
+type Registration = { event_id: string; user_id: string; status: string; registered_at: string };
+type Club = { id: string; name: string; category: string | null; approval_status: string };
+type Membership = { club_id: string; role: string; status: string };
+
+const inputClass = 'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10';
+const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50';
+
+function dateLabel(value: string | null) {
+  return value ? new Date(value).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : 'Date to be announced';
+}
 
 export default function EventsPage() {
-  const { state, actions } = useApp();
-  const currentUser = useCurrentUser();
+  const router = useRouter();
+  const [userId, setUserId] = useState('');
+  const [institutionId, setInstitutionId] = useState<string | null>(null);
+  const [events, setEvents] = useState<EventRecord[]>([]);
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [roles, setRoles] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [showCreate, setShowCreate] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [startsAt, setStartsAt] = useState('');
+  const [location, setLocation] = useState('');
+  const [category, setCategory] = useState('Workshop');
+  const [clubId, setClubId] = useState('');
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [dateFilter, setDateFilter] = useState<'all' | 'registered' | 'featured'>('all');
+  const loadEvents = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        router.replace('/auth/signin?next=/dashboard/events');
+        return;
+      }
+      const user = authData.user;
+      setUserId(user.id);
 
-  const categories = [
-    'All',
-    'Technical',
-    'Cultural',
-    'Workshops',
-    'Competitions',
-    'Seminars',
-    'Sports',
-    'Alumni Reunions',
-  ];
+      const { data: profile, error: profileError } = await supabase.from('profiles').select('institution_id').eq('id', user.id).single();
+      if (profileError) throw profileError;
+      const tenantId = (profile as { institution_id: string | null }).institution_id;
+      setInstitutionId(tenantId);
 
-  // Filtering
-  const filteredEvents = state.events.filter(event => {
-    const matchesSearch =
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.venue.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === 'All' || event.category === selectedCategory;
+      const [eventResult, registrationResult, clubResult, membershipResult, roleResult] = await Promise.all([
+        supabase.from('events')
+          .select('id, title, description, starts_at, ends_at, location, created_by, institution_id, status, capacity, category, banner_url, club_id')
+          .or(`status.eq.published,created_by.eq.${user.id}`)
+          .order('starts_at', { ascending: true, nullsFirst: false })
+          .limit(100),
+        supabase.from('event_registrations').select('event_id, user_id, status, registered_at').eq('user_id', user.id),
+        supabase.from('clubs').select('id, name, category, approval_status').eq('approval_status', 'approved').order('name'),
+        supabase.from('club_memberships').select('club_id, role, status').eq('user_id', user.id).eq('status', 'active'),
+        supabase.from('institution_roles').select('role').eq('user_id', user.id).eq('status', 'active'),
+      ]);
+      if (eventResult.error) throw eventResult.error;
+      if (registrationResult.error) throw registrationResult.error;
+      if (clubResult.error) throw clubResult.error;
+      if (membershipResult.error) throw membershipResult.error;
+      setEvents((eventResult.data ?? []) as EventRecord[]);
+      setRegistrations((registrationResult.data ?? []) as Registration[]);
+      setClubs((clubResult.data ?? []) as Club[]);
+      setMemberships((membershipResult.data ?? []) as Membership[]);
+      setRoles((roleResult.data ?? []).map((item: { role: string }) => item.role));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : 'Unable to load events from Supabase.');
+    } finally { setLoading(false); }
+  }, [router]);
 
-    if (!matchesSearch || !matchesCategory) return false;
+  useEffect(() => { void loadEvents(); }, [loadEvents]);
 
-    if (dateFilter === 'registered') {
-      return state.registeredEventIds.includes(event.id);
+  const registeredIds = useMemo(() => new Set(registrations.filter((item) => ['registered', 'attended'].includes(item.status)).map((item) => item.event_id)), [registrations]);
+  const managedClubIds = useMemo(() => new Set(memberships.filter((item) => item.role === 'coordinator').map((item) => item.club_id)), [memberships]);
+  const executivePublisher = roles.some((role) => ['institution_admin', 'president', 'technical_gs', 'cultural_gs'].includes(role));
+  const manageableClubs = clubs.filter((club) => managedClubIds.has(club.id));
+  const visibleEvents = events.filter((event) => event.status === 'published' || event.created_by === userId);
+
+  async function toggleRegistration(event: EventRecord) {
+    setSaving(true); setError(''); setNotice('');
+    try {
+      const isRegistered = registeredIds.has(event.id);
+      if (isRegistered) {
+        const { error: deleteError } = await supabase.from('event_registrations').delete().eq('event_id', event.id).eq('user_id', userId);
+        if (deleteError) throw deleteError;
+        setNotice('Your event registration was cancelled.');
+      } else {
+        const { error: insertError } = await supabase.from('event_registrations').insert({ event_id: event.id, user_id: userId, status: 'registered' });
+        if (insertError) throw insertError;
+        setNotice('You are registered for this event.');
+      }
+      await loadEvents();
+    } catch (registrationError) {
+      setError(registrationError instanceof Error ? registrationError.message : 'Unable to update your event registration.');
+    } finally { setSaving(false); }
+  }
+
+  async function createEvent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!institutionId) {
+      setError('The authorized administrator must initialize the IIT Bhilai tenant before events can be created.');
+      return;
     }
-    if (dateFilter === 'featured') {
-      return event.isFeatured;
+    if (!executivePublisher && !clubId) {
+      setError('Choose a club you coordinate. Only authorized campus leadership can create institute-wide events.');
+      return;
     }
-    return true;
-  });
+    setSaving(true); setError(''); setNotice('');
+    try {
+      const payload = {
+        title: title.trim(),
+        description: description.trim(),
+        starts_at: startsAt ? new Date(startsAt).toISOString() : null,
+        location: location.trim() || null,
+        category,
+        created_by: userId,
+        institution_id: institutionId,
+        club_id: clubId || null,
+        status: 'draft',
+      };
+      const { error: insertError } = await supabase.from('events').insert(payload);
+      if (insertError) throw insertError;
+      setTitle(''); setDescription(''); setStartsAt(''); setLocation(''); setClubId(''); setShowCreate(false);
+      setNotice('Event draft saved. It will not appear to other members until authorized organizers publish it.');
+      await loadEvents();
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : 'Unable to save event draft.');
+    } finally { setSaving(false); }
+  }
 
-  const featuredEvents = state.events.filter(e => e.isFeatured);
-  const myRegisteredEvents = state.events.filter(e => state.registeredEventIds.includes(e.id));
+  async function publishEvent(event: EventRecord) {
+    setSaving(true); setError(''); setNotice('');
+    try {
+      const { error: updateError } = await supabase.from('events').update({ status: 'published' }).eq('id', event.id);
+      if (updateError) throw updateError;
+      setNotice('Event published.');
+      await loadEvents();
+    } catch (publishError) {
+      setError(publishError instanceof Error ? publishError.message : 'Your role does not have permission to publish this event.');
+    } finally { setSaving(false); }
+  }
+
+  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle size={18} className="mr-2 animate-spin" /> Loading published events…</div>;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-[#182230]">Campus Events & Festivals</h1>
-          <p className="text-sm text-[#667085] mt-1">
-            Discover hackathons, cultural festivals, academic workshops, and campus meetups
-          </p>
-        </div>
-
-        {/* Registered Quick Pill */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setDateFilter(dateFilter === 'registered' ? 'all' : 'registered')}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-              dateFilter === 'registered'
-                ? 'bg-[#5146E5] text-white'
-                : 'bg-white border border-[#E5E7EB] text-[#182230] hover:bg-[#F7F8FC]'
-            }`}
-          >
-            <Ticket size={14} />
-            My Registrations ({state.registeredEventIds.length})
-          </button>
-        </div>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Campus calendar</p><h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Events</h1><p className="mt-2 text-sm text-slate-600">Only database-published events are shown to other members. Your own drafts remain private until they are published.</p></div>
+        {(executivePublisher || manageableClubs.length > 0) && <button onClick={() => setShowCreate((value) => !value)} className={buttonClass}><Plus size={16} />Create event draft</button>}
       </div>
+      {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
+      {notice && <div role="status" className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</div>}
 
-      {/* Search and Filters */}
-      <div className="space-y-3 mb-8">
-        <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#667085]" />
-          <input
-            type="text"
-            placeholder="Search events by title, topics, venue..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#E5E7EB] bg-white text-sm text-[#182230] placeholder:text-[#667085] focus:outline-none focus:ring-2 focus:ring-[#5146E5]/20 focus:border-[#5146E5] transition-colors"
-          />
+      {showCreate && <form onSubmit={createEvent} className="mb-6 rounded-2xl border border-indigo-100 bg-white p-5">
+        <h2 className="font-bold text-slate-900">Create an event draft</h2><p className="mt-1 text-xs text-slate-500">Publishing requires an authorized organizer; the database rejects unauthorized status changes.</p>
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div><label htmlFor="eventTitle" className="mb-1 block text-xs font-semibold text-slate-700">Title</label><input id="eventTitle" required maxLength={180} value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} /></div>
+          <div><label htmlFor="eventCategory" className="mb-1 block text-xs font-semibold text-slate-700">Category</label><select id="eventCategory" value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}>{['Workshop', 'Talk', 'Competition', 'Cultural', 'Sports', 'Recruitment', 'Other'].map((item) => <option key={item}>{item}</option>)}</select></div>
+          {!executivePublisher && <div><label htmlFor="eventClub" className="mb-1 block text-xs font-semibold text-slate-700">Managed club</label><select id="eventClub" required value={clubId} onChange={(e) => setClubId(e.target.value)} className={inputClass}><option value="">Choose your club</option>{manageableClubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></div>}
+          <div><label htmlFor="eventDate" className="mb-1 block text-xs font-semibold text-slate-700">Start date and time</label><input id="eventDate" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} className={inputClass} /></div>
+          <div><label htmlFor="eventLocation" className="mb-1 block text-xs font-semibold text-slate-700">Venue</label><input id="eventLocation" maxLength={240} value={location} onChange={(e) => setLocation(e.target.value)} className={inputClass} /></div>
+          <div className="sm:col-span-2"><label htmlFor="eventDescription" className="mb-1 block text-xs font-semibold text-slate-700">Description</label><textarea id="eventDescription" rows={3} maxLength={6000} value={description} onChange={(e) => setDescription(e.target.value)} className={inputClass} /></div>
         </div>
+        <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => setShowCreate(false)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600">Cancel</button><button disabled={saving} className={buttonClass}>{saving && <LoaderCircle size={15} className="animate-spin" />}Save draft</button></div>
+      </form>}
 
-        {/* Filter Categories */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                selectedCategory === cat
-                  ? 'bg-[#14213D] text-white'
-                  : 'bg-white border border-[#E5E7EB] text-[#667085] hover:text-[#182230]'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* FEATURED HERO CARDS (When showing all and not searching) */}
-      {dateFilter === 'all' && selectedCategory === 'All' && !searchQuery && (
-        <div className="mb-10">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles size={16} className="text-[#5146E5]" />
-            <h2 className="text-base font-bold text-[#182230]">Featured Campus Highlights</h2>
+      {visibleEvents.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><CalendarDays size={34} className="mx-auto mb-3 text-slate-300" /><h2 className="font-bold text-slate-900">No published events yet</h2><p className="mt-2 text-sm leading-6 text-slate-500">Events will appear here when an authorized club coordinator or campus organizer publishes them. Sample event cards are not shown in the signed-in product.</p><Link href="/dashboard/clubs" className="mt-4 inline-flex text-sm font-semibold text-indigo-700 hover:underline">Explore approved clubs</Link></div>
+      ) : <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">{visibleEvents.map((event) => {
+        const isRegistered = registeredIds.has(event.id);
+        const isDraft = event.status === 'draft';
+        const clubName = clubs.find((club) => club.id === event.club_id)?.name;
+        const mayPublish = executivePublisher || (event.club_id !== null && managedClubIds.has(event.club_id));
+        return <article key={event.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {event.banner_url ? <img src={event.banner_url} alt="" className="h-36 w-full object-cover" /> : <div className="flex h-28 items-center justify-center bg-gradient-to-br from-indigo-50 to-sky-50 text-indigo-400"><CalendarDays size={31} /></div>}
+          <div className="flex flex-1 flex-col p-5">
+            <div className="flex items-center justify-between gap-2"><span className="text-[10px] font-bold uppercase tracking-wide text-indigo-700">{event.category || 'Campus event'}</span>{isDraft && <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">Draft</span>}</div>
+            <h2 className="mt-2 text-lg font-bold text-slate-900">{event.title}</h2>
+            {clubName && <p className="mt-1 text-xs font-semibold text-slate-500">{clubName}</p>}
+            <p className="mt-3 line-clamp-4 flex-1 whitespace-pre-line text-sm leading-6 text-slate-600">{event.description || 'No additional description provided.'}</p>
+            <div className="mt-4 space-y-2 border-t border-slate-100 pt-4 text-xs text-slate-600"><p className="flex items-center gap-2"><Clock3 size={14} className="text-indigo-600" />{dateLabel(event.starts_at)}</p>{event.location && <p className="flex items-center gap-2"><MapPin size={14} className="text-indigo-600" />{event.location}</p>}{event.capacity && <p className="flex items-center gap-2"><Users size={14} className="text-indigo-600" />Capacity {event.capacity}</p>}</div>
+            <div className="mt-4 flex flex-wrap gap-2">{isDraft ? mayPublish && <button disabled={saving} onClick={() => void publishEvent(event)} className={buttonClass}><Check size={15} />Publish event</button> : <button disabled={saving} onClick={() => void toggleRegistration(event)} className={`${buttonClass} ${isRegistered ? 'bg-emerald-700 hover:bg-emerald-800' : ''}`}>{isRegistered ? <Check size={15} /> : <Ticket size={15} />}{isRegistered ? 'Registered · Cancel' : 'Register'}</button>}</div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {featuredEvents.slice(0, 2).map(event => {
-              const isRegistered = state.registeredEventIds.includes(event.id);
-              const organizerClub = event.organizerType === 'club' ? getClubById(event.organizerId) : null;
-
-              return (
-                <div
-                  key={event.id}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden hover:shadow-lg transition-all group flex flex-col justify-between"
-                >
-                  <div>
-                    {/* Cover */}
-                    <div className="h-48 relative overflow-hidden bg-slate-100">
-                      <img
-                        src={event.coverImage}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                        <span className="px-2.5 py-1 text-[11px] font-bold bg-[#5146E5] text-white rounded-md shadow-sm">
-                          {event.category}
-                        </span>
-                        <span className="px-2 py-1 text-[11px] font-semibold bg-amber-500 text-white rounded-md flex items-center gap-1 shadow-sm">
-                          <Star size={11} fill="white" />
-                          Featured
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-5">
-                      <div className="text-xs text-[#5146E5] font-bold mb-1">
-                        {formatDate(event.date)} at {event.time}
-                      </div>
-                      <h3 className="text-lg font-bold text-[#182230] group-hover:text-[#5146E5] transition-colors">
-                        {event.title}
-                      </h3>
-                      <p className="text-xs text-[#667085] mt-2 line-clamp-2 leading-relaxed">
-                        {event.description}
-                      </p>
-
-                      <div className="mt-4 pt-3 border-t border-[#E5E7EB] flex items-center justify-between text-xs text-[#667085]">
-                        <span className="flex items-center gap-1 truncate max-w-[200px]">
-                          <MapPin size={12} className="shrink-0" />
-                          {event.venue}
-                        </span>
-                        <span>
-                          <strong>{event.registeredCount}</strong> registered
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-5 pt-0 flex items-center justify-between gap-3">
-                    <Link
-                      href={`/dashboard/events/${event.id}`}
-                      className="text-xs font-semibold text-[#182230] hover:text-[#5146E5]"
-                    >
-                      Event Details
-                    </Link>
-
-                    <button
-                      onClick={() => actions.toggleRegisterEvent(event.id)}
-                      className={`px-4 py-2 text-xs font-semibold rounded-xl transition-colors flex items-center gap-1.5 ${
-                        isRegistered
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
-                          : 'bg-[#5146E5] text-white hover:bg-[#4338CA]'
-                      }`}
-                    >
-                      {isRegistered ? (
-                        <>
-                          <CheckCircle size={13} />
-                          Registered
-                        </>
-                      ) : (
-                        'Register Now'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ALL EVENTS GRID */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-bold text-[#182230]">
-            {dateFilter === 'registered' ? 'My Registered Events' : 'All Upcoming Events'} ({filteredEvents.length})
-          </h2>
-          {dateFilter !== 'all' && (
-            <button
-              onClick={() => setDateFilter('all')}
-              className="text-xs font-semibold text-[#5146E5] hover:underline"
-            >
-              Clear view filter
-            </button>
-          )}
-        </div>
-
-        {filteredEvents.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] p-12 text-center max-w-md mx-auto">
-            <Calendar size={32} className="text-[#667085] mx-auto mb-3" />
-            <h3 className="text-sm font-bold text-[#182230]">No events matching criteria</h3>
-            <p className="text-xs text-[#667085] mt-1">
-              Try adjusting your search terms or selecting another category.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredEvents.map(event => {
-              const isRegistered = state.registeredEventIds.includes(event.id);
-              return (
-                <div
-                  key={event.id}
-                  className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden hover:shadow-md transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="h-36 relative bg-slate-100">
-                      <img
-                        src={event.coverImage}
-                        alt={event.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 left-2">
-                        <span className="px-2 py-0.5 text-[10px] font-semibold bg-white/90 text-[#182230] rounded shadow-sm">
-                          {event.category}
-                        </span>
-                      </div>
-                      {event.isOnline && (
-                        <div className="absolute top-2 right-2">
-                          <span className="px-2 py-0.5 text-[10px] font-bold bg-[#0F9D8A] text-white rounded flex items-center gap-1 shadow-sm">
-                            <Globe size={10} />
-                            Online
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-4">
-                      <div className="text-[11px] font-bold text-[#5146E5]">
-                        {formatShortDate(event.date)} · {event.time}
-                      </div>
-
-                      <h3 className="font-bold text-sm text-[#182230] mt-1 line-clamp-1 hover:text-[#5146E5]">
-                        <Link href={`/dashboard/events/${event.id}`}>
-                          {event.title}
-                        </Link>
-                      </h3>
-
-                      <p className="text-xs text-[#667085] mt-1.5 line-clamp-2 leading-relaxed">
-                        {event.description}
-                      </p>
-
-                      <div className="mt-3 pt-2.5 border-t border-[#E5E7EB] flex items-center justify-between text-[11px] text-[#667085]">
-                        <span className="flex items-center gap-1 truncate max-w-[150px]">
-                          <MapPin size={11} className="shrink-0" />
-                          {event.venue}
-                        </span>
-                        <span>{event.registeredCount} going</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="px-4 py-3 bg-[#F7F8FC] border-t border-[#E5E7EB] flex items-center justify-between gap-2">
-                    <Link
-                      href={`/dashboard/events/${event.id}`}
-                      className="text-xs font-semibold text-[#182230] hover:text-[#5146E5]"
-                    >
-                      Details
-                    </Link>
-
-                    <button
-                      onClick={() => actions.toggleRegisterEvent(event.id)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1 ${
-                        isRegistered
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          : 'bg-[#5146E5] text-white hover:bg-[#4338CA]'
-                      }`}
-                    >
-                      {isRegistered ? (
-                        <>
-                          <CheckCircle size={12} />
-                          Registered
-                        </>
-                      ) : (
-                        'Register'
-                      )}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+        </article>;
+      })}</div>}
     </div>
   );
 }

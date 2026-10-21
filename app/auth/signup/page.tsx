@@ -143,6 +143,7 @@ export default function SignUpPage() {
         email: normalizedEmail,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             display_name: normalizedName,
             full_name: normalizedName,
@@ -162,8 +163,8 @@ export default function SignUpPage() {
 
       setAuthMessage(
         data.session
-          ? 'Your Koinelio account was created. Your selected campus is self-reported and remains unverified. Demo posts, profiles, registrations and counts are still prototype data.'
-          : 'Your account request was created. Check your email for a confirmation link if email confirmation is enabled. Your campus choice is self-reported and does not verify institute affiliation.'
+          ? 'Your account was created and your profile record is ready. Continue to sign in to access your account.'
+          : 'Your Koinelio account and academic profile have been created. Open the confirmation link sent to your @iitbhilai.ac.in inbox; after confirmation, sign in to edit your profile and upload a profile photo.'
       );
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Unable to create your account. Please try again.');
@@ -199,11 +200,11 @@ export default function SignUpPage() {
         </div>
 
         <section className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white/95 p-5 shadow-xl shadow-slate-900/5 backdrop-blur sm:p-8">
-          <div className="mb-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-sm leading-5 text-amber-950">
-            <ShieldCheck size={19} className="mt-0.5 shrink-0 text-amber-700" />
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-3 text-sm leading-5 text-sky-950">
+            <ShieldCheck size={19} className="mt-0.5 shrink-0 text-sky-800" />
             <div>
-              <p className="font-semibold">Independent student-built prototype</p>
-              <p className="mt-1">Koinelio is not operated, approved or endorsed by IIT Bhilai. This signup does not connect to institute records or SSO.</p>
+              <p className="font-semibold">IIT Bhilai email-restricted campus pilot</p>
+              <p className="mt-1">Use your Koinelio password only, never your institute/LDAP password. Email confirmation proves mailbox access, not current student enrolment. Koinelio is independently operated unless formally authorized by IIT Bhilai.</p>
             </div>
           </div>
 
@@ -212,11 +213,11 @@ export default function SignUpPage() {
           {authMessage ? (
             <div className="py-4 text-center">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"><CheckCircle size={27} /></div>
-              <h2 className="mt-4 text-xl font-bold text-[#182230]">Account request submitted</h2>
+              <h2 className="mt-4 text-xl font-bold text-[#182230]">Account created</h2>
               <p role="status" className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#667085]">{authMessage}</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <Link href="/auth/signin" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5146E5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4338CA]">Continue to sign in <ArrowRight size={16} /></Link>
-                <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#D0D5DD] bg-white px-4 py-3 text-sm font-semibold text-[#344054] hover:bg-slate-50">Preview the demo</Link>
+                <Link href="/auth/forgot-password" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#D0D5DD] bg-white px-4 py-3 text-sm font-semibold text-[#344054] hover:bg-slate-50">Need help signing in?</Link>
               </div>
               <p className="mt-4 text-xs leading-5 text-[#667085]">Never enter your institute/LDAP password in Koinelio. The institute ID field is intentionally unavailable until a private verification workflow is approved and ready.</p>
             </div>
@@ -317,10 +318,10 @@ export default function SignUpPage() {
           {!authMessage && <div className="mt-6 border-t border-[#E5E7EB] pt-5 text-center text-sm text-[#667085]">
             Already have an account? <Link href="/auth/signin" className="font-semibold text-[#5146E5] hover:text-[#3730A3] hover:underline">Sign in</Link>
             <span className="mx-2 text-slate-300">·</span>
-            <Link href="/dashboard" className="font-semibold text-[#5146E5] hover:text-[#3730A3] hover:underline">Preview demo without an account</Link>
+            <Link href="/dashboard/campus" className="font-semibold text-[#5146E5] hover:text-[#3730A3] hover:underline">Read the public-source Campus Guide</Link>
           </div>}
         </section>
-        <p className="mx-auto mt-4 max-w-lg px-2 text-center text-xs leading-5 text-[#667085]">Public institution facts in the campus guide link to public sources. Demo member profiles, posts, activity counts and registrations are fictional and stay in browser demo state.</p>
+        <p className="mx-auto mt-4 max-w-lg px-2 text-center text-xs leading-5 text-[#667085]">Your account and academic profile are stored in Supabase. Campus affiliation and privileged roles are controlled separately; no demo identity can be used to sign in.</p>
       </div>
     </main>
   );
