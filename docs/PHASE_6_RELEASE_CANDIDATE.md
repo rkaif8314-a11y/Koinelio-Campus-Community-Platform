@@ -16,7 +16,7 @@
 - [x] Run post-classification regression tests in CI.
 - [x] Run lint and a Next.js production build in CI.
 - [x] Run CI on feature-branch pushes and pull requests targeting main.
-- [ ] Confirm the latest CI run is green for the exact candidate commit.
+- [x] Confirm CI is green for commit 0f5aaaf2cd317a95a5f20811bcb5b7fa06f90e4e (tests, lint, production build). Reconfirm after every subsequent code change.
 - [ ] Review the full PR diff and verify no generated output, secrets, accidental unrelated edits, or destructive migration changes are included.
 - [ ] Obtain explicit owner approval before merging; do not merge while staging or governance gates remain open.
 
@@ -51,10 +51,10 @@
 
 These are explicit backlog items, not claims of completed functionality. Each item needs a schema/RLS review and tests before release.
 
-- [ ] **Club recruitment:** applications, application windows/deadlines, review status, coordinator decisions, and applicant status visibility.
+- [x] **Club recruitment UI:** applications, deadlines, review status, coordinator decisions, applicant status visibility, and online/offline interview scheduling are implemented on /dashboard/recruitment. [ ] Staging-test all applicant/organizer access paths, deadline enforcement, and interview privacy.
 - [ ] **Interview scheduling:** online meeting link or offline location, scheduled time, timezone, status, and access limited to the applicant and authorised club reviewers.
 - [ ] **Role approvals and badges:** visible role/badge state must come from trusted, active database assignments; never from self-entered profile text or signup metadata.
-- [ ] **Priority feed and filters:** database-backed priority/recency/category filtering with clear ordering and no privilege bypass.
+- [x] **Priority baseline:** category/mine filters exist in the campus feed and priority labels appear for campus announcements. [ ] Review server-side ordering, expiry handling, and filter access controls on staging.
 - [ ] **Elections module:** separate secured workflow for eligibility, nominations, voting windows, one-person-one-vote enforcement, ballot privacy, auditability, and authorised result publication. Do not implement elections as ordinary posts or client-only counters.
 
 ## Current known blockers

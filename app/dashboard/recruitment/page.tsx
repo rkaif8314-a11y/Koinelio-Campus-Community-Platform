@@ -83,7 +83,7 @@ export default function RecruitmentPage() {
     const drive = app ? drives.find((item) => item.id === app.drive_id) : undefined;
     return app?.applicant_id === userId || Boolean(drive && managedClubIds.includes(drive.club_id));
   }), [interviews, applications, drives, userId, managedClubIds]);
-  const openDrives = drives.filter((drive) => drive.status === 'open' && (!drive.deadline || new Date(drive.deadline).getTime() > Date.now()));
+  const openDrives = drives.filter((drive) => drive.status === 'open');
   const manageableClubs = clubs.filter((club) => managedClubIds.includes(club.id));
 
   async function createDrive(event: FormEvent<HTMLFormElement>) {

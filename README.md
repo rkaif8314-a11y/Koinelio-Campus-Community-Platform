@@ -91,6 +91,10 @@ Read [IIT Bhilai access and governance rollout](docs/IIT_BHILAI_PRODUCTION_ACCES
 - Club-room policies separate campus General chat, active Members chat, and Core Team chat. Personal direct messages are not opened to campus leadership by this feature.
 - Northstar University is demo-only and must not be mixed into the IIT Bhilai tenant.
 
+## Recruitment and release candidate
+
+The signed-in app includes a Club Recruitment page at `/dashboard/recruitment` for open drives, applications, reviewer status/notes, and interview scheduling. These flows rely on the existing recruitment tables and Row Level Security; validate them with separate staging accounts before pilot acceptance. See [Phase 6 release-candidate checklist](docs/PHASE_6_RELEASE_CANDIDATE.md) and [Security Policy](SECURITY.md) for the remaining release gates.
+
 ## Production launch requirements
 
 Before merging to the deployment branch, validate the SQL migration and role transitions on staging with multiple accounts, audit Row Level Security and Storage, configure redirect URLs and leaked-password protection, confirm an authorized first-admin identity, review privacy/retention and abuse-reporting operations, and obtain written IIT Bhilai authorization before calling the service official or using institute branding as an endorsement.
