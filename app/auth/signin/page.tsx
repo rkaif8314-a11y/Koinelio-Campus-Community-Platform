@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import ThemeToggle from '@/components/theme-toggle';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -63,6 +64,7 @@ export default function SignInPage() {
 
   return (
     <main className="min-h-screen bg-[#F7F8FC] flex">
+      <div className="fixed right-4 top-4 z-[60]"><ThemeToggle /></div>
       <aside className="hidden lg:flex lg:w-[42%] bg-[#14213D] flex-col justify-between p-10 xl:p-14">
         <Link href="/" className="flex items-center gap-2.5 w-fit">
           <div className="w-9 h-9 rounded-xl bg-[#5146E5] flex items-center justify-center">

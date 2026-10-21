@@ -173,7 +173,7 @@ export default function DiscoverPage() {
         <span>Found {totalResults} campus records</span>
         <span className="text-[#0F9D8A] font-semibold flex items-center gap-1">
           <CheckCircle size={12} />
-          Northstar University directory
+          Fictional demo directory
         </span>
       </div>
 
