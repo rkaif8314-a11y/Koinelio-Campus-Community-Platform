@@ -57,7 +57,7 @@ begin
     raise exception 'A confirmed campus account is required to report a post';
   end if;
 
-  if p_reason not in ('spam', 'harassment', 'misinformation', 'inappropriate', 'other') then
+  if p_reason is null or p_reason not in ('spam', 'harassment', 'misinformation', 'inappropriate', 'other') then
     raise exception 'Choose a valid report reason';
   end if;
 
@@ -103,13 +103,12 @@ set search_path to ''
 as $function$
 declare
   v_report public.post_reports%rowtype;
-  v_institution_id uuid;
 begin
   if auth.uid() is null or not private.is_iit_bhilai_email_verified(auth.uid()) then
     raise exception 'A confirmed campus account is required';
   end if;
 
-  if p_decision not in ('hide_post', 'dismiss') then
+  if p_decision is null or p_decision not in ('hide_post', 'dismiss') then
     raise exception 'Choose hide_post or dismiss';
   end if;
   if char_length(coalesce(p_resolution_note, '')) > 1200 then
@@ -138,8 +137,6 @@ begin
     raise exception 'This report has already been reviewed';
   end if;
 
-  select institution_id into v_institution_id
-  from public.profiles where id = v_report.reporter_id;
 
   update public.post_reports
   set status = case when p_decision = 'dismiss' then 'dismissed' else 'reviewed' end,
