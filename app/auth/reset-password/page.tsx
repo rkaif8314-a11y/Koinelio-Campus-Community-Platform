@@ -54,21 +54,21 @@ function ResetPasswordPageContent() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700"><KeyRound size={23} /></div>
-        <h1 className="mt-4 text-center text-2xl font-bold text-slate-900">Set a new password</h1>
-        <p className="mt-2 text-center text-sm leading-6 text-slate-600">Choose a unique password for Koinelio. Do not reuse your institute/LDAP password.</p>
-        {error && <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
-        {success && <div role="status" className="mt-5 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 size={17} className="mt-0.5 shrink-0" />{success}</div>}
-        {!ready && !success ? <div className="mt-6 text-center text-sm text-slate-500"><LoaderCircle className="mr-2 inline animate-spin" size={16} />Validating reset link…</div> : ready && !success ? (
+    <main className="flex min-h-screen items-center justify-center bg-[var(--k-bg)] px-4 py-10">
+      <div className="w-full max-w-md rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-6 shadow-sm sm:p-8">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--k-accent-light)] text-[var(--k-accent)]"><KeyRound size={23} /></div>
+        <h1 className="mt-4 text-center text-2xl font-bold text-[var(--k-ink)]">Set a new password</h1>
+        <p className="mt-2 text-center text-sm leading-6 text-[var(--k-ink-soft)]">Choose a unique password for Koinelio. Do not reuse your institute/LDAP password.</p>
+        {error && <div role="alert" className="mt-5 flex items-start gap-2 rounded-xl border border-[var(--k-danger)] bg-[var(--k-danger-light)] p-3 text-sm text-[var(--k-danger)]"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
+        {success && <div role="status" className="mt-5 flex items-start gap-2 rounded-xl border border-[var(--k-border)] bg-[var(--k-success-light)] p-3 text-sm text-[var(--k-success)]"><CheckCircle2 size={17} className="mt-0.5 shrink-0" />{success}</div>}
+        {!ready && !success ? <div className="mt-6 text-center text-sm text-[var(--k-muted)]"><LoaderCircle className="mr-2 inline animate-spin" size={16} />Validating reset link…</div> : ready && !success ? (
           <form onSubmit={updatePassword} className="mt-6 space-y-4">
-            <div><label htmlFor="password" className="mb-1.5 block text-sm font-semibold text-slate-700">New password</label><input id="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" placeholder="At least 12 characters" /></div>
-            <div><label htmlFor="confirmPassword" className="mb-1.5 block text-sm font-semibold text-slate-700">Confirm new password</label><input id="confirmPassword" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" /></div>
-            <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">{saving && <LoaderCircle size={16} className="animate-spin" />}Update password</button>
+            <div><label htmlFor="password" className="mb-1.5 block text-sm font-semibold text-[var(--k-ink)]">New password</label><input id="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-xl border border-[var(--k-border)] px-3.5 py-3 text-sm outline-none focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)]" placeholder="At least 12 characters" /></div>
+            <div><label htmlFor="confirmPassword" className="mb-1.5 block text-sm font-semibold text-[var(--k-ink)]">Confirm new password</label><input id="confirmPassword" type="password" autoComplete="new-password" minLength={12} maxLength={128} required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full rounded-xl border border-[var(--k-border)] px-3.5 py-3 text-sm outline-none focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)]" /></div>
+            <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] px-4 py-3 text-sm font-semibold text-[var(--k-on-accent)] hover:bg-[var(--k-accent-hover)] disabled:opacity-50">{saving && <LoaderCircle size={16} className="animate-spin" />}Update password</button>
           </form>
         ) : null}
-        <p className="mt-6 text-center text-sm text-slate-500"><Link href="/auth/signin" className="font-semibold text-indigo-700 hover:underline">Back to sign in</Link></p>
+        <p className="mt-6 text-center text-sm text-[var(--k-muted)]"><Link href="/auth/signin" className="font-semibold text-[var(--k-accent)] hover:underline">Back to sign in</Link></p>
       </div>
     </main>
   );
@@ -77,7 +77,7 @@ function ResetPasswordPageContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 text-sm text-slate-500">Validating password reset link…</main>}>
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-[var(--k-bg)] px-4 text-sm text-[var(--k-muted)]">Validating password reset link…</main>}>
       <ResetPasswordPageContent />
     </Suspense>
   );

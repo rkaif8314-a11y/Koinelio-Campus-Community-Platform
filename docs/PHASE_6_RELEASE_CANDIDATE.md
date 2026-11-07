@@ -59,9 +59,12 @@ These are explicit backlog items, not claims of completed functionality. Each it
 
 ## Current known blockers
 
+- The source snapshot pins Next.js and `eslint-config-next` at `16.4.0`. The official Next.js release listing identifies `16.4.5` as a stable security release with multiple moderate advisories fixed. Upgrade both packages together and refresh `pnpm-lock.yaml` before public deployment; do not install a canary build.
+
 - New Supabase migrations, including the post-report moderation and campus-election migrations, have **not** been validated against a staging database or applied to production.
 - Full real-account RLS/Storage tests, accessibility review, backup/restore rehearsal, privacy/retention review, and operational checks remain outstanding.
 - The campus tenant must remain pending until written institutional authorisation is obtained.
+- Event registration capacity and start-time closure are not atomically enforced by the current insert policy; client-side UI checks are not an enforcement boundary. Add and staging-test a database-side atomic registration flow before promising capacity or registration cutoffs.
 - Vercel production release and PR merge remain approval-gated.
 
 **Release rule:** if a checklist item is untested, mark it untested. Do not turn a documentation checkbox into a claim that the feature has passed.

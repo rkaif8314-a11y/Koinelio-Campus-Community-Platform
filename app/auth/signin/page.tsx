@@ -47,9 +47,12 @@ export default function SignInPage() {
         .maybeSingle();
 
       if (profileError) {
-        setMessage('Signed in successfully. Profile lookup needs attention: ' + profileError.message);
-      } else if (!profile) {
-        setMessage('Signed in, but no profile row was found yet. We will repair profile creation next.');
+        setMessage('Your sign-in was accepted, but we could not verify your profile. Please try again shortly. Do not create a second account.');
+        return;
+      }
+      if (!profile) {
+        setMessage('Your account is authenticated, but its Koinelio profile has not been created yet. Please contact the project maintainer; do not sign up again.');
+        return;
       }
 
       router.push('/dashboard');
@@ -69,16 +72,16 @@ export default function SignInPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F8FC] flex">
+    <main className="min-h-screen bg-[var(--k-bg)] flex">
       <div className="fixed right-4 top-4 z-[60]"><ThemeToggle /></div>
-      <aside className="hidden lg:flex lg:w-[42%] bg-[#14213D] flex-col justify-between p-10 xl:p-14">
+      <aside className="hidden lg:flex lg:w-[42%] bg-[#202a25] flex-col justify-between p-10 xl:p-14">
         <Link href="/" className="flex items-center gap-2.5 w-fit">
           <KoinelioLogoMark size={36} />
           <span className="text-white font-bold text-xl tracking-tight">Koinelio</span>
         </Link>
 
         <div className="max-w-lg">
-          <p className="text-[#A5B4FC] text-sm font-semibold uppercase tracking-[0.18em] mb-4">One campus. Every connection.</p>
+          <p className="text-[#B3CFC2] text-sm font-semibold uppercase tracking-[0.18em] mb-4">One campus. Every connection.</p>
           <h1 className="text-white text-4xl xl:text-5xl font-bold leading-tight tracking-tight">
             Your campus community, all in one place.
           </h1>
@@ -94,31 +97,31 @@ export default function SignInPage() {
         <div className="w-full max-w-md">
           <Link href="/" className="flex items-center gap-2.5 mb-9 lg:hidden">
             <KoinelioLogoMark size={36} />
-            <span className="text-[#182230] font-bold text-xl">Koinelio</span>
+            <span className="text-[var(--k-ink)] font-bold text-xl">Koinelio</span>
           </Link>
 
           <div className="mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-[#EEF0FD] text-[#5146E5] flex items-center justify-center mb-5">
+            <div className="w-12 h-12 rounded-2xl bg-[var(--k-accent-light)] text-[var(--k-accent)] flex items-center justify-center mb-5">
               <ShieldCheck size={24} />
             </div>
-            <h2 className="text-3xl font-bold tracking-tight text-[#182230]">Welcome back</h2>
-            <p className="mt-2 text-sm leading-6 text-[#667085]">Sign in to your Koinelio account.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--k-ink)]">Welcome back</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--k-muted)]">Sign in to your Koinelio account.</p>
           </div>
 
           {error && (
-            <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700">
+            <div role="alert" className="mb-5 rounded-xl border border-[var(--k-danger)] bg-[var(--k-danger-light)] px-4 py-3 text-sm leading-5 text-[var(--k-danger)]">
               {error}
             </div>
           )}
           {message && (
-            <div role="status" className="mb-5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-5 text-amber-800">
+            <div role="status" className="mb-5 rounded-xl border border-[var(--k-border)] bg-[var(--k-warning-light)] px-4 py-3 text-sm leading-5 text-[var(--k-warning)]">
               {message}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-[#182230] mb-2">Email address</label>
+              <label htmlFor="email" className="block text-sm font-semibold text-[var(--k-ink)] mb-2">Email address</label>
               <input
                 id="email"
                 type="email"
@@ -128,12 +131,12 @@ export default function SignInPage() {
                 placeholder="name@iitbhilai.ac.in"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="w-full px-4 py-3 text-sm rounded-xl border border-[#D0D5DD] bg-white text-[#182230] outline-none transition focus:border-[#5146E5] focus:ring-4 focus:ring-[#5146E5]/10"
+                className="w-full px-4 py-3 text-sm rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] text-[var(--k-ink)] outline-none transition focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)]"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-[#182230] mb-2">Password</label>
+              <label htmlFor="password" className="block text-sm font-semibold text-[var(--k-ink)] mb-2">Password</label>
               <div className="relative">
                 <input
                   id="password"
@@ -143,13 +146,13 @@ export default function SignInPage() {
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Enter your password"
-                  className="w-full px-4 py-3 pr-12 text-sm rounded-xl border border-[#D0D5DD] bg-white text-[#182230] outline-none transition focus:border-[#5146E5] focus:ring-4 focus:ring-[#5146E5]/10"
+                  className="w-full px-4 py-3 pr-12 text-sm rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] text-[var(--k-ink)] outline-none transition focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((visible) => !visible)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#667085] hover:text-[#182230]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[var(--k-muted)] hover:text-[var(--k-ink)]"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -159,18 +162,18 @@ export default function SignInPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-[#5146E5] hover:bg-[#4338CA] text-white py-3.5 px-4 font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full rounded-xl bg-[var(--k-accent)] hover:bg-[var(--k-accent-hover)] text-[var(--k-on-accent)] py-3.5 px-4 font-semibold text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {loading ? 'Signing in…' : 'Sign in'}
               {!loading && <ArrowRight size={17} />}
             </button>
           </form>
 
-          <p className="mt-7 text-center text-sm text-[#667085]">
+          <p className="mt-7 text-center text-sm text-[var(--k-muted)]">
             New to Koinelio?{' '}
-            <Link href="/auth/signup" className="font-semibold text-[#5146E5] hover:underline">Create an account</Link>
+            <Link href="/auth/signup" className="font-semibold text-[var(--k-accent)] hover:underline">Create an account</Link>
           </p>
-          <p className="mt-5 text-center text-xs leading-5 text-[#98A2B3]">
+          <p className="mt-5 text-center text-xs leading-5 text-[var(--k-muted)]">
             Use the confirmed @iitbhilai.ac.in email linked to your Koinelio account. Never enter your institute/LDAP password here.
           </p>
         </div>

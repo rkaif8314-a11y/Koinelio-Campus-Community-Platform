@@ -75,24 +75,24 @@ const panelOptions: { id: Panel; label: string }[] = [
   { id: 'invitations', label: 'Invitations' },
 ];
 
-const inputClass = 'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition focus:border-[#C65D43] focus:ring-4 focus:ring-[#C65D43]/10';
-const primaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-[#C65D43] px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#A94832] disabled:cursor-not-allowed disabled:opacity-50';
+const inputClass = 'w-full rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] px-3.5 py-2.5 text-sm text-[var(--k-ink)] outline-none transition focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)]';
+const primaryButtonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] px-3.5 py-2.5 text-sm font-semibold text-[var(--k-on-accent)] transition hover:bg-[var(--k-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50';
 
 function RolePill({ role }: { role: string }) {
   const style = role === 'coordinator'
-    ? 'border-[#D9E8DE] bg-[#EEF5EF] text-[#235845]'
+    ? 'border-[var(--k-success-light)] bg-[var(--k-success-light)] text-[var(--k-success)]'
     : role === 'core_member'
-      ? 'border-[#EAE3F3] bg-[#F4EFF8] text-[#654B7C]'
-      : 'border-slate-200 bg-slate-50 text-slate-700';
+      ? 'border-[var(--k-border)] bg-[var(--k-surface-muted)] text-[var(--k-accent)]'
+      : 'border-[var(--k-border)] bg-[var(--k-surface-muted)] text-[var(--k-ink-soft)]';
   return <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-semibold capitalize ${style}`}>{role === 'coordinator' ? <Crown size={11}/> : role === 'core_member' ? <ShieldCheck size={11}/> : <Users size={11}/>} {role.replace('_', ' ')}</span>;
 }
 
 function StatusPill({ status }: { status: string }) {
   const classes = status === 'active' || status === 'accepted'
-    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    ? 'border-[var(--k-success-light)] bg-[var(--k-success-light)] text-[var(--k-success)]'
     : status === 'rejected' || status === 'declined' || status === 'expired'
-      ? 'border-rose-200 bg-rose-50 text-rose-800'
-      : 'border-amber-200 bg-amber-50 text-amber-900';
+      ? 'border-[var(--k-danger-light)] bg-[var(--k-danger-light)] text-[var(--k-danger)]'
+      : 'border-[var(--k-warning-light)] bg-[var(--k-warning-light)] text-[var(--k-warning)]';
   return <span className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold capitalize ${classes}`}>{status.replace('_', ' ')}</span>;
 }
 
@@ -293,90 +293,90 @@ export default function ClubLeaderDashboard() {
   }
 
   if (loading) {
-    return <div className="flex min-h-[45vh] items-center justify-center text-sm text-slate-500"><LoaderCircle size={18} className="mr-2 animate-spin"/> Loading the real club workspace…</div>;
+    return <div className="flex min-h-[45vh] items-center justify-center text-sm text-[var(--k-muted)]"><LoaderCircle size={18} className="mr-2 animate-spin"/> Loading the real club workspace…</div>;
   }
 
   if (!club) {
-    return <div className="mx-auto max-w-3xl px-4 py-12"><section className="rounded-2xl border border-slate-200 bg-white p-6"><AlertCircle size={28} className="mb-3 text-amber-600"/><h1 className="text-xl font-bold text-slate-900">Club workspace unavailable</h1><p className="mt-2 text-sm leading-6 text-slate-600">{error || 'This club may be pending approval or unavailable to your account.'}</p><Link href="/dashboard/clubs" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[#A94832] hover:underline"><ArrowLeft size={15}/>All clubs</Link></section></div>;
+    return <div className="mx-auto max-w-3xl px-4 py-12"><section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-6"><AlertCircle size={28} className="mb-3 text-[var(--k-warning)]"/><h1 className="text-xl font-bold text-[var(--k-ink)]">Club workspace unavailable</h1><p className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">{error || 'This club may be pending approval or unavailable to your account.'}</p><Link href="/dashboard/clubs" className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--k-accent)] hover:underline"><ArrowLeft size={15}/>All clubs</Link></section></div>;
   }
 
   if (!isAuthorized) {
-    return <div className="mx-auto max-w-3xl px-4 py-12"><section className="rounded-2xl border border-slate-200 bg-white p-6"><ShieldCheck size={28} className="mb-3 text-amber-600"/><h1 className="text-xl font-bold text-slate-900">Management access is restricted</h1><p className="mt-2 text-sm leading-6 text-slate-600">{error || 'Only this club’s active coordinator, the campus president, or the administrator can use the management workspace.'}</p><div className="mt-5 flex flex-wrap gap-2"><Link href={`/dashboard/clubs/${club.id}`} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700"><ArrowLeft size={15}/>Back to club details</Link><Link href="/dashboard/clubs" className="inline-flex items-center rounded-xl bg-[#C65D43] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#A94832]">All clubs</Link></div></section></div>;
+    return <div className="mx-auto max-w-3xl px-4 py-12"><section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-6"><ShieldCheck size={28} className="mb-3 text-[var(--k-warning)]"/><h1 className="text-xl font-bold text-[var(--k-ink)]">Management access is restricted</h1><p className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">{error || 'Only this club’s active coordinator, the campus president, or the administrator can use the management workspace.'}</p><div className="mt-5 flex flex-wrap gap-2"><Link href={`/dashboard/clubs/${club.id}`} className="inline-flex items-center gap-2 rounded-xl border border-[var(--k-border)] px-4 py-2.5 text-sm font-semibold text-[var(--k-ink-soft)]"><ArrowLeft size={15}/>Back to club details</Link><Link href="/dashboard/clubs" className="inline-flex items-center rounded-xl bg-[var(--k-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--k-on-accent)] hover:bg-[var(--k-accent-hover)]">All clubs</Link></div></section></div>;
   }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <Link href={`/dashboard/clubs/${club.id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#A94832] hover:underline"><ArrowLeft size={15}/>Back to club details</Link>
-        <Link href="/dashboard/clubs" className="text-xs font-semibold text-slate-500 hover:text-[#A94832]">All clubs</Link>
+        <Link href={`/dashboard/clubs/${club.id}`} className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--k-accent)] hover:underline"><ArrowLeft size={15}/>Back to club details</Link>
+        <Link href="/dashboard/clubs" className="text-xs font-semibold text-[var(--k-muted)] hover:text-[var(--k-accent)]">All clubs</Link>
       </div>
 
-      {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm leading-6 text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0"/><span className="break-words">{error}</span></div>}
-      {notice && <div role="status" className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-800"><CheckCircle2 size={17} className="mt-0.5 shrink-0"/><span>{notice}</span></div>}
+      {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-[var(--k-danger-light)] bg-[var(--k-danger-light)] p-3 text-sm leading-6 text-[var(--k-danger)]"><AlertCircle size={17} className="mt-0.5 shrink-0"/><span className="break-words">{error}</span></div>}
+      {notice && <div role="status" className="mb-4 flex items-start gap-2 rounded-xl border border-[var(--k-success-light)] bg-[var(--k-success-light)] p-3 text-sm leading-6 text-[var(--k-success)]"><CheckCircle2 size={17} className="mt-0.5 shrink-0"/><span>{notice}</span></div>}
 
-      <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-[#173D36] via-[#24584D] to-[#C65D43] p-6 text-white shadow-sm sm:p-8">
+      <section className="mb-6 overflow-hidden rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-6 text-[var(--k-ink)] shadow-sm sm:p-8">
         <div className="flex flex-wrap items-end justify-between gap-5">
           <div className="flex min-w-0 items-start gap-4">
-            {club.logo_url ? <img src={club.logo_url} alt="" className="h-14 w-14 shrink-0 rounded-2xl border border-white/20 object-cover"/> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10"><Users size={27}/></div>}
+            {club.logo_url ? <img src={club.logo_url} alt="" className="h-14 w-14 shrink-0 rounded-2xl border border-[var(--k-border)] object-cover"/> : <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--k-surface-muted)]"><Users size={27}/></div>}
             <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-[0.17em] text-amber-100">Club management</p>
+              <p className="text-xs font-bold uppercase tracking-[0.17em] text-[var(--k-accent)]">Club management</p>
               <h1 className="mt-1 truncate text-2xl font-bold tracking-tight sm:text-3xl">{club.name}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">{club.description || 'Manage real membership, roles and invitations for your campus community.'}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2"><StatusPill status={club.approval_status}/>{club.category && <span className="rounded-full border border-white/20 px-2.5 py-1 text-[10px] font-semibold text-white/85">{club.category}</span>}{executive && <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold text-white"><BadgeCheck size={11}/>Campus oversight</span>}</div>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--k-ink-soft)]">{club.description || 'Manage real membership, roles and invitations for your campus community.'}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2"><StatusPill status={club.approval_status}/>{club.category && <span className="rounded-full border border-[var(--k-border)] px-2.5 py-1 text-[10px] font-semibold text-[var(--k-ink-soft)]">{club.category}</span>}{executive && <span className="inline-flex items-center gap-1 rounded-full bg-[var(--k-surface-muted)] px-2.5 py-1 text-[10px] font-semibold text-[var(--k-accent)]"><BadgeCheck size={11}/>Campus oversight</span>}</div>
             </div>
           </div>
-          <Link href={`/dashboard/messages?club=${club.id}`} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#173D36] transition hover:bg-amber-50"><MessageCircle size={16}/>Open club rooms</Link>
+          <Link href={`/dashboard/messages?club=${club.id}`} className="inline-flex items-center gap-2 rounded-xl bg-[var(--k-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--k-on-accent)] transition hover:bg-[var(--k-accent-hover)]"><MessageCircle size={16}/>Open club rooms</Link>
         </div>
       </section>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4"><Users size={19} className="text-[#C65D43]"/><p className="mt-3 text-2xl font-bold text-slate-900">{activeMembers.length}</p><p className="text-xs text-slate-500">Active members</p></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4"><Clock3 size={19} className="text-[#8A6116]"/><p className="mt-3 text-2xl font-bold text-slate-900">{pendingMembers.length}</p><p className="text-xs text-slate-500">Pending join requests</p></div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4"><MailPlus size={19} className="text-[#654B7C]"/><p className="mt-3 text-2xl font-bold text-slate-900">{pendingInvitations.length}</p><p className="text-xs text-slate-500">Awaiting invitation response</p></div>
+        <div className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-4"><Users size={19} className="text-[var(--k-accent)]"/><p className="mt-3 text-2xl font-bold text-[var(--k-ink)]">{activeMembers.length}</p><p className="text-xs text-[var(--k-muted)]">Active members</p></div>
+        <div className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-4"><Clock3 size={19} className="text-[var(--k-warning)]"/><p className="mt-3 text-2xl font-bold text-[var(--k-ink)]">{pendingMembers.length}</p><p className="text-xs text-[var(--k-muted)]">Pending join requests</p></div>
+        <div className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-4"><MailPlus size={19} className="text-[var(--k-accent)]"/><p className="mt-3 text-2xl font-bold text-[var(--k-ink)]">{pendingInvitations.length}</p><p className="text-xs text-[var(--k-muted)]">Awaiting invitation response</p></div>
       </div>
 
-      <div className="mb-5 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
-        {panelOptions.map((item) => <button key={item.id} type="button" onClick={() => setPanel(item.id)} aria-pressed={panel === item.id} className={`rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${panel === item.id ? 'bg-[#173D36] text-white' : 'text-slate-600 hover:bg-white'}`}>{item.label}{item.id === 'requests' && pendingMembers.length > 0 ? ` · ${pendingMembers.length}` : item.id === 'invitations' && pendingInvitations.length > 0 ? ` · ${pendingInvitations.length}` : ''}</button>)}
+      <div className="mb-5 flex flex-wrap gap-2 border-b border-[var(--k-border)] pb-3">
+        {panelOptions.map((item) => <button key={item.id} type="button" onClick={() => setPanel(item.id)} aria-pressed={panel === item.id} className={`rounded-xl px-3.5 py-2.5 text-sm font-semibold transition ${panel === item.id ? 'bg-[var(--k-accent)] text-[var(--k-on-accent)]' : 'text-[var(--k-ink-soft)] hover:bg-[var(--k-surface)]'}`}>{item.label}{item.id === 'requests' && pendingMembers.length > 0 ? ` · ${pendingMembers.length}` : item.id === 'invitations' && pendingInvitations.length > 0 ? ` · ${pendingInvitations.length}` : ''}</button>)}
       </div>
 
       {panel === 'overview' && (
         <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.85fr)]">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-            <h2 className="text-lg font-bold text-slate-900">How your club works</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Every action below writes to Supabase. Member status, Core Member promotion, and invitations are checked again by database permissions, so a client-side button cannot grant access by itself.</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5 sm:p-6">
+            <h2 className="text-lg font-bold text-[var(--k-ink)]">How your club works</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">Every action below writes to Supabase. Member status, Core Member promotion, and invitations are checked again by database permissions, so a client-side button cannot grant access by itself.</p>
             <div className="mt-5 space-y-3">
-              <div className="flex items-start gap-3 rounded-xl border border-[#D9E8DE] bg-[#F0F6F0] p-3.5"><CheckCircle2 size={18} className="mt-0.5 shrink-0 text-[#267354]"/><div><h3 className="text-sm font-bold text-[#235845]">General room</h3><p className="mt-1 text-xs leading-5 text-[#4F6D5A]">Available to confirmed IIT Bhilai email accounts once the club is approved.</p></div></div>
-              <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5"><Users size={18} className="mt-0.5 shrink-0 text-slate-600"/><div><h3 className="text-sm font-bold text-slate-800">Members room</h3><p className="mt-1 text-xs leading-5 text-slate-600">Only active members, Core Members and the Coordinator can read or send messages.</p></div></div>
-              <div className="flex items-start gap-3 rounded-xl border border-[#EAE3F3] bg-[#F7F2FA] p-3.5"><ShieldCheck size={18} className="mt-0.5 shrink-0 text-[#654B7C]"/><div><h3 className="text-sm font-bold text-[#654B7C]">Core Team room</h3><p className="mt-1 text-xs leading-5 text-[#765F88]">Only active Core Members and the Coordinator can access this private club space.</p></div></div>
+              <div className="flex items-start gap-3 rounded-xl border border-[var(--k-success-light)] bg-[var(--k-success-light)] p-3.5"><CheckCircle2 size={18} className="mt-0.5 shrink-0 text-[var(--k-success)]"/><div><h3 className="text-sm font-bold text-[var(--k-success)]">General room</h3><p className="mt-1 text-xs leading-5 text-[var(--k-success)]">Available to confirmed IIT Bhilai email accounts once the club is approved.</p></div></div>
+              <div className="flex items-start gap-3 rounded-xl border border-[var(--k-border)] bg-[var(--k-surface-muted)] p-3.5"><Users size={18} className="mt-0.5 shrink-0 text-[var(--k-ink-soft)]"/><div><h3 className="text-sm font-bold text-[var(--k-ink)]">Members room</h3><p className="mt-1 text-xs leading-5 text-[var(--k-ink-soft)]">Only active members, Core Members and the Coordinator can read or send messages.</p></div></div>
+              <div className="flex items-start gap-3 rounded-xl border border-[var(--k-border)] bg-[var(--k-surface-muted)] p-3.5"><ShieldCheck size={18} className="mt-0.5 shrink-0 text-[var(--k-accent)]"/><div><h3 className="text-sm font-bold text-[var(--k-accent)]">Core Team room</h3><p className="mt-1 text-xs leading-5 text-[var(--k-accent)]">Only active Core Members and the Coordinator can access this private club space.</p></div></div>
             </div>
           </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-            <h2 className="text-base font-bold text-slate-900">Invite a selected member</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Use after your club&apos;s selection/interview process. An invitee must explicitly accept before membership is activated.</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5 sm:p-6">
+            <h2 className="text-base font-bold text-[var(--k-ink)]">Invite a selected member</h2>
+            <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">Use after your club&apos;s selection/interview process. An invitee must explicitly accept before membership is activated.</p>
             <form onSubmit={inviteSelectedMember} className="mt-4 space-y-3">
-              <div><label htmlFor="invitee" className="mb-1.5 block text-xs font-semibold text-slate-700">Campus profile</label><select id="invitee" required value={inviteeId} onChange={(event) => setInviteeId(event.target.value)} className={inputClass}><option value="">Choose a student profile</option>{people.map((person) => <option key={person.id} value={person.id}>{person.display_name}{person.department ? ` · ${person.department}` : ''}</option>)}</select></div>
-              <div><label htmlFor="inviteRole" className="mb-1.5 block text-xs font-semibold text-slate-700">Role offered</label><select id="inviteRole" value={inviteRole} onChange={(event) => setInviteRole(event.target.value as 'member' | 'core_member')} className={inputClass}><option value="member">General Member</option><option value="core_member">Core Member</option></select></div>
-              <div><label htmlFor="inviteMessage" className="mb-1.5 block text-xs font-semibold text-slate-700">Message (optional)</label><textarea id="inviteMessage" rows={3} maxLength={1200} value={inviteMessage} onChange={(event) => setInviteMessage(event.target.value)} className={inputClass} placeholder="Welcome, selected role, next steps…"/></div>
+              <div><label htmlFor="invitee" className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]">Campus profile</label><select id="invitee" required value={inviteeId} onChange={(event) => setInviteeId(event.target.value)} className={inputClass}><option value="">Choose a student profile</option>{people.map((person) => <option key={person.id} value={person.id}>{person.display_name}{person.department ? ` · ${person.department}` : ''}</option>)}</select></div>
+              <div><label htmlFor="inviteRole" className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]">Role offered</label><select id="inviteRole" value={inviteRole} onChange={(event) => setInviteRole(event.target.value as 'member' | 'core_member')} className={inputClass}><option value="member">General Member</option><option value="core_member">Core Member</option></select></div>
+              <div><label htmlFor="inviteMessage" className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]">Message (optional)</label><textarea id="inviteMessage" rows={3} maxLength={1200} value={inviteMessage} onChange={(event) => setInviteMessage(event.target.value)} className={inputClass} placeholder="Welcome, selected role, next steps…"/></div>
               <button type="submit" disabled={saving || club.approval_status !== 'approved'} className={`${primaryButtonClass} w-full`}>{saving ? <LoaderCircle size={15} className="animate-spin"/> : <MailPlus size={15}/>} Send invitation</button>
-              {club.approval_status !== 'approved' && <p className="text-xs leading-5 text-amber-800">Invitations are enabled only after the club is approved.</p>}
+              {club.approval_status !== 'approved' && <p className="text-xs leading-5 text-[var(--k-warning)]">Invitations are enabled only after the club is approved.</p>}
             </form>
           </section>
         </div>
       )}
 
       {panel === 'members' && (
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 p-4 sm:px-5">
-            <div><h2 className="font-bold text-slate-900">Active club members</h2><p className="mt-1 text-xs text-slate-500">Member roles below come from the database, not demo rosters.</p></div>
-            <div className="relative w-full max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or department…" className={`${inputClass} pl-9`}/></div>
+        <section className="overflow-hidden rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--k-border-soft)] p-4 sm:px-5">
+            <div><h2 className="font-bold text-[var(--k-ink)]">Active club members</h2><p className="mt-1 text-xs text-[var(--k-muted)]">Member roles below come from the database, not demo rosters.</p></div>
+            <div className="relative w-full max-w-xs"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--k-muted)]"/><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or department…" className={`${inputClass} pl-9`}/></div>
           </div>
-          <div className="divide-y divide-slate-100">
-            {filteredMembers.length === 0 && <p className="p-6 text-sm text-slate-500">No active members match this search.</p>}
+          <div className="divide-y divide-[var(--k-border-soft)]">
+            {filteredMembers.length === 0 && <p className="p-6 text-sm text-[var(--k-muted)]">No active members match this search.</p>}
             {filteredMembers.map((member) => {
               const name = member.profiles?.display_name ?? 'Campus member';
               return <div key={member.user_id} className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5">
-                <div className="flex min-w-0 items-center gap-3">{member.profiles?.avatar_url ? <img src={member.profiles.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover"/> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F8E5DC] text-xs font-bold text-[#9F432E]">{initials(name)}</span>}<div className="min-w-0"><Link href={`/dashboard/profile/${member.user_id}`} className="block truncate text-sm font-semibold text-slate-900 hover:text-[#A94832]">{name}</Link><p className="mt-1 truncate text-xs text-slate-500">{member.profiles?.department ?? 'Department not shared'}{member.profiles?.degree_program ? ` · ${member.profiles.degree_program}` : ''}</p><p className="mt-1 text-[10px] text-slate-400">Joined record · {dateLabel(member.created_at)}</p></div></div>
-                <div className="flex flex-wrap items-center gap-2"><RolePill role={member.role}/>{member.role === 'member' && <button type="button" disabled={saving || club.approval_status !== 'approved'} onClick={() => void promoteCoreMember(member)} className="rounded-lg border border-[#EAE3F3] px-3 py-2 text-xs font-semibold text-[#654B7C] transition hover:bg-[#F7F2FA] disabled:opacity-50">{saving ? 'Saving…' : 'Promote to Core'}</button>}</div>
+                <div className="flex min-w-0 items-center gap-3">{member.profiles?.avatar_url ? <img src={member.profiles.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover"/> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--k-accent-light)] text-xs font-bold text-[var(--k-accent)]">{initials(name)}</span>}<div className="min-w-0"><Link href={`/dashboard/profile/${member.user_id}`} className="block truncate text-sm font-semibold text-[var(--k-ink)] hover:text-[var(--k-accent)]">{name}</Link><p className="mt-1 truncate text-xs text-[var(--k-muted)]">{member.profiles?.department ?? 'Department not shared'}{member.profiles?.degree_program ? ` · ${member.profiles.degree_program}` : ''}</p><p className="mt-1 text-[10px] text-[var(--k-muted)]">Joined record · {dateLabel(member.created_at)}</p></div></div>
+                <div className="flex flex-wrap items-center gap-2"><RolePill role={member.role}/>{member.role === 'member' && <button type="button" disabled={saving || club.approval_status !== 'approved'} onClick={() => void promoteCoreMember(member)} className="rounded-lg border border-[var(--k-border)] px-3 py-2 text-xs font-semibold text-[var(--k-accent)] transition hover:bg-[var(--k-surface-muted)] disabled:opacity-50">{saving ? 'Saving…' : 'Promote to Core'}</button>}</div>
               </div>;
             })}
           </div>
@@ -384,29 +384,29 @@ export default function ClubLeaderDashboard() {
       )}
 
       {panel === 'requests' && (
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="border-b border-slate-100 p-4 sm:px-5"><h2 className="font-bold text-slate-900">Pending join requests</h2><p className="mt-1 text-xs leading-5 text-slate-500">Review membership requests here. Approval activates only the General Member role; Core Member promotion is a separate decision.</p></div>
-          <div className="divide-y divide-slate-100">
-            {pendingMembers.length === 0 && <div className="p-8 text-center"><CheckCircle2 size={29} className="mx-auto mb-2 text-emerald-600"/><p className="text-sm font-semibold text-slate-800">No pending join requests</p><p className="mt-1 text-xs text-slate-500">New requests will appear here when students apply to join.</p></div>}
+        <section className="overflow-hidden rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)]">
+          <div className="border-b border-[var(--k-border-soft)] p-4 sm:px-5"><h2 className="font-bold text-[var(--k-ink)]">Pending join requests</h2><p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">Review membership requests here. Approval activates only the General Member role; Core Member promotion is a separate decision.</p></div>
+          <div className="divide-y divide-[var(--k-border-soft)]">
+            {pendingMembers.length === 0 && <div className="p-8 text-center"><CheckCircle2 size={29} className="mx-auto mb-2 text-[var(--k-success)]"/><p className="text-sm font-semibold text-[var(--k-ink)]">No pending join requests</p><p className="mt-1 text-xs text-[var(--k-muted)]">New requests will appear here when students apply to join.</p></div>}
             {pendingMembers.map((member) => {
               const name = member.profiles?.display_name ?? 'Campus member';
-              return <div key={member.user_id} className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5"><div className="flex min-w-0 items-center gap-3">{member.profiles?.avatar_url ? <img src={member.profiles.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover"/> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#F8E5DC] text-xs font-bold text-[#9F432E]">{initials(name)}</span>}<div className="min-w-0"><Link href={`/dashboard/profile/${member.user_id}`} className="block truncate text-sm font-semibold text-slate-900 hover:text-[#A94832]">{name}</Link><p className="mt-1 text-xs text-slate-500">{member.profiles?.department ?? 'Department not shared'} · request received {dateLabel(member.created_at)}</p></div></div><div className="flex items-center gap-2"><button type="button" disabled={saving} onClick={() => void reviewMembership(member, 'rejected')} className="inline-flex items-center gap-1 rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700 hover:bg-rose-50 disabled:opacity-50"><X size={13}/>Reject</button><button type="button" disabled={saving} onClick={() => void reviewMembership(member, 'active')} className="inline-flex items-center gap-1 rounded-lg bg-[#173D36] px-3 py-2 text-xs font-semibold text-white hover:bg-[#0F2F29] disabled:opacity-50"><Check size={13}/>Approve member</button></div></div>;
+              return <div key={member.user_id} className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5"><div className="flex min-w-0 items-center gap-3">{member.profiles?.avatar_url ? <img src={member.profiles.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover"/> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--k-accent-light)] text-xs font-bold text-[var(--k-accent)]">{initials(name)}</span>}<div className="min-w-0"><Link href={`/dashboard/profile/${member.user_id}`} className="block truncate text-sm font-semibold text-[var(--k-ink)] hover:text-[var(--k-accent)]">{name}</Link><p className="mt-1 text-xs text-[var(--k-muted)]">{member.profiles?.department ?? 'Department not shared'} · request received {dateLabel(member.created_at)}</p></div></div><div className="flex items-center gap-2"><button type="button" disabled={saving} onClick={() => void reviewMembership(member, 'rejected')} className="inline-flex items-center gap-1 rounded-lg border border-[var(--k-danger-light)] px-3 py-2 text-xs font-semibold text-[var(--k-danger)] hover:bg-[var(--k-danger-light)] disabled:opacity-50"><X size={13}/>Reject</button><button type="button" disabled={saving} onClick={() => void reviewMembership(member, 'active')} className="inline-flex items-center gap-1 rounded-lg bg-[var(--k-accent)] px-3 py-2 text-xs font-semibold text-[var(--k-on-accent)] hover:bg-[var(--k-accent-hover)] disabled:opacity-50"><Check size={13}/>Approve member</button></div></div>;
             })}
           </div>
         </section>
       )}
 
       {panel === 'invitations' && (
-        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="border-b border-slate-100 p-4 sm:px-5"><h2 className="font-bold text-slate-900">Invitation status</h2><p className="mt-1 text-xs leading-5 text-slate-500">An invitation never activates membership on its own. The invitee must accept while signed in to their own account.</p></div>
-          <div className="divide-y divide-slate-100">
-            {invitations.length === 0 && <p className="p-6 text-sm text-slate-500">No invitations have been created for this club.</p>}
-            {invitations.map((invitation) => <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5"><div className="min-w-0"><p className="text-sm font-semibold text-slate-900">{people.find((person) => person.id === invitation.invitee_id)?.display_name ?? 'Invited campus member'}</p><p className="mt-1 text-xs text-slate-500">{invitation.invited_role.replace('_', ' ')} · sent {dateLabel(invitation.created_at)}</p>{invitation.message && <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-slate-600">{invitation.message}</p>}</div><StatusPill status={invitation.status}/></div>)}
+        <section className="overflow-hidden rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)]">
+          <div className="border-b border-[var(--k-border-soft)] p-4 sm:px-5"><h2 className="font-bold text-[var(--k-ink)]">Invitation status</h2><p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">An invitation never activates membership on its own. The invitee must accept while signed in to their own account.</p></div>
+          <div className="divide-y divide-[var(--k-border-soft)]">
+            {invitations.length === 0 && <p className="p-6 text-sm text-[var(--k-muted)]">No invitations have been created for this club.</p>}
+            {invitations.map((invitation) => <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-5"><div className="min-w-0"><p className="text-sm font-semibold text-[var(--k-ink)]">{people.find((person) => person.id === invitation.invitee_id)?.display_name ?? 'Invited campus member'}</p><p className="mt-1 text-xs text-[var(--k-muted)]">{invitation.invited_role.replace('_', ' ')} · sent {dateLabel(invitation.created_at)}</p>{invitation.message && <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-[var(--k-ink-soft)]">{invitation.message}</p>}</div><StatusPill status={invitation.status}/></div>)}
           </div>
         </section>
       )}
 
-      <p className="mt-5 flex items-start gap-2 rounded-xl border border-sky-100 bg-sky-50 p-3 text-xs leading-5 text-sky-950"><ShieldCheck size={15} className="mt-0.5 shrink-0"/> Every operation is checked by Supabase RLS/RPC. The interface cannot give a user a role that the database has not authorized.</p>
+      <p className="mt-5 flex items-start gap-2 rounded-xl border border-[var(--k-border)] bg-[var(--k-accent-light)] p-3 text-xs leading-5 text-[var(--k-ink-soft)]"><ShieldCheck size={15} className="mt-0.5 shrink-0"/> Every operation is checked by Supabase RLS/RPC. The interface cannot give a user a role that the database has not authorized.</p>
     </div>
   );
 }

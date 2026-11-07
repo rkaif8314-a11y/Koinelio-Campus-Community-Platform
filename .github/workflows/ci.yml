@@ -3,9 +3,7 @@ name: Koinelio build check
 on:
   push:
     branches:
-      - main
-      - demo/iit-bhilai-source-backed-campus
-      - fix/restore-real-community-and-supabase
+      - '**'
   pull_request:
     branches:
       - main
@@ -33,6 +31,8 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run automated regression tests
         run: pnpm test
+      - name: Type-check application
+        run: pnpm type-check
       - name: Lint application
         run: pnpm lint
       - name: Build production app

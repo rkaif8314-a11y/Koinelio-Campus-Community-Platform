@@ -1,357 +1,285 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useApp, useCurrentUser } from '@/lib/app-context';
-import { getEventById, getClubById, getUserById, formatDate } from '@/lib/demo-data';
 import {
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  Globe,
-  Share2,
-  ChevronLeft,
-  CheckCircle,
   AlertCircle,
+  ArrowLeft,
   Building2,
-  Tag,
-  Shield,
-  ArrowRight,
-  Sparkles,
+  CalendarDays,
+  CheckCircle2,
+  Clock3,
+  Copy,
+  LoaderCircle,
+  MapPin,
   Ticket,
+  Users,
 } from 'lucide-react';
+import { getSupabaseConfigError, supabase } from '@/lib/supabase';
+import { supabaseErrorMessage } from '@/lib/supabase-errors';
+
+type CampusEvent = {
+  id: string;
+  title: string;
+  description: string;
+  starts_at: string | null;
+  ends_at: string | null;
+  location: string | null;
+  created_by: string;
+  institution_id: string | null;
+  status: 'draft' | 'published' | 'cancelled' | 'completed';
+  capacity: number | null;
+  category: string | null;
+  banner_url: string | null;
+  club_id: string | null;
+};
+
+type Registration = {
+  event_id: string;
+  user_id: string;
+  status: 'registered' | 'cancelled' | 'attended' | 'no_show';
+  registered_at: string;
+};
+
+type RelatedEvent = Pick<CampusEvent, 'id' | 'title' | 'starts_at' | 'location' | 'category'>;
+
+const detailSelect = 'id, title, description, starts_at, ends_at, location, created_by, institution_id, status, capacity, category, banner_url, club_id';
+
+function formatDate(value: string | null) {
+  if (!value) return 'Date to be announced';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? 'Date to be announced'
+    : date.toLocaleString([], { dateStyle: 'full', timeStyle: 'short' });
+}
 
 export default function EventDetailPage() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { state, actions } = useApp();
-  const currentUser = useCurrentUser();
-  const eventId = params.id as string;
-  const event = getEventById(eventId);
-
+  const eventId = params.id;
+  const [userId, setUserId] = useState('');
+  const [event, setEvent] = useState<CampusEvent | null>(null);
+  const [registration, setRegistration] = useState<Registration | null>(null);
+  const [organizerName, setOrganizerName] = useState('Campus organizer');
+  const [relatedEvents, setRelatedEvents] = useState<RelatedEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [showCancel, setShowCancel] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+
+  const loadEvent = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const configurationError = getSupabaseConfigError();
+      if (configurationError) throw new Error(configurationError);
+
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) {
+        router.replace(`/auth/signin?next=/dashboard/events/${eventId}`);
+        return;
+      }
+      setUserId(authData.user.id);
+
+      const { data: eventData, error: eventError } = await supabase
+        .from('events')
+        .select(detailSelect)
+        .eq('id', eventId)
+        .maybeSingle();
+      if (eventError) throw eventError;
+      if (!eventData) {
+        setEvent(null);
+        setRegistration(null);
+        setRelatedEvents([]);
+        setOrganizerName('Campus organizer');
+        return;
+      }
+      const loadedEvent = eventData as CampusEvent;
+      setEvent(loadedEvent);
+
+      const [registrationResult, organizerResult] = await Promise.all([
+        supabase.from('event_registrations')
+          .select('event_id, user_id, status, registered_at')
+          .eq('event_id', loadedEvent.id)
+          .eq('user_id', authData.user.id)
+          .maybeSingle(),
+        loadedEvent.club_id
+          ? supabase.from('clubs').select('name').eq('id', loadedEvent.club_id).maybeSingle()
+          : supabase.from('profiles').select('display_name').eq('id', loadedEvent.created_by).maybeSingle(),
+      ]);
+
+      if (registrationResult.error) throw registrationResult.error;
+      setRegistration((registrationResult.data as Registration | null) ?? null);
+      const organizer = organizerResult.error ? null : organizerResult.data as { name?: string; display_name?: string } | null;
+      setOrganizerName(organizer?.name ?? organizer?.display_name ?? 'Campus organizer');
+
+      if (loadedEvent.category && loadedEvent.status === 'published') {
+        const { data: relatedData, error: relatedError } = await supabase.from('events')
+          .select('id, title, starts_at, location, category')
+          .eq('status', 'published')
+          .eq('category', loadedEvent.category)
+          .neq('id', loadedEvent.id)
+          .order('starts_at', { ascending: true, nullsFirst: false })
+          .limit(3);
+        setRelatedEvents(relatedError ? [] : (relatedData ?? []) as RelatedEvent[]);
+      } else {
+        setRelatedEvents([]);
+      }
+    } catch (loadError) {
+      setError(supabaseErrorMessage(loadError, 'Unable to load this event.'));
+    } finally {
+      setLoading(false);
+    }
+  }, [eventId, router]);
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- Loads account-scoped event details after session validation.
+  useEffect(() => { void loadEvent(); }, [loadEvent]);
+
+  useEffect(() => {
+    const initialTimer = window.setTimeout(() => setCurrentTime(Date.now()), 0);
+    const interval = window.setInterval(() => setCurrentTime(Date.now()), 30_000);
+    return () => {
+      window.clearTimeout(initialTimer);
+      window.clearInterval(interval);
+    };
+  }, []);
+
+  const isRegistered = registration?.status === 'registered';
+  const hasAttended = registration?.status === 'attended';
+  const parsedStartTime = event?.starts_at ? new Date(event.starts_at).getTime() : Number.NaN;
+  const startTime = Number.isFinite(parsedStartTime) ? parsedStartTime : null;
+  const isPast = currentTime === null || (startTime !== null && startTime <= currentTime);
+  const canRegister = event?.status === 'published' && !isPast && registration === null;
+
+  async function handleRegistration() {
+    if (!event || !userId) return;
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      if (isRegistered) {
+        const { error: deleteError } = await supabase.from('event_registrations')
+          .delete()
+          .eq('event_id', event.id)
+          .eq('user_id', userId);
+        if (deleteError) throw deleteError;
+        setNotice('Your registration has been cancelled.');
+        setShowCancel(false);
+      } else {
+        if (!canRegister) return;
+        const { error: insertError } = await supabase.from('event_registrations').insert({
+          event_id: event.id,
+          user_id: userId,
+          status: 'registered',
+        });
+        if (insertError) throw insertError;
+        setNotice('You are registered for this event.');
+      }
+      await loadEvent();
+    } catch (registrationError) {
+      setError(supabaseErrorMessage(registrationError, 'Unable to update your registration. The event may no longer accept registrations.'));
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleShare() {
+    setError('');
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setError('Your browser could not copy the link. Copy the address from the browser bar instead.');
+    }
+  }
+
+  const eventDateLabel = useMemo(() => {
+    if (!event) return '';
+    if (!event.starts_at) return 'Date to be announced';
+    return event.ends_at
+      ? `${formatDate(event.starts_at)} – ${new Date(event.ends_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}`
+      : formatDate(event.starts_at);
+  }, [event]);
+
+  if (loading) {
+    return <div className="flex min-h-[45vh] items-center justify-center text-sm text-[var(--k-muted)]"><LoaderCircle size={18} className="mr-2 animate-spin" />Loading event details…</div>;
+  }
 
   if (!event) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <Calendar size={40} className="text-[#667085] mx-auto mb-3" />
-        <h2 className="text-xl font-bold text-[#182230]">Event not found</h2>
-        <p className="text-sm text-[#667085] mt-1 mb-6">
-          The requested event schedule does not exist or has been removed.
-        </p>
-        <Link
-          href="/dashboard/events"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-[#5146E5] text-white text-xs font-semibold rounded-lg"
-        >
-          <ChevronLeft size={16} />
-          Back to Events
-        </Link>
-      </div>
+      <main className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
+        <CalendarDays size={38} className="mx-auto mb-3 text-[var(--k-muted)]" />
+        <h1 className="text-xl font-bold text-[var(--k-ink)]">Event not found</h1>
+        <p className="mt-2 text-sm leading-6 text-[var(--k-muted)]">This event may have been removed or may not be available to your account.</p>
+        {error && <p role="alert" className="mx-auto mt-4 max-w-lg rounded-xl bg-[var(--k-danger-light)] p-3 text-sm text-[var(--k-danger)]">{error}</p>}
+        <Link href="/dashboard/events" className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[var(--k-border)] px-4 py-2.5 text-sm font-semibold text-[var(--k-ink)] hover:bg-[var(--k-surface-muted)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--k-focus-ring)]"><ArrowLeft size={16} />Back to events</Link>
+      </main>
     );
   }
 
-  const isRegistered = state.registeredEventIds.includes(event.id);
-  const organizerClub = event.organizerType === 'club' ? getClubById(event.organizerId) : null;
-  const organizerUser = event.organizerType === 'user' ? getUserById(event.organizerId) : null;
-
-  const relatedEvents = state.events.filter(
-    e => e.category === event.category && e.id !== event.id
-  ).slice(0, 3);
-
-  const handleShare = () => {
-    navigator.clipboard?.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleRegister = () => {
-    actions.toggleRegisterEvent(event.id);
-  };
-
-  const handleCancelRegistration = () => {
-    actions.toggleRegisterEvent(event.id);
-    setShowConfirmCancel(false);
-  };
-
   return (
-    <div className="min-h-full pb-16">
-      {/* Cover Image Banner */}
-      <div className="h-64 md:h-80 w-full relative bg-slate-900">
-        <img
-          src={event.coverImage}
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
+    <main className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6">
+      <Link href="/dashboard/events" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--k-muted)] hover:text-[var(--k-ink)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--k-focus-ring)]"><ArrowLeft size={16} />All events</Link>
 
-        <div className="absolute top-4 left-4 z-10">
-          <Link
-            href="/dashboard/events"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/40 hover:bg-black/60 text-white text-xs font-semibold backdrop-blur transition-colors"
-          >
-            <ChevronLeft size={14} />
-            All Events
-          </Link>
-        </div>
-
-        {/* Title overlay on desktop */}
-        <div className="absolute bottom-6 left-0 right-0 max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className="px-3 py-1 text-xs font-bold bg-[#5146E5] text-white rounded-lg shadow-sm">
-              {event.category}
-            </span>
-            {event.isFeatured && (
-              <span className="px-2.5 py-1 text-xs font-semibold bg-amber-500 text-white rounded-lg shadow-sm flex items-center gap-1">
-                <Sparkles size={12} />
-                Featured Highlight
-              </span>
-            )}
-            {event.isOnline && (
-              <span className="px-2.5 py-1 text-xs font-semibold bg-[#0F9D8A] text-white rounded-lg shadow-sm flex items-center gap-1">
-                <Globe size={12} />
-                Virtual Event
-              </span>
-            )}
+      <header className="mt-5 overflow-hidden rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)]">
+        <div className="bg-[var(--k-surface-muted)] px-5 py-8 sm:px-8 sm:py-10">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-[var(--k-accent-light)] px-3 py-1 text-xs font-semibold text-[var(--k-accent)]">{event.category || 'Campus event'}</span>
+            <span className={`rounded-full px-3 py-1 text-xs font-semibold capitalize ${event.status === 'published' ? 'bg-[var(--k-success-light)] text-[var(--k-success)]' : 'bg-[var(--k-warning-light)] text-[var(--k-warning)]'}`}>{event.status.replace('_', ' ')}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-tight">
-            {event.title}
-          </h1>
+          <h1 className="mt-4 max-w-4xl text-3xl font-bold tracking-tight text-[var(--k-ink)] sm:text-4xl">{event.title}</h1>
+          <p className="mt-3 max-w-3xl whitespace-pre-line text-sm leading-7 text-[var(--k-ink-soft)]">{event.description || 'The organizer has not added a description yet.'}</p>
         </div>
+        <div className="grid gap-4 border-t border-[var(--k-border)] p-5 sm:grid-cols-2 sm:p-6">
+          <div className="flex items-start gap-3"><span className="rounded-xl bg-[var(--k-accent-light)] p-2.5 text-[var(--k-accent)]"><CalendarDays size={19} /></span><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--k-muted)]">Date and time</p><p className="mt-1 text-sm font-semibold leading-6 text-[var(--k-ink)]">{eventDateLabel}</p></div></div>
+          <div className="flex items-start gap-3"><span className="rounded-xl bg-[var(--k-accent-light)] p-2.5 text-[var(--k-accent)]"><MapPin size={19} /></span><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--k-muted)]">Venue</p><p className="mt-1 text-sm font-semibold text-[var(--k-ink)]">{event.location || 'Venue to be announced'}</p></div></div>
+          <div className="flex items-start gap-3"><span className="rounded-xl bg-[var(--k-accent-light)] p-2.5 text-[var(--k-accent)]"><Building2 size={19} /></span><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--k-muted)]">Organizer</p><p className="mt-1 text-sm font-semibold text-[var(--k-ink)]">{organizerName}</p></div></div>
+          {event.capacity && <div className="flex items-start gap-3"><span className="rounded-xl bg-[var(--k-accent-light)] p-2.5 text-[var(--k-accent)]"><Users size={19} /></span><div><p className="text-xs font-semibold uppercase tracking-wide text-[var(--k-muted)]">Organizer&apos;s stated capacity</p><p className="mt-1 text-sm font-semibold text-[var(--k-ink)]">{event.capacity} places</p></div></div>}
+        </div>
+      </header>
+
+      {error && <div role="alert" className="mt-4 flex items-start gap-2 rounded-xl border border-[var(--k-border)] bg-[var(--k-danger-light)] p-3 text-sm text-[var(--k-danger)]"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
+      {notice && <div role="status" className="mt-4 flex items-start gap-2 rounded-xl border border-[var(--k-border)] bg-[var(--k-success-light)] p-3 text-sm text-[var(--k-success)]"><CheckCircle2 size={17} className="mt-0.5 shrink-0" />{notice}</div>}
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-[var(--k-ink)]">About this event</h2>
+          <p className="mt-3 whitespace-pre-line text-sm leading-7 text-[var(--k-ink-soft)]">{event.description || 'More information will be shared by the organizer.'}</p>
+          {event.ends_at && <p className="mt-4 flex items-center gap-2 text-xs text-[var(--k-muted)]"><Clock3 size={14} />Ends {formatDate(event.ends_at)}</p>}
+          <button type="button" onClick={() => void handleShare()} className="mt-6 inline-flex items-center gap-2 rounded-lg border border-[var(--k-border)] px-3.5 py-2 text-sm font-semibold text-[var(--k-ink)] hover:bg-[var(--k-surface-muted)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--k-focus-ring)]"><Copy size={15} />{copied ? 'Link copied' : 'Copy event link'}</button>
+        </section>
+
+        <aside className="h-fit rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+          <div className="flex items-center gap-2"><Ticket size={19} className="text-[var(--k-accent)]" /><h2 className="font-bold text-[var(--k-ink)]">Registration</h2></div>
+          {hasAttended ? (
+            <div className="mt-4 rounded-xl bg-[var(--k-success-light)] p-3"><p className="text-sm font-semibold text-[var(--k-success)]">Attendance recorded</p><p className="mt-1 text-xs leading-5 text-[var(--k-ink-soft)]">Your completed attendance record is linked to your account.</p></div>
+          ) : isRegistered ? (
+            <div className="mt-4 rounded-xl bg-[var(--k-success-light)] p-3"><p className="text-sm font-semibold text-[var(--k-success)]">You are registered</p><p className="mt-1 text-xs leading-5 text-[var(--k-ink-soft)]">Your registration is linked to your account.</p></div>
+          ) : registration?.status === 'cancelled' ? (
+            <p className="mt-4 rounded-xl bg-[var(--k-warning-light)] p-3 text-sm leading-6 text-[var(--k-warning)]">This registration was cancelled by an organizer. Contact the organizer if you need help.</p>
+          ) : registration?.status === 'no_show' ? (
+            <p className="mt-4 rounded-xl bg-[var(--k-warning-light)] p-3 text-sm leading-6 text-[var(--k-warning)]">The attendance record is marked as no-show. Contact the organizer if you believe this is incorrect.</p>
+          ) : event.status !== 'published' ? (
+            <p className="mt-4 text-sm leading-6 text-[var(--k-muted)]">Registration opens when an authorized organizer publishes this event.</p>
+          ) : isPast ? (
+            <p className="mt-4 text-sm leading-6 text-[var(--k-muted)]">This event has already started. New registrations are closed.</p>
+          ) : (
+            <p className="mt-4 text-sm leading-6 text-[var(--k-muted)]">Register with your campus account to confirm your place.</p>
+          )}
+          {canRegister && <button type="button" disabled={saving} onClick={() => void handleRegistration()} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] px-4 py-3 text-sm font-semibold text-[var(--k-on-accent)] hover:bg-[var(--k-accent-hover)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--k-focus-ring)] disabled:opacity-50">{saving ? <LoaderCircle size={16} className="animate-spin" /> : <Ticket size={16} />}Register for event</button>}
+          {isRegistered && registration?.status === 'registered' && <button type="button" onClick={() => setShowCancel(true)} className="mt-4 w-full rounded-xl border border-[var(--k-border)] px-4 py-2.5 text-sm font-semibold text-[var(--k-ink)] hover:bg-[var(--k-surface-muted)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--k-focus-ring)]">Cancel registration</button>}
+          {event.status === 'cancelled' && <p className="mt-3 text-xs text-[var(--k-danger)]">The organizer has cancelled this event.</p>}
+        </aside>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LEFT 2 COLUMNS: DETAILS */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Quick Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-50 text-[#5146E5] shrink-0">
-                  <Calendar size={20} />
-                </div>
-                <div>
-                  <div className="text-xs text-[#667085] font-semibold">Date & Time</div>
-                  <div className="text-sm font-bold text-[#182230] mt-0.5">
-                    {formatDate(event.date)}
-                    {event.endDate && ` – ${formatDate(event.endDate)}`}
-                  </div>
-                  <div className="text-xs text-[#667085] mt-0.5">{event.time}</div>
-                </div>
-              </div>
+      {relatedEvents.length > 0 && <section className="mt-8"><h2 className="text-lg font-bold text-[var(--k-ink)]">More in {event.category}</h2><div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{relatedEvents.map((related) => <Link key={related.id} href={`/dashboard/events/${related.id}`} className="rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] p-4 transition hover:border-[var(--k-accent)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--k-focus-ring)]"><p className="text-xs font-semibold text-[var(--k-accent)]">{related.starts_at ? new Date(related.starts_at).toLocaleDateString() : 'Date to be announced'}</p><h3 className="mt-2 font-semibold text-[var(--k-ink)]">{related.title}</h3><p className="mt-1 text-xs text-[var(--k-muted)]">{related.location || 'Campus venue'}</p></Link>)}</div></section>}
 
-              <div className="p-4 bg-white rounded-2xl border border-[#E5E7EB] flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-teal-50 text-[#0F9D8A] shrink-0">
-                  <MapPin size={20} />
-                </div>
-                <div>
-                  <div className="text-xs text-[#667085] font-semibold">Location / Venue</div>
-                  <div className="text-sm font-bold text-[#182230] mt-0.5">{event.venue}</div>
-                  {event.isOnline && event.onlineLink && (
-                    <div className="text-xs text-[#5146E5] font-medium mt-0.5 underline">
-                      {event.onlineLink}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 space-y-4">
-              <h2 className="text-base font-bold text-[#182230]">Event Description</h2>
-              <div className="text-sm text-[#667085] leading-relaxed whitespace-pre-line">
-                {event.description}
-              </div>
-
-              {/* Eligibility & Requirements */}
-              <div className="pt-4 border-t border-[#E5E7EB]">
-                <h3 className="text-xs font-bold text-[#182230] uppercase tracking-wider mb-2">
-                  Eligibility & Attendance Guidelines
-                </h3>
-                <p className="text-xs text-[#667085] leading-relaxed">
-                  {event.eligibility}
-                </p>
-              </div>
-
-              {/* Tags */}
-              <div className="pt-4 border-t border-[#E5E7EB]">
-                <div className="flex flex-wrap gap-1.5">
-                  {event.tags.map(tag => (
-                    <span
-                      key={tag}
-                      className="px-2.5 py-1 bg-[#F7F8FC] border border-[#E5E7EB] text-xs font-medium text-[#667085] rounded-lg"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Organizer Banner */}
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                {organizerClub ? (
-                  <img
-                    src={organizerClub.logo}
-                    alt={organizerClub.name}
-                    className="w-12 h-12 rounded-xl object-cover border border-[#E5E7EB]"
-                  />
-                ) : (
-                  <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-                    <Building2 size={24} className="text-[#667085]" />
-                  </div>
-                )}
-                <div>
-                  <div className="text-xs text-[#667085] font-semibold">Organized by</div>
-                  <div className="text-sm font-bold text-[#182230]">
-                    {organizerClub?.name ?? organizerUser?.name ?? 'Northstar University'}
-                  </div>
-                  <div className="text-[11px] text-[#0F9D8A] font-semibold flex items-center gap-1 mt-0.5">
-                    <CheckCircle size={12} />
-                    Verified Campus Organizer
-                  </div>
-                </div>
-              </div>
-
-              {organizerClub && (
-                <Link
-                  href={`/dashboard/clubs/${organizerClub.id}`}
-                  className="px-3.5 py-1.5 text-xs font-semibold text-[#5146E5] bg-[#EEF0FD] hover:bg-indigo-100 rounded-xl transition-colors"
-                >
-                  View Club
-                </Link>
-              )}
-            </div>
-
-            {/* Related Events */}
-            {relatedEvents.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="text-sm font-bold text-[#182230]">More in {event.category}</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {relatedEvents.map(rel => (
-                    <Link
-                      key={rel.id}
-                      href={`/dashboard/events/${rel.id}`}
-                      className="p-3.5 bg-white rounded-xl border border-[#E5E7EB] hover:border-[#5146E5] transition-all block group"
-                    >
-                      <div className="text-[11px] font-bold text-[#5146E5]">
-                        {formatDate(rel.date)}
-                      </div>
-                      <div className="text-xs font-bold text-[#182230] group-hover:text-[#5146E5] mt-1 line-clamp-1">
-                        {rel.title}
-                      </div>
-                      <div className="text-[10px] text-[#667085] mt-1">{rel.venue}</div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT SIDEBAR: REGISTRATION BOX */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-[#E5E7EB] p-6 shadow-sm sticky top-20 space-y-5">
-              <div>
-                <span className="text-xs text-[#667085] font-semibold uppercase tracking-wider block">
-                  Registration Status
-                </span>
-                <div className="text-2xl font-bold text-[#182230] mt-1">
-                  {event.registeredCount}{' '}
-                  <span className="text-xs font-normal text-[#667085]">
-                    {event.capacity ? `/ ${event.capacity} seats confirmed` : 'registered attendees'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Progress bar if capacity */}
-              {event.capacity && (
-                <div>
-                  <div className="w-full bg-[#E5E7EB] h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-[#5146E5] h-full rounded-full transition-all"
-                      style={{ width: `${Math.min(100, (event.registeredCount / event.capacity) * 100)}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[11px] text-[#667085] mt-1 font-medium">
-                    <span>{event.capacity - event.registeredCount} spots remaining</span>
-                    <span>Deadline: {formatDate(event.registrationDeadline)}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Primary Action Button */}
-              {isRegistered ? (
-                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-3">
-                  <div className="flex items-center gap-2 text-emerald-800 text-xs font-bold">
-                    <CheckCircle size={16} className="text-emerald-600 shrink-0" />
-                    You are registered for this event!
-                  </div>
-                  <p className="text-[11px] text-emerald-700 leading-relaxed">
-                    A confirmation record has been added to your dashboard calendar and notifications.
-                  </p>
-                  <button
-                    onClick={() => setShowConfirmCancel(true)}
-                    className="w-full py-2 border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold rounded-lg transition-colors"
-                  >
-                    Cancel Registration
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleRegister}
-                  className="w-full py-3 bg-[#5146E5] hover:bg-[#4338CA] text-white font-bold text-sm rounded-xl transition-colors shadow-sm shadow-[#5146E5]/20 flex items-center justify-center gap-2"
-                >
-                  <Ticket size={16} />
-                  Confirm Event RSVP
-                </button>
-              )}
-
-              {/* Share & Invite */}
-              <button
-                onClick={handleShare}
-                className="w-full py-2.5 border border-[#E5E7EB] hover:bg-[#F7F8FC] text-xs font-semibold text-[#182230] rounded-xl flex items-center justify-center gap-1.5 transition-colors"
-              >
-                <Share2 size={14} />
-                {copied ? 'Link Copied to Clipboard!' : 'Share Event Link'}
-              </button>
-
-              <div className="text-[11px] text-[#667085] leading-relaxed pt-2 border-t border-[#E5E7EB]">
-                ⓘ Prototype simulation: RSVP updates your local session and profile calendar. No external email is dispatched.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* CANCEL CONFIRMATION DIALOG */}
-      {showConfirmCancel && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-[#E5E7EB] max-w-sm w-full p-6 shadow-xl animate-in fade-in zoom-in-95">
-            <h3 className="text-base font-bold text-[#182230]">Cancel RSVP?</h3>
-            <p className="text-xs text-[#667085] mt-1.5 mb-5 leading-relaxed">
-              Are you sure you want to surrender your registration for <strong>{event.title}</strong>? Your spot will be returned to the open campus pool.
-            </p>
-            <div className="flex items-center justify-end gap-2">
-              <button
-                onClick={() => setShowConfirmCancel(false)}
-                className="px-4 py-2 border border-[#E5E7EB] hover:bg-[#F7F8FC] text-xs font-semibold text-[#182230] rounded-xl"
-              >
-                Keep Registration
-              </button>
-              <button
-                onClick={handleCancelRegistration}
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl"
-              >
-                Confirm Cancellation
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      {showCancel && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="presentation" onMouseDown={(e) => { if (e.target === e.currentTarget) setShowCancel(false); }} onKeyDown={(e) => { if (e.key === 'Escape') setShowCancel(false); }}><section role="dialog" aria-modal="true" aria-labelledby="cancel-registration-title" aria-describedby="cancel-registration-description" className="w-full max-w-md rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5 shadow-xl"><h2 id="cancel-registration-title" className="text-lg font-bold text-[var(--k-ink)]">Cancel your registration?</h2><p id="cancel-registration-description" className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">Your place will be released. You can register again while registration remains open.</p><div className="mt-5 flex justify-end gap-2"><button type="button" autoFocus onClick={() => setShowCancel(false)} className="rounded-lg border border-[var(--k-border)] px-3.5 py-2 text-sm font-semibold text-[var(--k-ink)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--k-focus-ring)]">Keep registration</button><button type="button" disabled={saving} onClick={() => void handleRegistration()} className="rounded-lg bg-[var(--k-danger)] px-3.5 py-2 text-sm font-semibold text-[var(--k-on-danger)] disabled:opacity-50">{saving ? 'Cancelling…' : 'Confirm cancellation'}</button></div></section></div>}
+    </main>
   );
 }

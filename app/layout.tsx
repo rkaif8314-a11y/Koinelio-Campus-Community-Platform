@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AppProvider } from "@/lib/app-context";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
@@ -13,14 +12,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Koinelio — One campus. Every connection.",
   description:
-    "Koinelio is a global campus community platform connecting students, professors, college administrators, student clubs and alumni.",
+    "Koinelio is an independent campus community pilot for student profiles, clubs, events, conversations and alumni connections.",
   keywords: ["campus", "community", "students", "clubs", "events", "university"],
   authors: [{ name: "Koinelio" }],
   openGraph: {
     title: "Koinelio — One campus. Every connection.",
     description:
-      "Discover student communities, organize events, connect with faculty and alumni, and be part of everything happening across your campus.",
+      "Discover campus communities, follow conversations, find events and connect with alumni.",
     type: "website",
+    siteName: "Koinelio",
+    locale: "en_IN",
   },
 };
 
@@ -33,7 +34,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable} suppressHydrationWarning>
       <body className="antialiased">
         <ThemeProvider>
-          <AppProvider>{children}</AppProvider>
+          {children}
         </ThemeProvider>
       </body>
     </html>

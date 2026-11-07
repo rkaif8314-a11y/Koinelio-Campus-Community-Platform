@@ -1,19 +1,19 @@
-# IIT Bhilai demo research and content provenance
+# IIT Bhilai public-source research and content provenance
 
 **Reviewed:** 16 October 2026  
-**Purpose:** Populate the Koinelio interactive demonstration with publicly available institute information while keeping fictional demo interactions separate from facts.  
-**Important:** Koinelio is an independent, unofficial student-built prototype. IIT Bhilai has not approved, adopted, or endorsed this software. Do not use institute logos, staff/student identities, institutional email addresses, or wording that implies sponsorship without permission.
+**Purpose:** Record public-source references used by the read-only Koinelio Campus Guide. This is a provenance log, not an instruction to populate live campus features with sample records.  
+**Important:** Koinelio is an independently operated, unofficial campus community pilot. IIT Bhilai has not approved, adopted, or endorsed this software. Do not use institute logos, staff/student identities, institutional email addresses, or wording that implies sponsorship without permission.
 
 ## Data labels
 
 - **Public-source fact:** A statement paraphrased from a listed public source. The source link appears next to the item in the app.
 - **Historical information:** Content from a prior-year brochure or report. The year is shown, and current activity should be reconfirmed.
-- **Demo scenario:** Fictional student profiles, posts, club counts, event dates, registrations, comments, likes, and sample interactions used solely to demonstrate product flows. They are not IIT Bhilai announcements or actual members.
+- **Historical demo scenarios:** Fictional profiles, posts, club counts, event dates, registrations, comments, likes, and sample interactions from the earlier prototype are not live campus records and must not be reintroduced as current data.
 - **To verify before rollout:** Current club rosters, leaders, coordinators, room locations, event dates, eligibility, schedules, placement statistics, contact points, and any policy/benefit criteria.
 
 ## Public-source inventory
 
-| Topic | Source | Use in demo |
+| Topic | Source | Use in Campus Guide |
 |---|---|---|
 | Institute overview, establishment and location | [About IIT Bhilai](https://www.iitbhilai.ac.in/index.php?pid=admin_aboutiitbh) | Overview, institute location |
 | Departments | [Academic departments](https://www.iitbhilai.ac.in/?pid=nav_department) | Department list, separate discipline/centre labels |
@@ -34,9 +34,9 @@
 
 ## Implementation notes
 
-- Structured public-source records live in `lib/institution-config.ts`, so another institutional demo can later use the same layout with its own verified configuration.
+- Structured public-source records live in `lib/institution-config.ts`, so the read-only Campus Guide can be maintained without editing page components.
 - The campus guide is a read-only source summary at this stage; its links go to the public source pages.
-- Existing dashboard interactions are demo/local state. Signing in or joining an event in the demo does **not** communicate with IIT Bhilai or create an official registration.
-- The current production database is not yet the source of truth for every dashboard screen. Do not call the prototype a live IIT Bhilai service.
+- Signed-in product features use separate Supabase-backed workflows. They are independently operated and do not create official IIT Bhilai registrations or announcements.
+- Staging validation of Auth, RLS, Storage, realtime and multi-account workflows remains required. Do not describe Koinelio as an official IIT Bhilai service.
 - Future multi-institution content editing should require an approved institution record, verified institution admin, role-scoped access, audit history, and a publication/review state. Each institution should only be able to edit its own content.
 - Before any public launch or institutional pilot, contact the institute through official channels, ask permission, confirm current club rosters/events, and have the institution review its branded content.

@@ -73,7 +73,7 @@ export default function HelpPage() {
         <h2 id="help-shortcuts" className="mb-4 text-lg font-bold text-[var(--app-text)]">Quick links</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {helpLinks.map(({ title, description, href, icon: Icon }) => (
-            <Link key={href} href={href} className="group flex gap-4 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-purple)]">
+            <Link key={href} href={href} className="group flex gap-4 rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)] p-5 transition hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--k-accent)]">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--app-surface-muted)] text-[var(--app-text)]"><Icon size={19} /></span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center justify-between gap-2 font-semibold text-[var(--app-text)]">{title}<ArrowRight size={16} className="shrink-0 transition-transform group-hover:translate-x-0.5" /></span>
@@ -89,7 +89,7 @@ export default function HelpPage() {
         <div className="divide-y divide-[var(--app-border)] overflow-hidden rounded-2xl border border-[var(--app-border)] bg-[var(--app-surface)]">
           {faqs.map((faq) => (
             <details key={faq.question} className="group p-5">
-              <summary className="cursor-pointer list-none font-semibold text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-purple)]">
+              <summary className="cursor-pointer list-none font-semibold text-[var(--app-text)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--k-accent)]">
                 <span className="flex items-center justify-between gap-4">{faq.question}<span aria-hidden="true" className="text-xl text-[var(--app-muted)] transition-transform group-open:rotate-45">+</span></span>
               </summary>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--app-muted)]">{faq.answer}</p>

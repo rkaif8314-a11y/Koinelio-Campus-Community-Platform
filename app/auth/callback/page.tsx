@@ -47,12 +47,12 @@ function AuthCallbackPageContent() {
   }, [router, searchParams]);
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <main className="flex min-h-screen items-center justify-center bg-[var(--k-bg)] px-4">
       <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm">
-        {loading ? <LoaderCircle size={28} className="mx-auto animate-spin text-indigo-600" /> : error ? <AlertCircle size={28} className="mx-auto text-rose-600" /> : <CheckCircle2 size={28} className="mx-auto text-emerald-600" />}
-        <h1 className="mt-4 text-xl font-bold text-slate-900">{loading ? 'Confirming your email…' : error ? 'Confirmation needed' : 'Email confirmed'}</h1>
-        <p role="status" className="mt-2 text-sm leading-6 text-slate-600">{loading ? 'We are securely completing your Koinelio sign-in.' : error || 'Your account is ready.'}</p>
-        {!loading && error && <a href="/auth/signin" className="mt-5 inline-flex rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Return to sign in</a>}
+        {loading ? <LoaderCircle size={28} className="mx-auto animate-spin text-[var(--k-accent)]" /> : error ? <AlertCircle size={28} className="mx-auto text-[var(--k-danger)]" /> : <CheckCircle2 size={28} className="mx-auto text-[var(--k-success)]" />}
+        <h1 className="mt-4 text-xl font-bold text-[var(--k-ink)]">{loading ? 'Confirming your email…' : error ? 'Confirmation needed' : 'Email confirmed'}</h1>
+        <p role="status" className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">{loading ? 'We are securely completing your Koinelio sign-in.' : error || 'Your account is ready.'}</p>
+        {!loading && error && <a href="/auth/signin" className="mt-5 inline-flex rounded-xl bg-[var(--k-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--k-on-accent)]">Return to sign in</a>}
       </div>
     </main>
   );
@@ -61,7 +61,7 @@ function AuthCallbackPageContent() {
 
 export default function AuthCallbackPage() {
   return (
-    <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 text-sm text-slate-500">Checking your confirmation link…</main>}>
+    <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-[var(--k-bg)] px-4 text-sm text-[var(--k-muted)]">Checking your confirmation link…</main>}>
       <AuthCallbackPageContent />
     </Suspense>
   );

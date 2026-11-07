@@ -85,19 +85,19 @@ const categories = [
   'Other',
 ];
 
-const inputClass = 'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10';
-const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-55';
+const inputClass = 'w-full rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] px-3.5 py-2.5 text-sm text-[var(--k-ink)] outline-none focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)]';
+const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] px-3.5 py-2.5 text-sm font-semibold text-[var(--k-on-accent)] transition hover:bg-[var(--k-accent-hover)] disabled:cursor-not-allowed disabled:opacity-55';
 
 function ErrorBanner({ children }: { children: string }) {
-  return <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" /><span>{children}</span></div>;
+  return <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-[var(--k-danger-light)] bg-[var(--k-danger-light)] p-3 text-sm text-[var(--k-danger)]"><AlertCircle size={17} className="mt-0.5 shrink-0" /><span>{children}</span></div>;
 }
 
 function StatePill({ status }: { status: string }) {
   const style = status === 'approved' || status === 'active' || status === 'accepted'
-    ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+    ? 'border-[var(--k-success-light)] bg-[var(--k-success-light)] text-[var(--k-success)]'
     : status === 'rejected' || status === 'declined' || status === 'suspended'
-      ? 'border-rose-200 bg-rose-50 text-rose-800'
-      : 'border-amber-200 bg-amber-50 text-amber-900';
+      ? 'border-[var(--k-danger-light)] bg-[var(--k-danger-light)] text-[var(--k-danger)]'
+      : 'border-[var(--k-warning-light)] bg-[var(--k-warning-light)] text-[var(--k-warning)]';
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold capitalize ${style}`}>{status.replaceAll('_', ' ')}</span>;
 }
 
@@ -111,6 +111,7 @@ export default function ClubsPage() {
   const [roleRequests, setRoleRequests] = useState<RoleRequestRecord[]>([]);
   const [campusProfiles, setCampusProfiles] = useState<CampusProfile[]>([]);
   const [roles, setRoles] = useState<string[]>([]);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
   const [tab, setTab] = useState<Tab>('discover');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
@@ -183,12 +184,18 @@ export default function ClubsPage() {
       setInvitations((invitationResult.data ?? []) as InvitationRecord[]);
       setRoleRequests((roleResult.data ?? []) as unknown as RoleRequestRecord[]);
       setCampusProfiles((peopleResult.data ?? []) as CampusProfile[]);
-      const { data: userRoles } = await supabase
-        .from('institution_roles')
-        .select('role')
-        .eq('user_id', authData.user.id)
-        .eq('status', 'active');
-      setRoles((userRoles ?? []).map((item: { role: string }) => item.role));
+      const [userRoleResult, platformAdminResult] = await Promise.all([
+        supabase
+          .from('institution_roles')
+          .select('role')
+          .eq('user_id', authData.user.id)
+          .eq('status', 'active'),
+        supabase.rpc('is_platform_admin'),
+      ]);
+      if (userRoleResult.error) throw userRoleResult.error;
+      if (platformAdminResult.error) throw platformAdminResult.error;
+      setRoles((userRoleResult.data ?? []).map((item: { role: string }) => item.role));
+      setIsPlatformAdmin(platformAdminResult.data === true);
     } catch (loadError) {
       setError(supabaseErrorMessage(loadError, 'Unable to load club data from the database.'));
     } finally {
@@ -204,7 +211,7 @@ export default function ClubsPage() {
   const ownRequests = memberships.filter((item) => item.user_id === userId && item.status !== 'active');
   const invitationsForMe = invitations.filter((item) => item.invitee_id === userId && item.status === 'pending');
   const invitationsByMe = invitations.filter((item) => item.invited_by === userId && item.status === 'pending');
-  const leadership = roles.some((role) => ['institution_admin', 'president', 'technical_gs', 'cultural_gs'].includes(role));
+  const leadership = isPlatformAdmin || roles.some((role) => ['institution_admin', 'president', 'technical_gs', 'cultural_gs'].includes(role));
   const ownClubIds = new Set(activeMemberships.map((item) => item.club_id));
   const requestByClub = new Map(ownRequests.map((item) => [item.club_id, item]));
   const clubById = new Map(clubs.map((club) => [club.id, club]));
@@ -389,75 +396,75 @@ export default function ClubsPage() {
     activeMemberships.some((item) => item.club_id === clubId && item.role === 'coordinator') ||
     roles.some((role) => ['institution_admin', 'president'].includes(role));
 
-  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading clubs from Supabase…</div>;
+  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-[var(--k-muted)]"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading clubs from Supabase…</div>;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-indigo-700">Campus communities</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Clubs & governance</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Club membership is persistent. Join requests require coordinator approval; invited students must accept before membership is activated.</p>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--k-accent)]">Campus communities</p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-[var(--k-ink)] sm:text-3xl">Clubs & governance</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--k-ink-soft)]">Club membership is persistent. Join requests require coordinator approval; invited students must accept before membership is activated.</p>
         </div>
-        <button onClick={() => setShowCreateClub((value) => !value)} className={buttonClass}><Plus size={16} /> Propose a club</button>
+        <button type="button" onClick={() => setShowCreateClub((value) => !value)} className={buttonClass}><Plus size={16} /> Propose a club</button>
       </div>
 
       {error && <ErrorBanner>{error}</ErrorBanner>}
-      {success && <div role="status" className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><Check size={17} className="mt-0.5 shrink-0" />{success}</div>}
+      {success && <div role="status" className="mb-4 flex items-start gap-2 rounded-xl border border-[var(--k-success-light)] bg-[var(--k-success-light)] p-3 text-sm text-[var(--k-success)]"><Check size={17} className="mt-0.5 shrink-0" />{success}</div>}
 
       {showCreateClub && (
-        <form onSubmit={createClub} className="mb-6 rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm">
-          <h2 className="text-base font-bold text-slate-900">Submit a club proposal</h2>
-          <p className="mt-1 text-xs leading-5 text-slate-500">New clubs start pending. The creator cannot self-approve or self-assign coordinator powers.</p>
+        <form onSubmit={createClub} className="mb-6 rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5 shadow-sm">
+          <h2 className="text-base font-bold text-[var(--k-ink)]">Submit a club proposal</h2>
+          <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">New clubs start pending. The creator cannot self-approve or self-assign coordinator powers.</p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <div><label htmlFor="clubName" className="mb-1.5 block text-sm font-semibold text-slate-700">Club name</label><input id="clubName" required maxLength={120} value={newClubName} onChange={(e) => setNewClubName(e.target.value)} className={inputClass} placeholder="e.g. Robotics and Automation Club" /></div>
-            <div><label htmlFor="clubCategory" className="mb-1.5 block text-sm font-semibold text-slate-700">Category</label><select id="clubCategory" value={newClubCategory} onChange={(e) => setNewClubCategory(e.target.value)} className={inputClass}>{categories.map((item) => <option key={item}>{item}</option>)}</select></div>
-            <div className="md:col-span-2"><label htmlFor="clubDescription" className="mb-1.5 block text-sm font-semibold text-slate-700">Purpose and activities</label><textarea id="clubDescription" rows={3} maxLength={4000} required value={newClubDescription} onChange={(e) => setNewClubDescription(e.target.value)} className={inputClass} placeholder="What will the club do, and who is it for?" /></div>
+            <div><label htmlFor="clubName" className="mb-1.5 block text-sm font-semibold text-[var(--k-ink-soft)]">Club name</label><input id="clubName" required maxLength={120} value={newClubName} onChange={(e) => setNewClubName(e.target.value)} className={inputClass} placeholder="e.g. Robotics and Automation Club" /></div>
+            <div><label htmlFor="clubCategory" className="mb-1.5 block text-sm font-semibold text-[var(--k-ink-soft)]">Category</label><select id="clubCategory" value={newClubCategory} onChange={(e) => setNewClubCategory(e.target.value)} className={inputClass}>{categories.map((item) => <option key={item}>{item}</option>)}</select></div>
+            <div className="md:col-span-2"><label htmlFor="clubDescription" className="mb-1.5 block text-sm font-semibold text-[var(--k-ink-soft)]">Purpose and activities</label><textarea id="clubDescription" rows={3} maxLength={4000} required value={newClubDescription} onChange={(e) => setNewClubDescription(e.target.value)} className={inputClass} placeholder="What will the club do, and who is it for?" /></div>
           </div>
-          <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => setShowCreateClub(false)} className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700">Cancel</button><button disabled={saving} className={buttonClass}>{saving ? <LoaderCircle size={16} className="animate-spin" /> : <Plus size={16} />} Submit proposal</button></div>
+          <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => setShowCreateClub(false)} className="rounded-xl border border-[var(--k-border)] px-4 py-2.5 text-sm font-semibold text-[var(--k-ink-soft)]">Cancel</button><button disabled={saving} className={buttonClass}>{saving ? <LoaderCircle size={16} className="animate-spin" /> : <Plus size={16} />} Submit proposal</button></div>
         </form>
       )}
 
-      <div className="mb-5 flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+      <div className="mb-5 flex flex-wrap gap-2 border-b border-[var(--k-border)] pb-3">
         {([
           ['discover', 'Discover clubs'],
           ['mine', 'My memberships'],
           ['requests', `Requests & invitations${ownRequests.length + invitationsForMe.length ? ` (${ownRequests.length + invitationsForMe.length})` : ''}`],
           ['governance', `Review queue${leadership ? ` (${pendingClubApprovals.length + pendingMemberships.length + pendingRoleRequests.length})` : ''}`],
         ] as [Tab, string][]).map(([value, label]) => (
-          <button key={value} onClick={() => setTab(value)} className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === value ? 'bg-[#14213D] text-white' : 'text-slate-600 hover:bg-white'}`}>{label}</button>
+          <button type="button" key={value} onClick={() => setTab(value)} aria-pressed={tab === value} className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition ${tab === value ? 'bg-[var(--k-accent)] text-[var(--k-on-accent)]' : 'text-[var(--k-ink-soft)] hover:bg-[var(--k-surface)]'}`}>{label}</button>
         ))}
       </div>
 
       {tab === 'discover' && (
         <>
           <div className="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
-            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search approved clubs…" className={`${inputClass} pl-10`} /></div>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}><option>All</option>{categories.map((item) => <option key={item}>{item}</option>)}</select>
+            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--k-muted)]" size={17} /><input aria-label="Search approved clubs" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search approved clubs…" className={`${inputClass} pl-10`} /></div>
+            <select aria-label="Filter clubs by category" value={category} onChange={(e) => setCategory(e.target.value)} className={inputClass}><option>All</option>{categories.map((item) => <option key={item}>{item}</option>)}</select>
           </div>
           {filteredClubs.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center"><Users size={32} className="mx-auto mb-3 text-slate-300" /><h2 className="font-bold text-slate-800">No approved clubs to show yet</h2><p className="mt-2 text-sm text-slate-500">Only database-approved clubs appear here. You can propose a club for review.</p></div>
+            <div className="rounded-2xl border border-dashed border-[var(--k-border)] bg-[var(--k-surface)] p-10 text-center"><Users size={32} className="mx-auto mb-3 text-[var(--k-muted)]" /><h2 className="font-bold text-[var(--k-ink)]">No approved clubs to show yet</h2><p className="mt-2 text-sm text-[var(--k-muted)]">Only database-approved clubs appear here. You can propose a club for review.</p></div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
               {filteredClubs.map((club) => {
                 const membership = requestByClub.get(club.id);
                 const active = ownClubIds.has(club.id);
                 const manager = canManageClub(club.id);
-                return <article key={club.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                return <article key={club.id} className="flex flex-col rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-indigo-50 text-indigo-700">{club.logo_url ? <img src={club.logo_url} alt="" className="h-full w-full object-cover" /> : <Users size={23} />}</div>
-                    <div className="min-w-0 flex-1"><h2 className="font-bold text-slate-900">{club.name}</h2><p className="mt-1 text-xs text-slate-500">{club.category || 'Campus club'}</p></div>
-                    <BadgeCheck size={18} className="shrink-0 text-emerald-600" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--k-accent-light)] text-[var(--k-accent)]">{club.logo_url ? <img src={club.logo_url} alt="" className="h-full w-full object-cover" /> : <Users size={23} />}</div>
+                    <div className="min-w-0 flex-1"><h2 className="font-bold text-[var(--k-ink)]">{club.name}</h2><p className="mt-1 text-xs text-[var(--k-muted)]">{club.category || 'Campus club'}</p></div>
+                    <BadgeCheck size={18} className="shrink-0 text-[var(--k-success)]" />
                   </div>
-                  <p className="mt-4 line-clamp-4 flex-1 whitespace-pre-line text-sm leading-6 text-slate-600">{club.description || 'No club description provided yet.'}</p>
-                  <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4">
-                    {active ? <span className="text-xs font-semibold text-emerald-700">Active member</span> : membership ? <StatePill status={membership.status} /> : <span className="text-xs text-slate-500">Approval-controlled membership</span>}
+                  <p className="mt-4 line-clamp-4 flex-1 whitespace-pre-line text-sm leading-6 text-[var(--k-ink-soft)]">{club.description || 'No club description provided yet.'}</p>
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--k-border-soft)] pt-4">
+                    {active ? <span className="text-xs font-semibold text-[var(--k-success)]">Active member</span> : membership ? <StatePill status={membership.status} /> : <span className="text-xs text-[var(--k-muted)]">Approval-controlled membership</span>}
                     <div className="flex flex-wrap gap-2">
-                      <Link href={`/dashboard/messages?club=${club.id}`} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">Rooms</Link>
-                      {active ? <button disabled={saving} onClick={() => void leaveClub(club.id)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Leave</button> : !membership ? <button disabled={saving} onClick={() => void requestMembership(club.id)} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-50">Request to join</button> : null}
+                      <Link href={`/dashboard/messages?club=${club.id}`} className="rounded-lg border border-[var(--k-border)] px-3 py-2 text-xs font-semibold text-[var(--k-ink-soft)] hover:bg-[var(--k-surface-muted)]">Rooms</Link>
+                      {active ? <button type="button" disabled={saving} onClick={() => void leaveClub(club.id)} className="rounded-lg border border-[var(--k-border)] px-3 py-2 text-xs font-semibold text-[var(--k-ink-soft)] hover:bg-[var(--k-surface-muted)]">Leave</button> : !membership ? <button type="button" disabled={saving} onClick={() => void requestMembership(club.id)} className="rounded-lg bg-[var(--k-accent)] px-3 py-2 text-xs font-semibold text-[var(--k-on-accent)] hover:bg-[var(--k-accent-hover)] disabled:opacity-50">Request to join</button> : null}
                     </div>
                   </div>
-                  {manager && <button onClick={() => { setInviteClubId(club.id); setTab('governance'); }} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-700 hover:underline"><MailPlus size={14} /> Invite selected members</button>}
+                  {manager && <button type="button" onClick={() => { setInviteClubId(club.id); setTab('governance'); }} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--k-accent)] hover:underline"><MailPlus size={14} /> Invite selected members</button>}
                 </article>;
               })}
             </div>
@@ -467,12 +474,12 @@ export default function ClubsPage() {
 
       {tab === 'mine' && (
         <div className="space-y-3">
-          {activeMemberships.length === 0 ? <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">You have no active club memberships yet. Request to join an approved club or accept an invitation.</div> : activeMemberships.map((membership) => {
+          {activeMemberships.length === 0 ? <div className="rounded-2xl border border-dashed border-[var(--k-border)] bg-[var(--k-surface)] p-8 text-center text-sm text-[var(--k-muted)]">You have no active club memberships yet. Request to join an approved club or accept an invitation.</div> : activeMemberships.map((membership) => {
             const club = clubById.get(membership.club_id);
             if (!club) return null;
-            return <div key={membership.club_id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-              <div><h2 className="font-bold text-slate-900">{club.name}</h2><p className="mt-1 text-xs text-slate-500">{club.category || 'Campus club'}</p></div>
-              <div className="flex items-center gap-2"><StatePill status={membership.role} /><Link href={`/dashboard/messages?club=${club.id}`} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-semibold text-white">Open rooms</Link><button disabled={saving} onClick={() => void leaveClub(club.id)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">Leave</button></div>
+            return <div key={membership.club_id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-4">
+              <div><h2 className="font-bold text-[var(--k-ink)]">{club.name}</h2><p className="mt-1 text-xs text-[var(--k-muted)]">{club.category || 'Campus club'}</p></div>
+              <div className="flex items-center gap-2"><StatePill status={membership.role} /><Link href={`/dashboard/messages?club=${club.id}`} className="rounded-lg bg-[var(--k-accent)] px-3 py-2 text-xs font-semibold text-[var(--k-on-accent)]">Open rooms</Link><button type="button" disabled={saving} onClick={() => void leaveClub(club.id)} className="rounded-lg border border-[var(--k-border)] px-3 py-2 text-xs font-semibold text-[var(--k-ink-soft)]">Leave</button></div>
             </div>;
           })}
         </div>
@@ -480,34 +487,34 @@ export default function ClubsPage() {
 
       {tab === 'requests' && (
         <div className="space-y-6">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Invitations for you</h2>
-            <p className="mt-1 text-xs text-slate-500">You become a member only after you accept an invitation.</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Invitations for you</h2>
+            <p className="mt-1 text-xs text-[var(--k-muted)]">You become a member only after you accept an invitation.</p>
             <div className="mt-4 space-y-3">
-              {invitationsForMe.length === 0 && <p className="text-sm text-slate-500">No pending invitations.</p>}
-              {invitationsForMe.map((invitation) => <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><p className="font-semibold text-slate-900">{clubById.get(invitation.club_id)?.name ?? 'Club invitation'}</p><p className="mt-1 text-xs text-slate-500">Offered role: {invitation.invited_role.replace('_', ' ')}{invitation.message ? ` · ${invitation.message}` : ''}</p></div><div className="flex gap-2"><button disabled={saving} onClick={() => void respondToInvitation(invitation, false)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600"><X size={13} className="mr-1 inline" />Decline</button><button disabled={saving} onClick={() => void respondToInvitation(invitation, true)} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Accept</button></div></div>)}
+              {invitationsForMe.length === 0 && <p className="text-sm text-[var(--k-muted)]">No pending invitations.</p>}
+              {invitationsForMe.map((invitation) => <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--k-border-soft)] p-3"><div><p className="font-semibold text-[var(--k-ink)]">{clubById.get(invitation.club_id)?.name ?? 'Club invitation'}</p><p className="mt-1 text-xs text-[var(--k-muted)]">Offered role: {invitation.invited_role.replace('_', ' ')}{invitation.message ? ` · ${invitation.message}` : ''}</p></div><div className="flex gap-2"><button type="button" disabled={saving} onClick={() => void respondToInvitation(invitation, false)} className="rounded-lg border border-[var(--k-border)] px-3 py-2 text-xs font-semibold text-[var(--k-ink-soft)]"><X size={13} className="mr-1 inline" />Decline</button><button type="button" disabled={saving} onClick={() => void respondToInvitation(invitation, true)} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Accept</button></div></div>)}
             </div>
           </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Your membership requests</h2>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Your membership requests</h2>
             <div className="mt-4 space-y-3">
-              {ownRequests.length === 0 && <p className="text-sm text-slate-500">No pending or rejected membership requests.</p>}
-              {ownRequests.map((request) => <div key={request.club_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><p className="font-semibold text-slate-900">{clubById.get(request.club_id)?.name ?? 'Club'}</p><p className="mt-1 text-xs text-slate-500">Submitted {new Date(request.created_at).toLocaleDateString()}</p></div><StatePill status={request.status} /></div>)}
+              {ownRequests.length === 0 && <p className="text-sm text-[var(--k-muted)]">No pending or rejected membership requests.</p>}
+              {ownRequests.map((request) => <div key={request.club_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--k-border-soft)] p-3"><div><p className="font-semibold text-[var(--k-ink)]">{clubById.get(request.club_id)?.name ?? 'Club'}</p><p className="mt-1 text-xs text-[var(--k-muted)]">Submitted {new Date(request.created_at).toLocaleDateString()}</p></div><StatePill status={request.status} /></div>)}
             </div>
           </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Invitations sent by you</h2>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Invitations sent by you</h2>
             <div className="mt-4 space-y-3">
-              {invitationsByMe.length === 0 && <p className="text-sm text-slate-500">No pending invitations sent.</p>}
-              {invitationsByMe.map((invitation) => <div key={invitation.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><p className="font-semibold text-slate-900">{campusProfiles.find((person) => person.id === invitation.invitee_id)?.display_name ?? 'Campus member'}</p><p className="text-xs text-slate-500">{clubById.get(invitation.club_id)?.name ?? 'Club'} · {invitation.invited_role.replace('_', ' ')}</p></div><StatePill status={invitation.status} /></div>)}
+              {invitationsByMe.length === 0 && <p className="text-sm text-[var(--k-muted)]">No pending invitations sent.</p>}
+              {invitationsByMe.map((invitation) => <div key={invitation.id} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--k-border-soft)] p-3"><div><p className="font-semibold text-[var(--k-ink)]">{campusProfiles.find((person) => person.id === invitation.invitee_id)?.display_name ?? 'Campus member'}</p><p className="text-xs text-[var(--k-muted)]">{clubById.get(invitation.club_id)?.name ?? 'Club'} · {invitation.invited_role.replace('_', ' ')}</p></div><StatePill status={invitation.status} /></div>)}
             </div>
           </section>
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Request campus leadership consideration</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-500">You may request consideration for campus President, Technical/Cultural General Secretary or Moderator. Only the authorized platform administrator can approve these institute-wide roles. Requesting does not grant access.</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Request campus leadership consideration</h2>
+            <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">You may request consideration for campus President, Technical/Cultural General Secretary or Moderator. Only the authorized platform administrator can approve these institute-wide roles. Requesting does not grant access.</p>
             <form onSubmit={requestCampusLeadership} className="mt-4 grid gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="requestedCampusRole" className="mb-1.5 block text-xs font-semibold text-slate-700">Role requested</label>
+                <label htmlFor="requestedCampusRole" className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]">Role requested</label>
                 <select id="requestedCampusRole" value={requestedRole} onChange={(e) => setRequestedRole(e.target.value as 'president' | 'technical_gs' | 'cultural_gs' | 'moderator')} className={inputClass}>
                   <option value="president">Campus President</option>
                   <option value="technical_gs">General Secretary — Technical Council</option>
@@ -516,23 +523,23 @@ export default function ClubsPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="roleRationale" className="mb-1.5 block text-xs font-semibold text-slate-700">Relevant experience / rationale</label>
+                <label htmlFor="roleRationale" className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]">Relevant experience / rationale</label>
                 <input id="roleRationale" maxLength={2000} value={roleRationale} onChange={(e) => setRoleRationale(e.target.value)} className={inputClass} placeholder="Why are you requesting consideration?" />
               </div>
               <div className="sm:col-span-2"><button disabled={saving} className={buttonClass}><ShieldCheck size={15} />Submit role request</button></div>
             </form>
-            {roleRequests.filter((request) => request.user_id === userId && request.requested_role !== 'club_coordinator').length > 0 && <div className="mt-4 space-y-2">{roleRequests.filter((request) => request.user_id === userId && request.requested_role !== 'club_coordinator').map((request) => <div key={request.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-slate-50 p-3 text-xs"><span className="font-semibold text-slate-800">{request.requested_role.replaceAll('_', ' ')}</span><StatePill status={request.status} /></div>)}</div>}
+            {roleRequests.filter((request) => request.user_id === userId && request.requested_role !== 'club_coordinator').length > 0 && <div className="mt-4 space-y-2">{roleRequests.filter((request) => request.user_id === userId && request.requested_role !== 'club_coordinator').map((request) => <div key={request.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-[var(--k-surface-muted)] p-3 text-xs"><span className="font-semibold text-[var(--k-ink)]">{request.requested_role.replaceAll('_', ' ')}</span><StatePill status={request.status} /></div>)}</div>}
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Coordinator consideration</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Coordinators are appointed after approval by the General Secretary responsible for that club category, the campus president, or the administrator. Membership alone never grants coordinator powers.</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Coordinator consideration</h2>
+            <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">Coordinators are appointed after approval by the General Secretary responsible for that club category, the campus president, or the administrator. Membership alone never grants coordinator powers.</p>
             <div className="mt-4 space-y-3">
               {activeMemberships.filter((item) => item.role === 'member').map((membership) => {
                 const club = clubById.get(membership.club_id);
                 if (!club) return null;
                 const hasRequest = roleRequests.some((req) => req.user_id === userId && req.club_id === club.id && req.status === 'pending' && req.requested_role === 'club_coordinator');
-                return <div key={club.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><p className="font-semibold text-slate-900">{club.name}</p><p className="text-xs text-slate-500">Current role: member</p></div><button disabled={saving || hasRequest} onClick={() => void requestCoordinator(club)} className="rounded-lg border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 disabled:opacity-50">{hasRequest ? 'Request pending' : 'Request coordinator review'}</button></div>;
+                return <div key={club.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--k-border-soft)] p-3"><div><p className="font-semibold text-[var(--k-ink)]">{club.name}</p><p className="text-xs text-[var(--k-muted)]">Current role: member</p></div><button type="button" disabled={saving || hasRequest} onClick={() => void requestCoordinator(club)} className="rounded-lg border border-[var(--k-border)] px-3 py-2 text-xs font-semibold text-[var(--k-accent)] disabled:opacity-50">{hasRequest ? 'Request pending' : 'Request coordinator review'}</button></div>;
               })}
             </div>
           </section>
@@ -541,50 +548,50 @@ export default function ClubsPage() {
 
       {tab === 'governance' && (
         <div className="space-y-6">
-          {!leadership && <div className="rounded-2xl border border-slate-200 bg-white p-6"><ShieldCheck className="mb-2 text-slate-400" size={25} /><h2 className="font-bold text-slate-900">Coordinator and executive review queue</h2><p className="mt-2 text-sm leading-6 text-slate-600">This queue shows only requests permitted to your account by database row-level security. Coordinators see requests for their own clubs; campus executives see the requests their role permits.</p></div>}
+          {!leadership && <div className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-6"><ShieldCheck className="mb-2 text-[var(--k-muted)]" size={25} /><h2 className="font-bold text-[var(--k-ink)]">Coordinator and executive review queue</h2><p className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">This queue shows only requests permitted to your account by database row-level security. Coordinators see requests for their own clubs; campus executives see the requests their role permits.</p></div>}
 
-          {leadership && <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Club proposals</h2>
-            <p className="mt-1 text-xs text-slate-500">Only an administrator or campus president can change club approval status.</p>
+          {leadership && <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Club proposals</h2>
+            <p className="mt-1 text-xs text-[var(--k-muted)]">Only an administrator or campus president can change club approval status.</p>
             <div className="mt-4 space-y-3">
-              {pendingClubApprovals.length === 0 && <p className="text-sm text-slate-500">No club proposals waiting for approval.</p>}
-              {pendingClubApprovals.map((club) => <div key={club.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div className="min-w-0"><p className="font-semibold text-slate-900">{club.name}</p><p className="mt-1 text-xs text-slate-500">{club.category || 'Uncategorised'} · {club.description.slice(0, 130)}</p><StatePill status={club.approval_status} /></div><div className="flex gap-2"><button disabled={saving} onClick={() => void reviewClub(club, 'rejected')} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700">Reject</button><button disabled={saving} onClick={() => void reviewClub(club, 'approved')} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Approve</button></div></div>)}
+              {pendingClubApprovals.length === 0 && <p className="text-sm text-[var(--k-muted)]">No club proposals waiting for approval.</p>}
+              {pendingClubApprovals.map((club) => <div key={club.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--k-border-soft)] p-3"><div className="min-w-0"><p className="font-semibold text-[var(--k-ink)]">{club.name}</p><p className="mt-1 text-xs text-[var(--k-muted)]">{club.category || 'Uncategorised'} · {club.description.slice(0, 130)}</p><StatePill status={club.approval_status} /></div><div className="flex gap-2"><button type="button" disabled={saving} onClick={() => void reviewClub(club, 'rejected')} className="rounded-lg border border-[var(--k-danger-light)] px-3 py-2 text-xs font-semibold text-[var(--k-danger)]">Reject</button><button type="button" disabled={saving} onClick={() => void reviewClub(club, 'approved')} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Approve</button></div></div>)}
             </div>
           </section>}
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Pending membership approvals</h2>
-            <p className="mt-1 text-xs text-slate-500">Club coordinators can review requests for the clubs they manage.</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Pending membership approvals</h2>
+            <p className="mt-1 text-xs text-[var(--k-muted)]">Club coordinators can review requests for the clubs they manage.</p>
             <div className="mt-4 space-y-3">
-              {pendingMemberships.length === 0 && <p className="text-sm text-slate-500">No pending requests are visible to your account.</p>}
-              {pendingMemberships.map((membership) => <div key={`${membership.club_id}-${membership.user_id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><p className="font-semibold text-slate-900">{membership.profiles?.display_name ?? 'Campus member'}</p><p className="mt-1 text-xs text-slate-500">{clubById.get(membership.club_id)?.name ?? 'Club'}{membership.profiles?.department ? ` · ${membership.profiles.department}` : ''}</p></div><div className="flex gap-2"><button disabled={saving} onClick={() => void reviewMembership(membership, 'rejected')} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700">Reject</button><button disabled={saving} onClick={() => void reviewMembership(membership, 'active')} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Approve</button></div></div>)}
+              {pendingMemberships.length === 0 && <p className="text-sm text-[var(--k-muted)]">No pending requests are visible to your account.</p>}
+              {pendingMemberships.map((membership) => <div key={`${membership.club_id}-${membership.user_id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--k-border-soft)] p-3"><div><p className="font-semibold text-[var(--k-ink)]">{membership.profiles?.display_name ?? 'Campus member'}</p><p className="mt-1 text-xs text-[var(--k-muted)]">{clubById.get(membership.club_id)?.name ?? 'Club'}{membership.profiles?.department ? ` · ${membership.profiles.department}` : ''}</p></div><div className="flex gap-2"><button type="button" disabled={saving} onClick={() => void reviewMembership(membership, 'rejected')} className="rounded-lg border border-[var(--k-danger-light)] px-3 py-2 text-xs font-semibold text-[var(--k-danger)]">Reject</button><button type="button" disabled={saving} onClick={() => void reviewMembership(membership, 'active')} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Approve</button></div></div>)}
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="font-bold text-slate-900">Governance role requests</h2>
-            <p className="mt-1 text-xs text-slate-500">The database verifies whether you may approve this exact role. A UI button does not grant additional permission.</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="font-bold text-[var(--k-ink)]">Governance role requests</h2>
+            <p className="mt-1 text-xs text-[var(--k-muted)]">The database verifies whether you may approve this exact role. A UI button does not grant additional permission.</p>
             <div className="mt-4 space-y-3">
-              {pendingRoleRequests.length === 0 && <p className="text-sm text-slate-500">No pending leadership requests are visible to your account.</p>}
-              {pendingRoleRequests.map((request) => <div key={request.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-100 p-3"><div><p className="font-semibold text-slate-900">{request.profiles?.display_name ?? 'Campus member'}</p><p className="mt-1 text-xs text-slate-500">{request.requested_role.replaceAll('_', ' ')} · {request.clubs?.name ?? 'Institute-wide role'}{request.rationale ? ` · ${request.rationale}` : ''}</p></div><div className="flex gap-2"><button disabled={saving} onClick={() => void decideRoleRequest(request.id, 'rejected')} className="rounded-lg border border-rose-200 px-3 py-2 text-xs font-semibold text-rose-700">Reject</button><button disabled={saving} onClick={() => void decideRoleRequest(request.id, 'approved')} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Approve</button></div></div>)}
+              {pendingRoleRequests.length === 0 && <p className="text-sm text-[var(--k-muted)]">No pending leadership requests are visible to your account.</p>}
+              {pendingRoleRequests.map((request) => <div key={request.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--k-border-soft)] p-3"><div><p className="font-semibold text-[var(--k-ink)]">{request.profiles?.display_name ?? 'Campus member'}</p><p className="mt-1 text-xs text-[var(--k-muted)]">{request.requested_role.replaceAll('_', ' ')} · {request.clubs?.name ?? 'Institute-wide role'}{request.rationale ? ` · ${request.rationale}` : ''}</p></div><div className="flex gap-2"><button type="button" disabled={saving} onClick={() => void decideRoleRequest(request.id, 'rejected')} className="rounded-lg border border-[var(--k-danger-light)] px-3 py-2 text-xs font-semibold text-[var(--k-danger)]">Reject</button><button type="button" disabled={saving} onClick={() => void decideRoleRequest(request.id, 'approved')} className={`${buttonClass} px-3 py-2 text-xs`}><Check size={13} />Approve</button></div></div>)}
             </div>
           </section>
 
           {activeMemberships.some((membership) => membership.role === 'coordinator') && (
-            <section className="rounded-2xl border border-slate-200 bg-white p-5">
-              <h2 className="font-bold text-slate-900">Invite students after selection/interview</h2>
-              <p className="mt-1 text-xs leading-5 text-slate-500">Invite a selected campus account as a General Member or Core Member. They are not added until they accept. The database checks coordinator authority.</p>
+            <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+              <h2 className="font-bold text-[var(--k-ink)]">Invite students after selection/interview</h2>
+              <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">Invite a selected campus account as a General Member or Core Member. They are not added until they accept. The database checks coordinator authority.</p>
               <form onSubmit={inviteMember} className="mt-4 grid gap-3 md:grid-cols-2">
-                <div><label className="mb-1.5 block text-xs font-semibold text-slate-700" htmlFor="inviteClub">Club</label><select id="inviteClub" required value={inviteClubId} onChange={(e) => setInviteClubId(e.target.value)} className={inputClass}><option value="">Choose managed club</option>{activeMemberships.filter((m) => m.role === 'coordinator').map((membership) => { const club = clubById.get(membership.club_id); return club ? <option key={club.id} value={club.id}>{club.name}</option> : null; })}</select></div>
-                <div><label className="mb-1.5 block text-xs font-semibold text-slate-700" htmlFor="invitePerson">Selected campus student</label><select id="invitePerson" required value={inviteUserId} onChange={(e) => setInviteUserId(e.target.value)} className={inputClass}><option value="">Choose a profile</option>{campusProfiles.map((person) => <option key={person.id} value={person.id}>{person.display_name}{person.department ? ` · ${person.department}` : ''}</option>)}</select></div>
-                <div><label className="mb-1.5 block text-xs font-semibold text-slate-700" htmlFor="inviteRole">Invite as</label><select id="inviteRole" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'member' | 'core_member')} className={inputClass}><option value="member">General Member</option><option value="core_member">Core Member</option></select></div>
-                <div><label className="mb-1.5 block text-xs font-semibold text-slate-700" htmlFor="inviteMessage">Message (optional)</label><input id="inviteMessage" maxLength={1200} value={inviteMessage} onChange={(e) => setInviteMessage(e.target.value)} className={inputClass} placeholder="Interview selection, role, next step…" /></div>
+                <div><label className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]" htmlFor="inviteClub">Club</label><select id="inviteClub" required value={inviteClubId} onChange={(e) => setInviteClubId(e.target.value)} className={inputClass}><option value="">Choose managed club</option>{activeMemberships.filter((m) => m.role === 'coordinator').map((membership) => { const club = clubById.get(membership.club_id); return club ? <option key={club.id} value={club.id}>{club.name}</option> : null; })}</select></div>
+                <div><label className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]" htmlFor="invitePerson">Selected campus student</label><select id="invitePerson" required value={inviteUserId} onChange={(e) => setInviteUserId(e.target.value)} className={inputClass}><option value="">Choose a profile</option>{campusProfiles.map((person) => <option key={person.id} value={person.id}>{person.display_name}{person.department ? ` · ${person.department}` : ''}</option>)}</select></div>
+                <div><label className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]" htmlFor="inviteRole">Invite as</label><select id="inviteRole" value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'member' | 'core_member')} className={inputClass}><option value="member">General Member</option><option value="core_member">Core Member</option></select></div>
+                <div><label className="mb-1.5 block text-xs font-semibold text-[var(--k-ink-soft)]" htmlFor="inviteMessage">Message (optional)</label><input id="inviteMessage" maxLength={1200} value={inviteMessage} onChange={(e) => setInviteMessage(e.target.value)} className={inputClass} placeholder="Interview selection, role, next step…" /></div>
                 <div className="md:col-span-2"><button disabled={saving} className={buttonClass}><MailPlus size={16} />Send invitation</button></div>
               </form>
             </section>
           )}
 
-          <div className="rounded-xl border border-sky-100 bg-sky-50 p-4 text-xs leading-5 text-sky-950"><strong>Permission model:</strong> club coordinator → manages membership and invitations for that club; Technical/Cultural General Secretary → reviews matching coordinator requests; president/administrator → campus-wide club governance. Users cannot self-assign these privileges.</div>
+          <div className="rounded-xl border border-[var(--k-border)] bg-[var(--k-accent-light)] p-4 text-xs leading-5 text-[var(--k-ink-soft)]"><strong>Permission model:</strong> club coordinator → manages membership and invitations for that club; Technical/Cultural General Secretary → reviews matching coordinator requests; president/administrator → campus-wide club governance. Users cannot self-assign these privileges.</div>
         </div>
       )}
     </div>

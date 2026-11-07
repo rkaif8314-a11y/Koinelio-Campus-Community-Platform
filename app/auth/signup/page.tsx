@@ -48,8 +48,8 @@ const interestOptions = [
   'Photography', 'Music', 'Mentoring',
 ] as const;
 
-const inputClass = 'w-full rounded-xl border border-[#D0D5DD] bg-white px-3.5 py-3 text-sm text-[#182230] shadow-sm outline-none transition-colors placeholder:text-[#98A2B3] focus:border-[#5146E5] focus:ring-4 focus:ring-[#5146E5]/10';
-const labelClass = 'mb-1.5 block text-sm font-semibold text-[#344054]';
+const inputClass = 'w-full rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] px-3.5 py-3 text-sm text-[var(--k-ink)] shadow-sm outline-none transition-colors placeholder:text-[var(--k-muted)] focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)]';
+const labelClass = 'mb-1.5 block text-sm font-semibold text-[var(--k-ink)]';
 
 export default function SignUpPage() {
   const [step, setStep] = useState<1 | 2>(1);
@@ -174,7 +174,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <main className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-[#F7F8FC] px-4 py-12 sm:px-6 lg:px-8">
+    <main className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-[var(--k-bg)] px-4 py-12 sm:px-6 lg:px-8">
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-indigo-100/70 via-sky-50/40 to-transparent" />
       <div className="fixed right-4 top-4 z-[60]"><ThemeToggle /></div>
 
@@ -182,44 +182,44 @@ export default function SignUpPage() {
         <div className="text-center">
           <Link href="/" className="inline-flex items-center justify-center gap-2.5 rounded-xl p-1.5">
             <KoinelioLogoMark size={36} />
-            <span className="text-xl font-bold tracking-tight text-[#182230]">Koinelio</span>
+            <span className="text-xl font-bold tracking-tight text-[var(--k-ink)]">Koinelio</span>
           </Link>
-          <p className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-[#5146E5]">One campus. Every connection.</p>
-          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[#182230] sm:text-3xl">Join your campus community</h1>
+          <p className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-[var(--k-accent)]">One campus. Every connection.</p>
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-[var(--k-ink)] sm:text-3xl">Join your campus community</h1>
           {!authMessage && (
             <div className="mx-auto mt-4 flex max-w-xs items-center gap-3" aria-label={`Step ${step} of 2`}>
               {[1, 2].map((number) => (
                 <React.Fragment key={number}>
-                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step >= number ? 'bg-[#5146E5] text-white' : 'border border-[#D0D5DD] bg-white text-[#667085]'}`}>{step > number ? '✓' : number}</span>
-                  {number === 1 && <span className={`h-1 flex-1 rounded-full ${step === 2 ? 'bg-[#5146E5]' : 'bg-[#E5E7EB]'}`} />}
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${step >= number ? 'bg-[var(--k-accent)] text-white' : 'border border-[var(--k-border)] bg-[var(--k-surface)] text-[var(--k-muted)]'}`}>{step > number ? '✓' : number}</span>
+                  {number === 1 && <span className={`h-1 flex-1 rounded-full ${step === 2 ? 'bg-[var(--k-accent)]' : 'bg-[var(--k-surface-muted)]'}`} />}
                 </React.Fragment>
               ))}
             </div>
           )}
-          {!authMessage && <p className="mt-2 text-sm text-[#667085]">Step {step} of 2 · {step === 1 ? 'Account credentials' : 'Academic profile'}</p>}
+          {!authMessage && <p className="mt-2 text-sm text-[var(--k-muted)]">Step {step} of 2 · {step === 1 ? 'Account credentials' : 'Academic profile'}</p>}
         </div>
 
-        <section className="mt-6 rounded-2xl border border-[#E5E7EB] bg-white/95 p-5 shadow-xl shadow-slate-900/5 backdrop-blur sm:p-8">
-          <div className="mb-5 flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-3 text-sm leading-5 text-sky-950">
-            <ShieldCheck size={19} className="mt-0.5 shrink-0 text-sky-800" />
+        <section className="mt-6 rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)]/95 p-5 shadow-xl shadow-slate-900/5 backdrop-blur sm:p-8">
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-[var(--k-border)] bg-[var(--k-accent-light)] px-3.5 py-3 text-sm leading-5 text-[var(--k-ink)]">
+            <ShieldCheck size={19} className="mt-0.5 shrink-0 text-[var(--k-accent-dark)]" />
             <div>
               <p className="font-semibold">IIT Bhilai email-restricted campus pilot</p>
               <p className="mt-1">Use your Koinelio password only, never your institute/LDAP password. Email confirmation proves mailbox access, not current student enrolment. Koinelio is independently operated unless formally authorized by IIT Bhilai.</p>
             </div>
           </div>
 
-          {authError && <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm leading-5 text-red-800">{authError}</div>}
+          {authError && <div role="alert" className="mb-5 rounded-xl border border-[var(--k-danger)] bg-[var(--k-danger-light)] px-3.5 py-3 text-sm leading-5 text-[var(--k-danger)]">{authError}</div>}
 
           {authMessage ? (
             <div className="py-4 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"><CheckCircle size={27} /></div>
-              <h2 className="mt-4 text-xl font-bold text-[#182230]">Account created</h2>
-              <p role="status" className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[#667085]">{authMessage}</p>
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--k-success-light)] text-[var(--k-success)] ring-1 ring-emerald-100"><CheckCircle size={27} /></div>
+              <h2 className="mt-4 text-xl font-bold text-[var(--k-ink)]">Account created</h2>
+              <p role="status" className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[var(--k-muted)]">{authMessage}</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <Link href="/auth/signin" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5146E5] px-4 py-3 text-sm font-semibold text-white hover:bg-[#4338CA]">Continue to sign in <ArrowRight size={16} /></Link>
-                <Link href="/auth/forgot-password" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#D0D5DD] bg-white px-4 py-3 text-sm font-semibold text-[#344054] hover:bg-slate-50">Need help signing in?</Link>
+                <Link href="/auth/signin" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] px-4 py-3 text-sm font-semibold text-[var(--k-on-accent)] hover:bg-[var(--k-accent-hover)]">Continue to sign in <ArrowRight size={16} /></Link>
+                <Link href="/auth/forgot-password" className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] px-4 py-3 text-sm font-semibold text-[var(--k-ink)] hover:bg-[var(--k-bg)]">Need help signing in?</Link>
               </div>
-              <p className="mt-4 text-xs leading-5 text-[#667085]">Never enter your institute/LDAP password in Koinelio. The institute ID field is intentionally unavailable until a private verification workflow is approved and ready.</p>
+              <p className="mt-4 text-xs leading-5 text-[var(--k-muted)]">Never enter your institute/LDAP password in Koinelio. The institute ID field is intentionally unavailable until a private verification workflow is approved and ready.</p>
             </div>
           ) : step === 1 ? (
             <form onSubmit={handleContinue} className="space-y-4">
@@ -230,34 +230,34 @@ export default function SignUpPage() {
               <div>
                 <label htmlFor="email" className={labelClass}>IIT Bhilai institute email</label>
                 <input id="email" type="email" autoComplete="email" maxLength={254} required placeholder="name@iitbhilai.ac.in" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} />
-                <p className="mt-1.5 text-xs leading-5 text-[#667085]">Only @iitbhilai.ac.in addresses are accepted. You must confirm the email link before signing in; this domain check alone does not verify current enrolment.</p>
+                <p className="mt-1.5 text-xs leading-5 text-[var(--k-muted)]">Only @iitbhilai.ac.in addresses are accepted. You must confirm the email link before signing in; this domain check alone does not verify current enrolment.</p>
               </div>
               <div>
                 <label htmlFor="password" className={labelClass}>Create password</label>
                 <div className="relative">
                   <input id="password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" minLength={12} maxLength={128} required placeholder="Use 12+ characters or a passphrase" value={password} onChange={(event) => setPassword(event.target.value)} className={`${inputClass} pr-12`} />
-                  <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[#667085] hover:bg-slate-100">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button>
+                  <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-[var(--k-muted)] hover:bg-[var(--k-surface-muted)]">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button>
                 </div>
-                <p className="mt-1.5 text-xs leading-5 text-[#667085]">Use a unique password. Authentication is handled by Supabase; never use your institute password.</p>
+                <p className="mt-1.5 text-xs leading-5 text-[var(--k-muted)]">Use a unique password. Authentication is handled by Supabase; never use your institute password.</p>
               </div>
-              <button type="submit" className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5146E5] to-[#4338CA] py-3.5 text-sm font-semibold text-white shadow-sm shadow-indigo-900/10 hover:from-[#4338CA] hover:to-[#3730A3]">Continue to academic profile <ArrowRight size={16} /></button>
+              <button type="submit" className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] py-3.5 text-sm font-semibold text-[var(--k-on-accent)] shadow-sm shadow-sm hover:bg-[var(--k-accent-hover)]">Continue to academic profile <ArrowRight size={16} /></button>
             </form>
           ) : (
             <form onSubmit={handleCompleteRegistration} className="space-y-5">
               <div>
                 <label htmlFor="institution" className={labelClass}>College / institution</label>
                 <div className="relative">
-                  <select id="institution" value="iit-bhilai" disabled aria-describedby="institution-help" className={`${inputClass} cursor-not-allowed appearance-none bg-slate-50 pr-10 opacity-100`}>
+                  <select id="institution" value="iit-bhilai" disabled aria-describedby="institution-help" className={`${inputClass} cursor-not-allowed appearance-none bg-[var(--k-bg)] pr-10 opacity-100`}>
                     <option value="iit-bhilai">Indian Institute of Technology Bhilai (IIT Bhilai)</option>
                   </select>
-                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-800">Pilot</span>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-[var(--k-success-light)] px-2 py-1 text-[11px] font-semibold text-[var(--k-success)]">Pilot</span>
                 </div>
-                <p id="institution-help" className="mt-1.5 text-xs leading-5 text-[#667085]">IIT Bhilai is the only institution configured for this pilot. Your selection is self-reported, not verified.</p>
+                <p id="institution-help" className="mt-1.5 text-xs leading-5 text-[var(--k-muted)]">IIT Bhilai is the only institution configured for this pilot. Your selection is self-reported, not verified.</p>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-                <p className="text-sm font-semibold text-[#344054]">Campus role: Student</p>
-                <p className="mt-1 text-xs leading-5 text-[#667085]">Privileged roles are assigned separately through the institute’s approved governance workflow. Signup never grants administrator, president, General Secretary, or club-coordinator access.</p>
+              <div className="rounded-xl border border-[var(--k-border)] bg-[var(--k-bg)] px-4 py-3">
+                <p className="text-sm font-semibold text-[var(--k-ink)]">Campus role: Student</p>
+                <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">Privileged roles are assigned separately through the institute’s approved governance workflow. Signup never grants administrator, president, General Secretary, or club-coordinator access.</p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
@@ -288,18 +288,18 @@ export default function SignUpPage() {
               <fieldset>
                 <div className="flex items-center justify-between gap-3">
                   <legend className={labelClass}>Campus interests</legend>
-                  <span className="text-xs text-[#667085]">Select 1–8</span>
+                  <span className="text-xs text-[var(--k-muted)]">Select 1–8</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {interestOptions.map((item) => {
                     const selected = selectedInterests.includes(item);
-                    return <button key={item} type="button" aria-pressed={selected} onClick={() => toggleInterest(item)} className={`rounded-full border px-3 py-2 text-sm font-medium transition-colors ${selected ? 'border-[#5146E5] bg-[#EEF0FD] text-[#3730A3]' : 'border-[#E5E7EB] bg-white text-[#475467] hover:border-indigo-200 hover:bg-indigo-50'}`}>{item}</button>;
+                    return <button key={item} type="button" aria-pressed={selected} onClick={() => toggleInterest(item)} className={`rounded-full border px-3 py-2 text-sm font-medium transition-colors ${selected ? 'border-[var(--k-accent)] bg-[var(--k-accent-light)] text-[var(--k-accent-dark)]' : 'border-[var(--k-border)] bg-[var(--k-surface)] text-[var(--k-ink-soft)] hover:border-[var(--k-accent)] hover:bg-[var(--k-accent-light)]'}`}>{item}</button>;
                   })}
                 </div>
               </fieldset>
 
-              <div className="flex items-start gap-3 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-3 text-sm leading-5 text-sky-950">
-                <ShieldCheck size={19} className="mt-0.5 shrink-0 text-sky-800" />
+              <div className="flex items-start gap-3 rounded-xl border border-[var(--k-border)] bg-[var(--k-accent-light)] px-3.5 py-3 text-sm leading-5 text-[var(--k-ink)]">
+                <ShieldCheck size={19} className="mt-0.5 shrink-0 text-[var(--k-accent-dark)]" />
                 <div>
                   <p className="font-semibold">Privacy-first affiliation</p>
                   <p className="mt-1">We do not collect your institute ID or LDAP credentials in this release. The campus choice is saved as self-reported information only; it does not set a trusted institution ID, verify you, or unlock campus-only access.</p>
@@ -307,21 +307,21 @@ export default function SignUpPage() {
               </div>
 
               <div className="flex items-center justify-between gap-3 pt-1">
-                <button type="button" disabled={loading} onClick={() => { setAuthError(''); setStep(1); }} className="inline-flex items-center gap-2 rounded-xl border border-[#D0D5DD] bg-white px-4 py-3 text-sm font-semibold text-[#475467] hover:bg-slate-50"><ArrowLeft size={16} /> Back</button>
-                <button type="submit" disabled={loading} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#5146E5] to-[#4338CA] px-4 py-3.5 text-sm font-semibold text-white shadow-sm shadow-indigo-900/10 hover:from-[#4338CA] hover:to-[#3730A3] disabled:cursor-not-allowed disabled:opacity-60">
+                <button type="button" disabled={loading} onClick={() => { setAuthError(''); setStep(1); }} className="inline-flex items-center gap-2 rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] px-4 py-3 text-sm font-semibold text-[var(--k-ink-soft)] hover:bg-[var(--k-bg)]"><ArrowLeft size={16} /> Back</button>
+                <button type="submit" disabled={loading} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] px-4 py-3.5 text-sm font-semibold text-[var(--k-on-accent)] shadow-sm shadow-sm hover:bg-[var(--k-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60">
                   {loading ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> Creating account...</> : <>Create account <ArrowRight size={16} /></>}
                 </button>
               </div>
             </form>
           )}
 
-          {!authMessage && <div className="mt-6 border-t border-[#E5E7EB] pt-5 text-center text-sm text-[#667085]">
-            Already have an account? <Link href="/auth/signin" className="font-semibold text-[#5146E5] hover:text-[#3730A3] hover:underline">Sign in</Link>
-            <span className="mx-2 text-slate-300">·</span>
-            <Link href="/dashboard/campus" className="font-semibold text-[#5146E5] hover:text-[#3730A3] hover:underline">Read the public-source Campus Guide</Link>
+          {!authMessage && <div className="mt-6 border-t border-[var(--k-border)] pt-5 text-center text-sm text-[var(--k-muted)]">
+            Already have an account? <Link href="/auth/signin" className="font-semibold text-[var(--k-accent)] hover:text-[var(--k-accent-dark)] hover:underline">Sign in</Link>
+            <span className="mx-2 text-[var(--k-muted)]">·</span>
+            <Link href="/dashboard/campus" className="font-semibold text-[var(--k-accent)] hover:text-[var(--k-accent-dark)] hover:underline">Read the public-source Campus Guide</Link>
           </div>}
         </section>
-        <p className="mx-auto mt-4 max-w-lg px-2 text-center text-xs leading-5 text-[#667085]">Your account and academic profile are stored in Supabase. Campus affiliation and privileged roles are controlled separately; no demo identity can be used to sign in.</p>
+        <p className="mx-auto mt-4 max-w-lg px-2 text-center text-xs leading-5 text-[var(--k-muted)]">Your account and academic profile are stored in Supabase. Campus affiliation and privileged roles are controlled separately; no demo identity can be used to sign in.</p>
       </div>
     </main>
   );

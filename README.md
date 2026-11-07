@@ -19,6 +19,17 @@ Koinelio is a Supabase-backed campus community pilot for profiles, approved club
 
 These flows require the new migrations and Supabase Auth/Storage configuration described below. They have not yet been tested end-to-end against a staging Supabase instance.
 
+## Project context for contributors and coding agents
+
+Read these project references before making architectural or cross-feature changes:
+
+- [Architecture](architecture.md) — app structure, data flow, schema, and security boundaries.
+- [Design system](design.md) — colors, components, themes, and accessibility rules.
+- [Project memory](memory.md) — current state, known caveats, and handoff context.
+- [Product requirements](prd.md) — goals, user journeys, scope, and acceptance criteria.
+- [Engineering rules](rules.md) — mandatory development, Git, security, and review rules.
+- [Master task plan](tasks.md) — the agreed 15-part execution order and release gate.
+
 ## Stack
 
 - Next.js App Router, React and TypeScript
@@ -28,14 +39,22 @@ These flows require the new migrations and Supabase Auth/Storage configuration d
 
 ## Run locally
 
-Requirements: a supported Node.js LTS release and pnpm.
+Requirements: Node.js 22.x and pnpm 11.24.0 (pinned by the `packageManager` field).
 
-1. Copy `.env.example` to `.env.local`.
-2. Set the Supabase project URL and publishable key for your own development/staging project.
-3. Install dependencies and start the development server:
+1. Install Node.js 22.x. The `.nvmrc` file records the expected major version.
+2. Enable Corepack and activate the repository's pnpm version:
 
 ```bash
-pnpm install
+corepack enable
+corepack prepare pnpm@11.24.0 --activate
+```
+
+3. Copy `.env.example` to `.env.local`.
+4. Set the Supabase project URL and publishable key for your own development/staging project.
+5. Install dependencies and start the development server:
+
+```bash
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
@@ -44,6 +63,8 @@ Open [http://localhost:3000](http://localhost:3000).
 Useful checks:
 
 ```bash
+pnpm test
+pnpm type-check
 pnpm lint
 pnpm build
 ```

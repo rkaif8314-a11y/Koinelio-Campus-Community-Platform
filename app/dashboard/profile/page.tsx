@@ -37,8 +37,8 @@ type ProfileRecord = {
 };
 
 const inputClass =
-  'w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 disabled:cursor-not-allowed disabled:bg-slate-50';
-const labelClass = 'mb-1.5 block text-sm font-semibold text-slate-700';
+  'w-full rounded-xl border border-[var(--k-border)] bg-[var(--k-surface)] px-3.5 py-3 text-sm text-[var(--k-ink)] outline-none transition focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-focus-ring)] disabled:cursor-not-allowed disabled:bg-[var(--k-surface-muted)]';
+const labelClass = 'mb-1.5 block text-sm font-semibold text-[var(--k-ink-soft)]';
 
 function toCsv(values: string[] | null | undefined): string {
   return (values ?? []).join(', ');
@@ -230,17 +230,17 @@ export default function ProfilePage() {
   }
 
   if (loading) {
-    return <div className="mx-auto flex max-w-4xl items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading your account profile…</div>;
+    return <div className="mx-auto flex max-w-4xl items-center justify-center px-4 py-20 text-sm text-[var(--k-muted)]"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading your account profile…</div>;
   }
 
   if (!profile) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-12">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+        <div className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-6">
           <AlertCircle className="mb-3 text-amber-600" size={26} />
-          <h1 className="text-xl font-bold text-slate-900">Your profile is not available yet</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{error || 'Sign in with your confirmed IIT Bhilai email and retry.'}</p>
-          <Link href="/auth/signin" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white">Go to sign in</Link>
+          <h1 className="text-xl font-bold text-[var(--k-ink)]">Your profile is not available yet</h1>
+          <p className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">{error || 'Sign in with your confirmed IIT Bhilai email and retry.'}</p>
+          <Link href="/auth/signin" className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[var(--k-accent)] px-4 py-2.5 text-sm font-semibold text-[var(--k-on-accent)]">Go to sign in</Link>
         </div>
       </div>
     );
@@ -256,53 +256,53 @@ export default function ProfilePage() {
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link href="/dashboard" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-700 hover:underline"><ArrowLeft size={15} /> Dashboard</Link>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">Your profile</h1>
-          <p className="mt-1 text-sm text-slate-600">Your personal profile is saved to your signed-in Koinelio account.</p>
+          <Link href="/dashboard" className="mb-3 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--k-accent)] hover:underline"><ArrowLeft size={15} /> Dashboard</Link>
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--k-ink)] sm:text-3xl">Your profile</h1>
+          <p className="mt-1 text-sm text-[var(--k-ink-soft)]">Your personal profile is saved to your signed-in Koinelio account.</p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"><ShieldCheck size={14} /> Student account</span>
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--k-border)] bg-[var(--k-surface)] px-3 py-2 text-xs font-semibold text-[var(--k-ink-soft)]"><ShieldCheck size={14} /> Student account</span>
       </div>
 
-      {error && <div role="alert" className="mb-4 flex gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3.5 text-sm text-rose-800"><AlertCircle size={18} className="mt-0.5 shrink-0" /> <span>{error}</span></div>}
-      {success && <div role="status" className="mb-4 flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-sm text-emerald-800"><CheckCircle2 size={18} className="mt-0.5 shrink-0" /> <span>{success}</span></div>}
+      {error && <div role="alert" className="mb-4 flex gap-2 rounded-xl border border-[var(--k-danger)] bg-[var(--k-danger-light)] p-3.5 text-sm text-[var(--k-danger)]"><AlertCircle size={18} className="mt-0.5 shrink-0" /> <span>{error}</span></div>}
+      {success && <div role="status" className="mb-4 flex gap-2 rounded-xl border border-[var(--k-success-light)] bg-[var(--k-success-light)] p-3.5 text-sm text-[var(--k-success)]"><CheckCircle2 size={18} className="mt-0.5 shrink-0" /> <span>{success}</span></div>}
 
       <form onSubmit={handleSave} className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="text-sm font-bold text-slate-900">Profile photo</h2>
-            <p className="mt-1 text-xs leading-5 text-slate-500">JPG, PNG or WebP · maximum 2 MB</p>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="text-sm font-bold text-[var(--k-ink)]">Profile photo</h2>
+            <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">JPG, PNG or WebP · maximum 2 MB</p>
             <div className="mt-5 flex flex-col items-center">
               {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="Your profile" className="h-28 w-28 rounded-full border border-slate-200 object-cover shadow-sm" />
+                <img src={profile.avatar_url} alt="Your profile" className="h-28 w-28 rounded-full border border-[var(--k-border)] object-cover shadow-sm" />
               ) : (
-                <div className="flex h-28 w-28 items-center justify-center rounded-full border border-dashed border-slate-300 bg-slate-50 text-slate-400"><UserRound size={44} /></div>
+                <div className="flex h-28 w-28 items-center justify-center rounded-full border border-dashed border-[var(--k-border)] bg-[var(--k-bg)] text-[var(--k-muted)]"><UserRound size={44} /></div>
               )}
               <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarChange} />
-              <button type="button" onClick={() => fileInput.current?.click()} disabled={uploading} className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60">
+              <button type="button" onClick={() => fileInput.current?.click()} disabled={uploading} className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--k-border)] px-3.5 py-2.5 text-sm font-semibold text-[var(--k-ink-soft)] hover:bg-[var(--k-bg)] disabled:opacity-60">
                 {uploading ? <LoaderCircle size={16} className="animate-spin" /> : <ImagePlus size={16} />}
                 {uploading ? 'Uploading…' : profile.avatar_url ? 'Change photo' : 'Upload photo'}
               </button>
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <h2 className="text-sm font-bold text-slate-900">Account identity</h2>
+          <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5">
+            <h2 className="text-sm font-bold text-[var(--k-ink)]">Account identity</h2>
             <dl className="mt-3 space-y-3 text-sm">
-              <div><dt className="text-xs text-slate-500">Sign-in email</dt><dd className="mt-1 break-all font-medium text-slate-800">{email}</dd></div>
-              <div><dt className="text-xs text-slate-500">Trusted campus role</dt><dd className="mt-1 font-medium capitalize text-slate-800">{profile.campus_role}</dd></div>
-              <div><dt className="text-xs text-slate-500">Affiliation</dt><dd className="mt-1 font-medium text-slate-800">{accountStatus}</dd></div>
+              <div><dt className="text-xs text-[var(--k-muted)]">Sign-in email</dt><dd className="mt-1 break-all font-medium text-[var(--k-ink)]">{email}</dd></div>
+              <div><dt className="text-xs text-[var(--k-muted)]">Trusted campus role</dt><dd className="mt-1 font-medium capitalize text-[var(--k-ink)]">{profile.campus_role}</dd></div>
+              <div><dt className="text-xs text-[var(--k-muted)]">Affiliation</dt><dd className="mt-1 font-medium text-[var(--k-ink)]">{accountStatus}</dd></div>
             </dl>
-            <div className="mt-4 border-t border-slate-100 pt-3">
-              <h3 className="text-xs font-semibold text-slate-500">Trusted role badges</h3>
-              {trustedBadges.length > 0 ? <div className="mt-2 flex flex-wrap gap-1.5">{trustedBadges.map((badge) => <span key={badge} className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800"><ShieldCheck size={12}/>{badge}</span>)}</div> : <p className="mt-1 text-xs text-slate-500">No active governance or club role assigned.</p>}
+            <div className="mt-4 border-t border-[var(--k-border-soft)] pt-3">
+              <h3 className="text-xs font-semibold text-[var(--k-muted)]">Trusted role badges</h3>
+              {trustedBadges.length > 0 ? <div className="mt-2 flex flex-wrap gap-1.5">{trustedBadges.map((badge) => <span key={badge} className="inline-flex items-center gap-1 rounded-full border border-[var(--k-success-light)] bg-[var(--k-success-light)] px-2.5 py-1 text-[11px] font-semibold text-[var(--k-success)]"><ShieldCheck size={12}/>{badge}</span>)}</div> : <p className="mt-1 text-xs text-[var(--k-muted)]">No active governance or club role assigned.</p>}
             </div>
-            <p className="mt-3 text-xs leading-5 text-slate-500">Role badges come only from active database assignments. A confirmed institute email is not by itself proof of current enrolment; trusted affiliation fields cannot be changed from this form.</p>
+            <p className="mt-3 text-xs leading-5 text-[var(--k-muted)]">Role badges come only from active database assignments. A confirmed institute email is not by itself proof of current enrolment; trusted affiliation fields cannot be changed from this form.</p>
           </section>
         </aside>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-7">
-          <h2 className="text-lg font-bold text-slate-900">Personal and academic details</h2>
-          <p className="mt-1 text-sm text-slate-600">Only fields you are allowed to edit are saved. Institutional role and verification fields are protected.</p>
+        <section className="rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] p-5 sm:p-7">
+          <h2 className="text-lg font-bold text-[var(--k-ink)]">Personal and academic details</h2>
+          <p className="mt-1 text-sm text-[var(--k-ink-soft)]">Only fields you are allowed to edit are saved. Institutional role and verification fields are protected.</p>
 
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
@@ -312,7 +312,7 @@ export default function ProfilePage() {
             <div className="sm:col-span-2">
               <label className={labelClass} htmlFor="bio">About you</label>
               <textarea id="bio" rows={4} maxLength={600} className={inputClass} placeholder="Your interests, projects, goals, or what you enjoy learning…" value={profile.bio} onChange={(e) => update('bio', e.target.value)} />
-              <p className="mt-1 text-right text-xs text-slate-400">{profile.bio.length}/600</p>
+              <p className="mt-1 text-right text-xs text-[var(--k-muted)]">{profile.bio.length}/600</p>
             </div>
             <div>
               <label className={labelClass} htmlFor="department">Department / discipline</label>
@@ -328,7 +328,7 @@ export default function ProfilePage() {
                 <option value="student">Student</option>
                 <option value="alumni">Alumni / graduate</option>
               </select>
-              <p className="mt-1 text-xs leading-5 text-slate-500">Self-reported directory category only. Trusted campus roles, verification, and administrative permissions remain protected.</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">Self-reported directory category only. Trusted campus roles, verification, and administrative permissions remain protected.</p>
             </div>
             <div>
               <label className={labelClass} htmlFor="studyYear">Current study year</label>
@@ -352,7 +352,7 @@ export default function ProfilePage() {
             <div className="sm:col-span-2">
               <label className={labelClass} htmlFor="interests">Interests</label>
               <input id="interests" className={inputClass} placeholder="AI/ML, robotics, open source" value={interestsText} onChange={(e) => setInterestsText(e.target.value)} />
-              <p className="mt-1 text-xs text-slate-500">Separate items with commas. Up to 20 interests and 30 skills are saved.</p>
+              <p className="mt-1 text-xs text-[var(--k-muted)]">Separate items with commas. Up to 20 interests and 30 skills are saved.</p>
             </div>
             <div className="sm:col-span-2">
               <label className={labelClass} htmlFor="visibility">Profile visibility</label>
@@ -361,13 +361,13 @@ export default function ProfilePage() {
                 <option value="private">Private — only you</option>
                 <option value="public">Public profile</option>
               </select>
-              <p className="mt-1 text-xs leading-5 text-slate-500">This preference uses the database&apos;s actual privacy setting, not a browser-only demo toggle.</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--k-muted)]">This preference uses the database&apos;s actual privacy setting, not a browser-only demo toggle.</p>
             </div>
           </div>
 
-          <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
-            <p className="max-w-md text-xs leading-5 text-slate-500">Changes are written to Supabase and remain after signing out. Do not enter passwords, government IDs, or private institute credentials in your bio.</p>
-            <button type="submit" disabled={saving || uploading} className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+          <div className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--k-border-soft)] pt-5">
+            <p className="max-w-md text-xs leading-5 text-[var(--k-muted)]">Changes are written to Supabase and remain after signing out. Do not enter passwords, government IDs, or private institute credentials in your bio.</p>
+            <button type="submit" disabled={saving || uploading} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--k-accent)] px-5 py-3 text-sm font-semibold text-[var(--k-on-accent)] hover:bg-[var(--k-accent-hover)] disabled:cursor-not-allowed disabled:opacity-60">
               {saving ? <LoaderCircle size={16} className="animate-spin" /> : <Save size={16} />}
               {saving ? 'Saving…' : 'Save profile'}
             </button>

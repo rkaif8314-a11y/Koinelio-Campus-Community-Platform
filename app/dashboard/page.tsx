@@ -20,6 +20,10 @@ import {
 } from 'lucide-react';
 import { getSupabaseConfigError, supabase } from '@/lib/supabase';
 import { supabaseErrorMessage } from '@/lib/supabase-errors';
+import { Button } from '@/components/ui/button';
+import { Alert } from '@/components/ui/alert';
+import { Card } from '@/components/ui/card';
+import { EmptyState } from '@/components/ui/empty-state';
 
 type Profile = {
   id: string;
@@ -146,8 +150,6 @@ export default function DashboardPage() {
           .eq('approval_status', 'approved'),
       ]);
 
-      // Fail visibly if any dashboard section is unavailable; silently treating a
-      // schema/RLS error as an empty list makes a broken backend look like no data.
       if (postResult.error) throw postResult.error;
       if (eventResult.error) throw eventResult.error;
       if (announcementResult.error) throw announcementResult.error;
@@ -263,109 +265,129 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-slate-500"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading your campus…</div>;
+  if (loading) return <div className="flex items-center justify-center px-4 py-20 text-sm text-[var(--k-muted)]"><LoaderCircle className="mr-2 animate-spin" size={18} /> Loading your campus…</div>;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-7 sm:px-6">
-      <section className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#173D36] via-[#24584D] to-[#C65D43] p-6 text-white shadow-sm sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-5">
+      <Card padded="md" bordered shadow>
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-100">IIT Bhilai community</p>
-            <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Welcome back, {profile?.display_name.split(' ')[0] ?? 'student'}.</h1>
-            <p className="mt-2 text-sm leading-6 text-white/75">Share updates, discover approved clubs, and connect through real campus data linked to your account.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--k-accent-dark)]">IIT Bhilai community</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-[var(--k-ink)]">Welcome back, {profile?.display_name.split(' ')[0] ?? 'student'}.</h1>
+            <p className="mt-2 text-sm leading-6 text-[var(--k-ink-soft)]">Share updates, discover approved clubs, and connect through real campus data linked to your account.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href="/dashboard/profile" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#173D36] hover:bg-amber-50"><Users size={16} /> Complete profile</Link>
-            <Link href="/dashboard/community" className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"><Newspaper size={16} /> Campus feed</Link>
-            <Link href="/dashboard/alumni" className="inline-flex items-center gap-2 rounded-xl border border-white/30 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10"><ArrowRight size={16} /> Alumni</Link>
-            <button onClick={() => void loadDashboard(true)} disabled={refreshing} className="rounded-xl border border-white/25 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/10 disabled:opacity-50">{refreshing ? 'Refreshing…' : 'Refresh'}</button>
+            <Link href="/dashboard/profile" className="rounded-lg border border-[var(--k-border)] bg-[var(--k-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--k-ink)] hover:bg-[var(--k-surface-hover)]"><Users size={16} /> Complete profile</Link>
+            <Link href="/dashboard/community" className="rounded-lg border border-[var(--k-border)] bg-[var(--k-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--k-ink)] hover:bg-[var(--k-surface-hover)]"><Newspaper size={16} /> Campus feed</Link>
+            <Link href="/dashboard/alumni" className="rounded-lg border border-[var(--k-border)] bg-[var(--k-surface)] px-4 py-2.5 text-sm font-semibold text-[var(--k-ink)] hover:bg-[var(--k-surface-hover)]"><ArrowRight size={16} /> Alumni</Link>
+            <Button variant="secondary" onClick={() => void loadDashboard(true)} disabled={refreshing} className="w-auto">{refreshing ? 'Refreshing…' : 'Refresh'}</Button>
           </div>
         </div>
-      </section>
+      </Card>
 
-      {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800"><AlertCircle size={17} className="mt-0.5 shrink-0" /><span className="break-words">{error}</span></div>}
-      {notice && <div role="status" className="mb-4 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 size={17} className="mt-0.5 shrink-0" />{notice}</div>}
+      {error && <Alert variant="error">{error}</Alert>}
+      {notice && <Alert variant="success">{notice}</Alert>}
 
       <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><Users size={22} className="text-indigo-600" /><div><p className="text-2xl font-bold text-slate-900">{approvedClubCount}</p><p className="text-xs text-slate-500">Approved clubs</p></div></div>
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><Newspaper size={22} className="text-indigo-600" /><div><p className="text-2xl font-bold text-slate-900">{posts.length}</p><p className="text-xs text-slate-500">Visible campus posts</p></div></div>
-        <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4"><CalendarDays size={22} className="text-indigo-600" /><div><p className="text-2xl font-bold text-slate-900">{events.length}</p><p className="text-xs text-slate-500">Upcoming published events</p></div></div>
+        <Card padded="sm" bordered shadow className="flex items-center gap-3">
+          <Users size={22} className="text-[var(--k-accent-dark)]" />
+          <div>
+            <p className="text-2xl font-bold text-[var(--k-ink)]">{approvedClubCount}</p>
+            <p className="text-xs text-[var(--k-muted)]">Approved clubs</p>
+          </div>
+        </Card>
+        <Card padded="sm" bordered shadow className="flex items-center gap-3">
+          <Newspaper size={22} className="text-[var(--k-accent-dark)]" />
+          <div>
+            <p className="text-2xl font-bold text-[var(--k-ink)]">{posts.length}</p>
+            <p className="text-xs text-[var(--k-muted)]">Visible campus posts</p>
+          </div>
+        </Card>
+        <Card padded="sm" bordered shadow className="flex items-center gap-3">
+          <CalendarDays size={22} className="text-[var(--k-accent-dark)]" />
+          <div>
+            <p className="text-2xl font-bold text-[var(--k-ink)]">{events.length}</p>
+            <p className="text-xs text-[var(--k-muted)]">Upcoming published events</p>
+          </div>
+        </Card>
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.9fr)]">
         <section className="min-w-0 space-y-4">
-          <form onSubmit={createPost} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-            <div className="flex items-start gap-3">
-              {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-sm font-bold text-indigo-700">{initials(profile?.display_name ?? '')}</span>}
-              <div className="min-w-0 flex-1">
-                <label htmlFor="postContent" className="mb-2 block text-sm font-semibold text-slate-800">Share with your campus</label>
-                <textarea id="postContent" rows={3} maxLength={5000} value={composer} onChange={(e) => setComposer(e.target.value)} placeholder="Share something you learned, a question, or a campus update…" className="w-full resize-y rounded-xl border border-slate-200 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10" />
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-slate-400">Visible to your campus according to profile and post access policies.</span><button disabled={refreshing || !composer.trim()} className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"><Plus size={15} /> Publish post</button></div>
+          <Card padded="md" bordered shadow>
+            <form onSubmit={createPost} className="space-y-3">
+              <div className="flex items-start gap-3">
+                {profile?.avatar_url ? <img src={profile.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--k-accent-light)] text-sm font-bold text-[var(--k-accent-dark)]">{initials(profile?.display_name ?? '')}</span>}
+                <div className="min-w-0 flex-1">
+                  <label htmlFor="postContent" className="mb-2 block text-sm font-semibold text-[var(--k-ink)]">Share with your campus</label>
+                  <textarea id="postContent" rows={3} maxLength={5000} value={composer} onChange={(e) => setComposer(e.target.value)} placeholder="Share something you learned, a question, or a campus update…" className="w-full resize-y rounded-lg border border-[var(--k-border)] bg-[var(--k-surface)] px-3.5 py-3 text-sm outline-none focus:border-[var(--k-accent)] focus:ring-4 focus:ring-[var(--k-accent-light)]" />
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><span className="text-xs text-[var(--k-muted)]">Visible to your campus according to profile and post access policies.</span><Button disabled={refreshing || !composer.trim()} className="w-auto">{refreshing ? <LoaderCircle size={15} className="animate-spin mr-2" /> : 'Publish post'} <Plus size={15} /></Button></div>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </Card>
 
           {posts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-              <Newspaper size={32} className="mx-auto mb-3 text-slate-300" />
-              <h2 className="font-bold text-slate-900">Your campus feed is ready for its first post</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">This feed shows database posts visible to your confirmed account. It does not seed fictional people or activity counts.</p>
-            </div>
+            <EmptyState
+              icon={<Newspaper size={32} />}
+              title="Your campus feed is ready for its first post"
+              subtitle="This feed shows database posts visible to your confirmed account. It does not seed fictional people or activity counts."
+            />
           ) : posts.map((post) => {
             const author = post.profiles;
             const postLikes = likes.filter((item) => item.post_id === post.id);
             const liked = postLikes.some((item) => item.user_id === userId);
-            return <article key={post.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+            return <Card padded="md" bordered shadow key={post.id}>
               <header className="flex items-start gap-3">
-                {author?.avatar_url ? <img src={author.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-bold text-slate-600">{initials(author?.display_name ?? 'Campus member')}</span>}
-                <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-slate-900">{author?.display_name ?? (post.author_id === userId ? profile?.display_name : 'Campus member')}</p><p className="mt-0.5 text-xs text-slate-500">{author?.department ?? 'IIT Bhilai'} · {readableTime(post.created_at)}</p></div>
-                <span className="rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-[10px] font-semibold text-stone-700">{postTypeLabel[post.post_type] ?? 'Discussion'}</span>
-                {post.author_id === userId && <span className="rounded-full border border-rose-100 bg-rose-50 px-2.5 py-1 text-[10px] font-semibold text-rose-800">Your post</span>}
+                {author?.avatar_url ? <img src={author.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover" /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--k-surface-muted)] text-sm font-bold text-[var(--k-ink-soft)]">{initials(author?.display_name ?? 'Campus member')}</span>}
+                <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-[var(--k-ink)]">{author?.display_name ?? (post.author_id === userId ? profile?.display_name : 'Campus member')}</p><p className="mt-0.5 text-xs text-[var(--k-muted)]">{author?.department ?? 'IIT Bhilai'} · {readableTime(post.created_at)}</p></div>
+                <span className="rounded-full border border-[var(--k-border-soft)] bg-[var(--k-surface-muted)] px-2.5 py-1 text-[10px] font-semibold text-[var(--k-ink-soft)]">{postTypeLabel[post.post_type] ?? 'Discussion'}</span>
+                {post.author_id === userId && <span className="rounded-full border-[var(--k-danger-light)] bg-[var(--k-danger-light)] px-2.5 py-1 text-[10px] font-semibold text-[var(--k-danger)]">Your post</span>}
               </header>
-              <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-slate-700">{post.content}</p>
-              {post.media_url && mediaUrls[post.id] && mediaKind(post.media_url) === 'video' && <video src={mediaUrls[post.id]} controls preload="metadata" className="mt-4 max-h-[420px] w-full rounded-xl bg-black" />}
-              {post.media_url && mediaUrls[post.id] && ['image', 'gif'].includes(mediaKind(post.media_url) ?? '') && <img src={mediaUrls[post.id]} alt="Campus post attachment" loading="lazy" className="mt-4 max-h-[420px] w-full rounded-xl bg-stone-50 object-contain" />}
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-                <button onClick={() => void toggleLike(post)} className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold ${liked ? 'bg-rose-50 text-rose-700' : 'text-slate-500 hover:bg-slate-50'}`}><Heart size={15} className={liked ? 'fill-current' : ''} />{postLikes.length} {postLikes.length === 1 ? 'like' : 'likes'}</button>
-                <span className="inline-flex items-center gap-1.5 px-2 py-2 text-xs text-slate-400"><MessageCircle size={15} />Comments</span>
-                <span className="ml-auto text-[10px] uppercase tracking-wide text-slate-400">{post.visibility} visibility</span>
+              <p className="mt-4 whitespace-pre-wrap break-words text-sm leading-7 text-[var(--k-ink)]">{post.content}</p>
+              {post.media_url && mediaUrls[post.id] && mediaKind(post.media_url) === 'video' && <video src={mediaUrls[post.id]} controls preload="metadata" className="mt-4 max-h-[420px] w-full rounded-lg bg-[var(--k-ink)]" />}
+              {post.media_url && mediaUrls[post.id] && ['image', 'gif'].includes(mediaKind(post.media_url) ?? '') && <img src={mediaUrls[post.id]} alt="Campus post attachment" loading="lazy" className="mt-4 max-h-[420px] w-full rounded-lg bg-[var(--k-surface-muted)] object-contain" />}
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[var(--k-border-soft)] pt-3">
+                <button onClick={() => void toggleLike(post)} className={liked ? 'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors bg-[var(--k-danger-light)] text-[var(--k-danger)]' : 'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-colors text-[var(--k-muted)] hover:bg-[var(--k-surface-hover)]'}><Heart size={15} className={liked ? 'fill-current' : ''} />{postLikes.length} {postLikes.length === 1 ? 'like' : 'likes'}</button>
+                <span className="inline-flex items-center gap-1.5 px-2 py-2 text-xs text-[var(--k-muted)]"><MessageCircle size={15} />Comments</span>
+                <span className="ml-auto text-[10px] uppercase tracking-wide text-[var(--k-muted)]">{post.visibility} visibility</span>
               </div>
               <form onSubmit={(event) => void addComment(event, post)} className="mt-2 flex items-center gap-2">
                 <label htmlFor={`comment-${post.id}`} className="sr-only">Add a comment</label>
-                <input id={`comment-${post.id}`} value={commentDrafts[post.id] ?? ''} onChange={(e) => setCommentDrafts((items) => ({ ...items, [post.id]: e.target.value }))} maxLength={3000} placeholder="Write a comment…" className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 py-2.5 text-xs outline-none focus:border-indigo-500" />
-                <button type="submit" disabled={!commentDrafts[post.id]?.trim() || commentingPostId === post.id} className="rounded-xl border border-slate-200 p-2.5 text-slate-600 hover:bg-slate-50 disabled:opacity-50" aria-label="Send comment">{commentingPostId === post.id ? <LoaderCircle size={15} className="animate-spin" /> : <Send size={15} />}</button>
+                <input id={`comment-${post.id}`} value={commentDrafts[post.id] ?? ''} onChange={(e) => setCommentDrafts((items) => ({ ...items, [post.id]: e.target.value }))} maxLength={3000} placeholder="Write a comment…" className="min-w-0 flex-1 rounded-lg border border-[var(--k-border)] bg-[var(--k-surface)] px-3 py-2.5 text-xs outline-none focus:border-[var(--k-accent)]" />
+                <button type="submit" disabled={!commentDrafts[post.id]?.trim() || commentingPostId === post.id} className="rounded-lg border border-[var(--k-border)] p-2.5 text-[var(--k-ink-soft)] hover:bg-[var(--k-surface-hover)] disabled:opacity-50" aria-label="Send comment">{commentingPostId === post.id ? <LoaderCircle size={15} className="animate-spin" /> : <Send size={15} />}</button>
               </form>
-              {ownPostIds.has(post.id) && <p className="mt-2 text-[10px] text-slate-400">You can delete your post from the post menu in a later moderation update.</p>}
-            </article>;
+              {ownPostIds.has(post.id) && <p className="mt-2 text-[10px] text-[var(--k-muted)]">You can delete your post from the post menu in a later moderation update.</p>}
+            </Card>;
           })}
         </section>
 
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-slate-900">Upcoming events</h2><CalendarDays size={18} className="text-indigo-600" /></div>
+          <Card padded="md" bordered shadow>
+            <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-[var(--k-ink)]">Upcoming events</h2><CalendarDays size={18} className="text-[var(--k-accent-dark)]" /></div>
             <div className="mt-4 space-y-3">
-              {events.length === 0 && <p className="text-sm leading-6 text-slate-500">No published upcoming events are available.</p>}
-              {events.map((event) => <article key={event.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><p className="font-semibold text-slate-800">{event.title}</p><p className="mt-1 text-xs text-slate-500">{event.starts_at ? readableTime(event.starts_at) : 'Date to be announced'}{event.location ? ` · ${event.location}` : ''}</p>{event.description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-500">{event.description}</p>}</article>)}
+              {events.length === 0 && <p className="text-sm leading-6 text-[var(--k-muted)]">No published upcoming events are available.</p>}
+              {events.map((event) => <article key={event.id} className="border-b border-[var(--k-border-soft)] pb-3 last:border-0 last:pb-0"><p className="font-semibold text-[var(--k-ink)]">{event.title}</p><p className="mt-1 text-xs text-[var(--k-muted)]">{event.starts_at ? readableTime(event.starts_at) : 'Date to be announced'}{event.location ? ` · ${event.location}` : ''}</p>{event.description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-[var(--k-muted)]">{event.description}</p>}</article>)}
             </div>
-          </section>
+          </Card>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-5">
-            <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-slate-900">Campus announcements</h2><Bell size={18} className="text-indigo-600" /></div>
+          <Card padded="md" bordered shadow>
+            <div className="flex items-center justify-between gap-2"><h2 className="font-bold text-[var(--k-ink)]">Campus announcements</h2><Bell size={18} className="text-[var(--k-accent-dark)]" /></div>
             <div role="group" aria-label="Filter announcements by priority" className="mt-3 flex flex-wrap gap-1.5">
-              {(['all', 'urgent', 'important', 'normal'] as const).map((value) => <button key={value} type="button" aria-pressed={announcementFilter === value} onClick={() => setAnnouncementFilter(value)} className={`rounded-full border px-2.5 py-1.5 text-[11px] font-semibold capitalize transition ${announcementFilter === value ? 'border-[#173D36] bg-[#173D36] text-white' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}>{value === 'all' ? 'All priorities' : value}</button>)}
+              {(['all', 'urgent', 'important', 'normal'] as const).map((value) => <button key={value} type="button" aria-pressed={announcementFilter === value} onClick={() => setAnnouncementFilter(value)} className={`rounded-full border px-2.5 py-1.5 text-[11px] font-semibold capitalize transition ${announcementFilter === value ? 'border-[var(--k-accent-dark)] bg-[var(--k-accent-dark)] text-[var(--k-on-accent)]' : 'border-[var(--k-border)] bg-[var(--k-surface)] text-[var(--k-muted)] hover:bg-[var(--k-surface-hover)]'}`}>{value === 'all' ? 'All priorities' : value}</button>)}
             </div>
             <div className="mt-4 space-y-3">
-              {announcements.length === 0 && <p className="text-sm leading-6 text-slate-500">No published campus announcements are available.</p>}
-              {announcements.length > 0 && prioritizedAnnouncements.length === 0 && <p className="text-sm leading-6 text-slate-500">No {announcementFilter} announcements are available.</p>}
-              {prioritizedAnnouncements.slice(0, 8).map((item) => <article key={item.id} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-800">{item.title}</p>{item.priority !== 'normal' && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${item.priority === 'urgent' ? 'bg-rose-50 text-rose-800' : 'bg-amber-50 text-amber-800'}`}>{item.priority}</span>}</div><p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-slate-600">{item.body}</p>{item.published_at && <p className="mt-1 text-[10px] text-slate-400">{readableTime(item.published_at)}</p>}</article>)}
+              {announcements.length === 0 && <p className="text-sm leading-6 text-[var(--k-muted)]">No published campus announcements are available.</p>}
+              {announcements.length > 0 && prioritizedAnnouncements.length === 0 && <p className="text-sm leading-6 text-[var(--k-muted)]">No {announcementFilter} announcements are available.</p>}
+              {prioritizedAnnouncements.slice(0, 8).map((item) => <article key={item.id} className="border-b border-[var(--k-border-soft)] pb-3 last:border-0 last:pb-0"><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-[var(--k-ink)]">{item.title}</p>{item.priority !== 'normal' && <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${item.priority === 'urgent' ? 'bg-[var(--k-danger-light)] text-[var(--k-danger)]' : 'bg-[var(--k-warning-light)] text-[var(--k-warning)]'}`}>{item.priority}</span>}</div><p className="mt-1 whitespace-pre-wrap text-xs leading-5 text-[var(--k-muted)]">{item.body}</p>{item.published_at && <p className="mt-1 text-[10px] text-[var(--k-muted)]">{readableTime(item.published_at)}</p>}</article>)}
             </div>
-          </section>
+          </Card>
 
-          <section className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
-            <div className="flex items-center gap-2 text-sky-900"><ShieldCheck size={18} /><p className="text-sm font-bold">Real account, controlled access</p></div>
-            <p className="mt-2 text-xs leading-5 text-sky-900/80">Your posts, likes and comments are saved in Supabase. What you can read is controlled by your confirmed account and database policies.</p>
-            <Link href="/dashboard/profile" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-sky-900 underline underline-offset-2">Review your profile <ArrowRight size={13} /></Link>
-          </section>
+          <Card padded="sm" bordered shadow className="border-[var(--k-accent-light)] bg-[var(--k-accent-light)]">
+            <div className="flex items-center gap-2 text-[var(--k-accent-dark)]"><ShieldCheck size={18} /><p className="text-sm font-bold">Real account, controlled access</p></div>
+            <p className="mt-2 text-xs leading-5 text-[var(--k-ink-soft)]">Your posts, likes and comments are saved in Supabase. What you can read is controlled by your confirmed account and database policies.</p>
+            <Link href="/dashboard/profile" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-[var(--k-accent-dark)] underline underline-offset-2">Review your profile <ArrowRight size={13} /></Link>
+          </Card>
         </aside>
       </div>
     </div>

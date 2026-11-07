@@ -2,12 +2,9 @@
  * Koinelio institution seed configuration.
  *
  * Public facts are summarized from the official/officially linked sources below.
- * The demo community data (profiles, activity, counts, registrations) is synthetic
- * and must never be presented as official IIT Bhilai content.
- *
- * To prepare another institution demo, edit this configuration and the matching
- * source records in docs/IIT_BHILAI_RESEARCH.md. A future multi-institution release
- * should move this data to institution-managed database records with verified admin roles.
+ * This file contains read-only public-source reference content for the Campus Guide.
+ * It is not an official institute feed and must not be presented as an IIT Bhilai notice.
+ * Any institution-managed publishing requires written authorization and trusted database roles.
  */
 export const INSTITUTION_PROFILE = {
   name: 'Indian Institute of Technology Bhilai',
@@ -18,8 +15,8 @@ export const INSTITUTION_PROFILE = {
   overview:
     'IIT Bhilai was established in 2016 by the Ministry of Education and is based at its permanent campus in Kutelabhata, Bhilai, Chhattisgarh.',
   verifiedAsOf: '16 October 2026',
-  demoDisclaimer:
-    'Koinelio is an independent student-built prototype, not operated, endorsed, or approved by IIT Bhilai. Institutional facts link to public sources. Demo profiles, posts, memberships, counts, registrations, and sample activities are fictional.',
+  pilotDisclaimer:
+    'Koinelio is an independently operated campus community pilot. It is not operated, endorsed, or approved by IIT Bhilai. This guide summarizes public institutional sources and is not an official institute notice. Confirm current details with the linked official pages.',
 } as const;
 
 export const INSTITUTIONAL_SOURCES = [
@@ -387,15 +384,15 @@ export const RECURRING_CAMPUS_EVENTS = [
   },
 ] as const;
 
-export const OFFICIAL_UPCOMING_EVENTS = [
+export const OFFICIAL_EVENT_LISTINGS = [
   {
     title: '6th Convocation of IIT Bhilai',
     date: '24 October 2026',
     venue: 'Nalanda Hall, IIT Bhilai, Durg–491002',
-    description: 'The official institute page lists the 6th Convocation for Saturday, 24 October 2026. Check the programme schedule for the current ceremony timing, access and instructions.',
+    description: 'The official institute page listed the 6th Convocation for Saturday, 24 October 2026. This dated record is retained as source history; consult current institute notices for future events.',
     sourceUrl: 'https://www.iitbhilai.ac.in/index.php?pid=convocation',
     scheduleUrl: 'https://www.iitbhilai.ac.in/index.php?pid=convocation_schedule',
-    status: 'Publicly listed by IIT Bhilai; recheck before attending.',
+    status: 'Listed date: 24 October 2026 (past as of 7 November 2026). Check the official website for current notices.',
   },
 ] as const;
 
