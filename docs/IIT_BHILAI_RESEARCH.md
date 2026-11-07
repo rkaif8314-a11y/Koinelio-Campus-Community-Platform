@@ -1,7 +1,7 @@
 # IIT Bhilai public-source research and content provenance
 
-**Reviewed:** 16 October 2026  
-**Purpose:** Record public-source references used by the read-only Koinelio Campus Guide. This is a provenance log, not an instruction to populate live campus features with sample records.  
+**Reviewed:** 16 October 2026
+**Purpose:** Record public-source references used by the read-only Koinelio Campus Guide. This is a provenance log, not an instruction to populate live campus features with sample records.
 **Important:** Koinelio is an independently operated, unofficial campus community pilot. IIT Bhilai has not approved, adopted, or endorsed this software. Do not use institute logos, staff/student identities, institutional email addresses, or wording that implies sponsorship without permission.
 
 ## Data labels

@@ -123,8 +123,8 @@ export default function LandingPage() {
       </nav>
 
       <section className="landing-hero relative overflow-hidden bg-[var(--k-surface-muted)]">
-        
-        
+
+
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)] lg:px-8 lg:py-24">
           <div className="relative z-10">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--k-border)] bg-[var(--k-bg)] px-3.5 py-2 text-xs font-semibold text-[var(--k-ink-soft)] shadow-sm"><span className="h-2 w-2 rounded-full bg-[var(--k-accent)]"/>Built for campus life · IIT Bhilai email-restricted pilot</div>
@@ -143,7 +143,7 @@ export default function LandingPage() {
           </div>
 
           <div className="relative mx-auto w-full max-w-xl">
-            
+
             <div className="relative overflow-hidden rounded-2xl border border-[var(--k-border)] bg-[var(--k-surface)] shadow-[0_26px_80px_rgba(55,64,53,0.13)]">
               <div className="flex items-center justify-between border-b border-[var(--k-border-soft)] bg-[var(--k-surface)] px-4 py-3.5">
                 <div className="flex items-center gap-2.5"><KoinelioLogoMark size={25}/><span className="text-sm font-bold text-[var(--k-ink)]">Koinelio</span></div>

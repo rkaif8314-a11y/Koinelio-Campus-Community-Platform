@@ -119,14 +119,16 @@ test('event registration history cannot be reinserted or deleted through attende
 });
 
 test('event list prevents new registrations after an event starts and preserves existing attendance states', () => {
-  assert.match(eventList, /registrationOpen = event\.status === 'published' && \(eventStart === null \|\| \(Number\.isFinite\(eventStart\) && eventStart > Date\.now\(\)\)\)/);
+  assert.match(eventList, /registrationOpen = event\.status === 'published' && currentTime !== null && \(eventStart === null \|\| \(Number\.isFinite\(eventStart\) && eventStart > currentTime\)\)/);
+  assert.match(eventList, /setCurrentTime\(Date\.now\(\)\)/);
   assert.match(eventList, /Registration closed/);
   assert.match(eventList, /registration\?\.status === 'attended'/);
   assert.match(eventList, /registration\?\.status === 'no_show'/);
 });
 
 test('recruitment hides apply controls after the deadline and rejects credential-bearing or non-HTTPS meeting URLs', () => {
-  assert.match(recruitmentPage, /deadlinePassed = Boolean\(drive\.deadline && new Date\(drive\.deadline\)\.getTime\(\) <= Date\.now\(\)\)/);
+  assert.match(recruitmentPage, /deadlinePassed = currentTime === null \|\| \(deadlineTime !== null && \(!Number\.isFinite\(deadlineTime\) \|\| deadlineTime <= currentTime\)\)/);
+  assert.match(recruitmentPage, /setCurrentTime\(Date\.now\(\)\)/);
   assert.match(recruitmentPage, /The application deadline has passed/);
   assert.match(recruitmentPage, /meetingUrl\.protocol !== 'https:'/);
   assert.match(recruitmentPage, /meetingUrl\.username \|\| meetingUrl\.password/);
